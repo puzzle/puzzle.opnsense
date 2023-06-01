@@ -13,10 +13,10 @@ tags:
 # tags are all lower-case, no spaces, no dashes.
   - opnsense
   - example2
-repository: https://github.com/puzzle/ansible-collection-opnsense/
+repository: https://github.com/puzzle/puzzle.opnsense/
 #documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
-homepage: https://github.com/puzzle/ansible-collection-opnsense/
-issues: https://github.com/puzzle/ansible-collection-opnsense/issues
+homepage: https://github.com/puzzle/puzzle.opnsense/
+issues: https://github.com/puzzle/puzzle.opnsense/issues
 build_ignore:
 # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections_distributing.html#ignoring-files-and-folders
   - .gitignore

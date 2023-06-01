@@ -1,6 +1,6 @@
 # Opnsense Collection for Ansible
 <!-- Add CI and code coverage badges here. Samples included below. -->
-[![CI](https://github.com/puzzle/ansible-collection-opnsense/workflows/CI/badge.svg?event=push)](https://github.com/puzzle/ansible-collection-opnsense/actions) [![Codecov](https://img.shields.io/codecov/c/github/puzzle/ansible-collection-opnsense)](https://codecov.io/gh/puzzle/ansible-collection-opnsense)
+[![CI](https://github.com/puzzle/puzzle.opnsense/workflows/CI/badge.svg?event=push)](https://github.com/puzzle/puzzle.opnsense/actions) [![Codecov](https://img.shields.io/codecov/c/github/puzzle/puzzle.opnsense)](https://codecov.io/gh/puzzle/puzzle.opnsense)
 
 <!-- Describe the collection and why a user would want to use it. What does the collection do? -->
 
@@ -73,38 +73,38 @@ Every voice is important. If you have something on your mind, create an issue or
 
 ## Using this collection
 
-<!--Include some quick examples that cover the most common use cases for your collection content. It can include the following examples of installation and upgrade (change puzzle.ansible-collection-opnsense correspondingly):-->
+<!--Include some quick examples that cover the most common use cases for your collection content. It can include the following examples of installation and upgrade (change puzzle.puzzle.opnsense correspondingly):-->
 
 ### Installing the Collection from Ansible Galaxy
 
 Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
 ```bash
-ansible-galaxy collection install puzzle.ansible-collection-opnsense
+ansible-galaxy collection install puzzle.puzzle.opnsense
 ```
 
 You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
 ```yaml
 ---
 collections:
-  - name: puzzle.ansible-collection-opnsense
+  - name: puzzle.puzzle.opnsense
 ```
 
 Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
 ```bash
-ansible-galaxy collection install puzzle.ansible-collection-opnsense --upgrade
+ansible-galaxy collection install puzzle.puzzle.opnsense --upgrade
 ```
 
 You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version `0.1.0`:
 
 ```bash
-ansible-galaxy collection install puzzle.ansible-collection-opnsense:==0.1.0
+ansible-galaxy collection install puzzle.puzzle.opnsense:==0.1.0
 ```
 
 See [Ansible Using collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
 
 ## Release notes
 
-See the [changelog](https://github.com/puzzle/ansible-collection-opnsense/tree/main/CHANGELOG.rst).
+See the [changelog](https://github.com/puzzle/puzzle.opnsense/tree/main/CHANGELOG.rst).
 
 ## Roadmap
 
