@@ -6,13 +6,13 @@ version: 0.1.0
 readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
-description: null
+  - Fabio Bertagna (github.com/dongiovanni83)
+description: OPNsense collection for Ansible
 license_file: LICENSE
 tags:
 # tags so people can search for collections https://galaxy.ansible.com/search
 # tags are all lower-case, no spaces, no dashes.
   - opnsense
-  - example2
 repository: https://github.com/puzzle/puzzle.opnsense/
 #documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
 homepage: https://github.com/puzzle/puzzle.opnsense/
