@@ -1,0 +1,69 @@
+name: Build and Deploy Doc Page
+
+on:
+  workflow_run:
+    # Run only if extra doc linting workflow passed without error
+    workflows:
+      - "extra_docs_linting"
+    types:
+      - completed
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      LOCAL_TZ: "UTC"
+      TZ: "UTC"
+      ANSIBLE_COLLECTIONS_PATHS: "~/ansible_collections"
+      REPO_DIR: "~/ansible_collections/puzzle/opnsense"
+    steps:
+      - name: Cache apt packages
+        uses: actions/cache@v2
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt.lock') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Cache pip packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Setup Collection Dir
+        run: |
+          mkdir -p ${{ env.REPO_DIR }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.REPO_DIR }}
+
+      - name: Install dependencies
+        run: |
+          apt update && apt install rsync -y
+          python -m pip install ansible antsibull-docs
+
+      - name: Build Docsite
+        run: |
+          cd ${{ env.REPO_DIR }}
+          mkdir --mode 0700 dest
+          antsibull-docs sphinx-init --use-current --dest-dir dest puzzle.opnsense
+          cd dest
+          python -m pip install -r requirements.txt
+          ./build.sh || true
+
+      - name: Upload pages artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: ${{ env.REPO_DIR }}/dest/build
