@@ -72,11 +72,9 @@ the [Ansible Communication guide](https://docs.ansible.com/ansible/devel/communi
 The content of this collection is made by people like you, a community of individuals collaborating on making the world
 better through developing automation software.
 
-We are actively accepting new contributors.
-
 Any kind of contribution is very welcome.
 
-You don't know how to start? Refer to the [Ansible contribution guide](https://docs.ansible.com/ansible/devel/community/index.html)!
+You don't know how to start? A good starting point could be how to [create your first collection pull request](https://docs.ansible.com/ansible/devel/community/create_pr_quick_start.html). You could also refer to the [Ansible contribution guide](https://docs.ansible.com/ansible/devel/community/index.html)!
 
 We use the following guidelines:
 
