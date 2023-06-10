@@ -1,0 +1,89 @@
+name: Build and Deploy Doc Page
+
+on:
+  workflow_run:
+    # Run only if extra doc linting workflow passed without error
+    workflows:
+      - "extra_docs_linting"
+    types:
+      - completed
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      LOCAL_TZ: "UTC"
+      TZ: "UTC"
+    steps:
+      - name: Cache apt packages
+        uses: actions/cache@v2
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt.lock') }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          sudo apt update && sudo apt install rsync -y
+          python -m pip install ansible antsibull-docs
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install collection locally
+        run:
+          ansible-galaxy collection install .
+
+      - name: Build Docsite
+        run: |
+          mkdir --mode 0700 "dest"
+          antsibull-docs sphinx-init --use-current --dest-dir dest puzzle.opnsense
+          cd dest
+          python -m pip install -r requirements.txt
+          ./build.sh || true
+
+      - name: Archive artifact
+        run: |
+          chmod -c -R +rX "${{ github.workspace }}/dest"
+          tar \
+            --dereference --hard-dereference \
+            --directory "${{ github.workspace }}/dest/build/html" \
+            -cvf "${{ github.workspace }}/pages-artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            .
+
+      - name: Upload pages artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: github-pages
+          path: ${{ github.workspace }}/pages-artifact.tar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
