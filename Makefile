@@ -6,3 +6,10 @@ build-doc:
 	cd dest && \
 	pip install -r requirements.txt >/dev/null && ANSIBLE_COLLECTIONS_PATHS=${COLLECTION_PATH} ./build.sh; \
 	echo "\n\nTo view the built doc page visit file://$$PWD/build/html/index.html in a browser of your choice\n\n"
+
+test-unit:
+	pipenv run ansible-test units --coverage --python 3.10
+
+test-coverage-report:
+	pipenv run ansible-test coverage report
+
