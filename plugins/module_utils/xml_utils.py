@@ -4,12 +4,17 @@
 """Utilities for XML operations."""
 from __future__ import (absolute_import, division, print_function)
 
+from typing import Union
 from xml.etree.ElementTree import Element
 
 __metaclass__ = type
 
 
 class XMLUtilsUnsupportedInputFormatError(Exception):
+    pass
+
+
+def _parse_children_from_dict() -> Element:
     pass
 
 
@@ -26,8 +31,12 @@ def dict_to_etree(input_dict: dict) -> Element:
             "xml_utils only support dictionaries using a single root entry."
         )
 
-    tag_name = input_dict_keys[0]
-    value = input_dict[tag_name]
-    new_element = Element(tag_name)
-    new_element.text = value
+    input_tag = input_dict_keys[0]
+    input_content: Union[int, str, list, dict] = input_dict[input_tag]
+
+    if isinstance(input_content, list) or isinstance(input_content, dict):
+        _parse_children_from_dict()
+
+    new_element = Element(input_tag)
+    new_element.text = input_content
     return new_element
