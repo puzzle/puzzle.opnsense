@@ -10,6 +10,9 @@ build-doc:
 test-unit:
 	pipenv run ansible-test units --coverage --python 3.10
 
+test-sanity:
+	pipenv run ansible-test sanity --python 3.10
+
 test-coverage-report:
 	pipenv run ansible-test coverage report
 
