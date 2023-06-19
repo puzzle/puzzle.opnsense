@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
+from unittest import mock
 from xml.etree.ElementTree import Element
 
 import pytest
@@ -41,3 +42,19 @@ def test_dict_to_etree__enforce_single_root_dict() -> None:
     input_dict: dict = {"test_1": 1, "test_2": 2}
     with pytest.raises(xml_utils.XMLUtilsUnsupportedInputFormatError):
         output_etree: Element = xml_utils.dict_to_etree(input_dict)
+
+
+@pytest.mark.parametrize("input_dict", [
+    {"test": 1},
+    {"test": "some_string"},
+    {"test": {"child": "some_string"}},
+    {"test": [{"child_1": 1}]}
+])
+def test_dict_to_etree__invoke_helper_function_when_child_is_list(input_dict) -> None:
+    with mock.patch("ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils._parse_children_from_dict")\
+            as mock_parse_children_from_dict:
+        output_etree: Element = xml_utils.dict_to_etree(input_dict)
+        if isinstance(input_dict.get("test"), list) or isinstance(input_dict.get("test"), dict):
+            mock_parse_children_from_dict.assert_called_once()
+        else:
+            mock_parse_children_from_dict.assert_not_called()
