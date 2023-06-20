@@ -136,4 +136,13 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 
 
 def etree_to_dict(input_etree: Element) -> dict:
+    input_children: list[Element] = list(input_etree)
+    if len(input_children) > 0:
+        new_children: list[dict] = []
+        for child in input_children:
+            new_children.append(etree_to_dict(child))
+
+        if len(new_children) == 1:
+            return {input_etree.tag: new_children[0]}
+        return {input_etree.tag: new_children}
     return {input_etree.tag: input_etree.text}
