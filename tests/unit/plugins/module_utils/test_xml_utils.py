@@ -161,35 +161,11 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
     assert len(output_etree) == 1
     children: list[Element] = list(output_etree[0])
     assert len(children) == 3
-    for actual_etree, expected_data in zip(children, input_list):
-        assert actual_etree.text == (expected_data[actual_etree.tag] or None)
-
-
-def test_dict_to_etree__list_with_dicts_dict_flattening() -> None:
-    """
-    Test converting a list with dictionaries, some of which contain multiple items, to flattened ElementTree.Elements.
-
-    Given a list containing dictionaries, some of which may have multiple items, the function should create a flattened
-    structure of ElementTree.Elements.
-
-    For example:
-    - Input: [{"bar": 1}, {"bar": 2}, {"bar": 3}]
-    - Expected XML:
-        <foo>
-            <bar>1</bar>
-            <bar>2</bar>
-            <bar>3</bar>
-        </foo>
-    """
-    test_tag: str = "foo"
-    input_list: list[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_list)
-
-    assert len(output_etree) == 1
-    children: list[Element] = list(output_etree[0])
-    assert len(children) == 3
+    assert children[0].tag == "bar"
     assert children[0].text == 1
+    assert children[1].tag == "bar"
     assert children[1].text == 2
+    assert children[2].tag == "bar"
     assert children[2].text == 3
 
 
@@ -215,3 +191,28 @@ def test_dict_to_etree__empty_input(input_data: Union[dict, list]) -> None:
     assert output_etree[0].text is None
     assert len(list(output_etree[0])) == 0
 
+
+def test_dict_to_etree__nested_lists() -> None:
+    """
+    Test that when the input dictionary contains nested lists,
+    the function correctly flattens and handles them and generates
+    the corresponding XML elements.
+
+    Example:
+    - Input: {"foo": [[1, 2], [3, 4]]}
+    - Expected Output: <foo>1</foo><foo>2</foo><foo>3</foo><foo>4</foo>
+    """
+    input_dict: dict = {"foo": [[1, 2], [3, 4]]}
+    output_etree: list[Element] = xml_utils.dict_to_etree("test", input_dict)
+
+    assert len(output_etree) == 1
+    assert output_etree[0].tag == "test"
+    children: list[Element] = list(output_etree[0])
+    assert len(children) == 4
+
+    # check that all children have the same tag "foo"
+    assert len(list(filter(lambda child: child.tag == "foo", children))) == 4
+    assert children[0].text == 1
+    assert children[1].text == 2
+    assert children[2].text == 3
+    assert children[3].text == 4

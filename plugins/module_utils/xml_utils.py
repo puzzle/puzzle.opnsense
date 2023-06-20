@@ -26,7 +26,10 @@ def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list
         return [_create_element_from_dict(tag, data)]
 
     elif isinstance(data, list):
-        return _process_list(tag, data)
+        flattened_data = _flatten_list(data)
+        return _process_list(tag, flattened_data)
+
+    raise ValueError("Only values of type int, str, dict or list are supported.")
 
 
 def _create_element(tag: str, data: Optional[Union[int, str]]) -> Element:
@@ -53,9 +56,26 @@ def _create_element_from_dict(tag: str, data: dict) -> Element:
     new_element: Element = Element(tag)
     for key, val in data.items():
         child_elements: list[Element] = dict_to_etree(key, val)
-        for child in child_elements:
-            new_element.append(child)
+
+        new_element.extend(child_elements)
+
     return new_element
+
+
+def _flatten_list(data: list) -> list:
+    """
+    Flattens a nested list.
+
+    :param data: The list to flatten.
+    :return: The flattened list.
+    """
+    flattened_list = []
+    for item in data:
+        if isinstance(item, list):
+            flattened_list.extend(_flatten_list(item))
+        else:
+            flattened_list.append(item)
+    return flattened_list
 
 
 def _process_list(tag: str, data: list) -> list[Element]:
@@ -73,11 +93,8 @@ def _process_list(tag: str, data: list) -> list[Element]:
         return [Element(tag)]
 
     for data_item in data:
-        if isinstance(data_item, (int, str, type(None))):
+        if isinstance(data_item, (int, str, type(None), list)):
             new_items: list[Element] = dict_to_etree(tag, data_item)
-
-            if len(new_items) != 1:
-                raise AssertionError("Primitive or None type must return only a single element")
 
             new_elements.extend(new_items)
 
@@ -90,19 +107,19 @@ def _process_list(tag: str, data: list) -> list[Element]:
     return new_elements
 
 
-def _process_dict_list(tag: str, data_item: dict, root: Optional[Element]) -> Optional[Element]:
+def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> Optional[Element]:
     """
     Processes a dictionary within a list, converting its key-value pairs to ElementTree.Element.
 
     :param tag: The tag for the new elements.
-    :param data_item: The dictionary containing key-value pairs.
+    :param input_dict: The dictionary containing key-value pairs.
     :param root: The root element to append child elements.
     :return: The updated root element.
     """
     if root is None:
         root = Element(tag)
 
-    for key, val in data_item.items():
+    for key, val in input_dict.items():
         child_elements: list[Element] = dict_to_etree(key, val)
         root.extend(child_elements)
 
