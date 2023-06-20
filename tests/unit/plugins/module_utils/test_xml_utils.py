@@ -191,3 +191,27 @@ def test_dict_to_etree__list_with_dicts_dict_flattening() -> None:
     assert children[0].text == 1
     assert children[1].text == 2
     assert children[2].text == 3
+
+
+@pytest.mark.parametrize("input_data", [
+    {},
+    []
+])
+def test_dict_to_etree__empty_input(input_data: Union[dict, list]) -> None:
+    """
+    Test that when an empty dictionary or an empty list is passed as input,
+    the function returns an empty Element with the provided tag.
+
+    Example:
+    - Input: {}
+    - Expected Output: []
+
+    - Input: []
+    - Expected Output: []
+    """
+    output_etree: list[Element] = xml_utils.dict_to_etree("test", input_data)
+    assert len(output_etree) == 1
+    assert output_etree[0].tag == "test"
+    assert output_etree[0].text is None
+    assert len(list(output_etree[0])) == 0
+

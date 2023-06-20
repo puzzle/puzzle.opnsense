@@ -69,6 +69,9 @@ def _process_list(tag: str, data: list) -> list[Element]:
     new_elements: list[Element] = []
     root: Optional[Element] = None
 
+    if len(data) == 0:
+        return [Element(tag)]
+
     for data_item in data:
         if isinstance(data_item, (int, str, type(None))):
             new_items: list[Element] = dict_to_etree(tag, data_item)
