@@ -7,12 +7,17 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
+import xml.etree.ElementTree as ET
 from typing import Union, Optional
 from xml.etree.ElementTree import Element
 
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 
+
+###############################
+# --- Dict to ElementTree --- #
+###############################
 
 @pytest.mark.parametrize("input_data", [
     1,
@@ -216,3 +221,33 @@ def test_dict_to_etree__nested_lists() -> None:
     assert children[1].text == 2
     assert children[2].text == 3
     assert children[3].text == 4
+
+
+###############################
+# --- ElementTree to Dict --- #
+###############################
+
+
+@pytest.fixture
+def etree_root(request: pytest.FixtureRequest) -> Element:
+    """
+    Parameterized fixture, which expects a string in the request.param
+    containing xml formatted text.
+    :param request: pytest fixture request containing xml string.
+    :return: Element
+    """
+    xml_string = request.param
+    tree: ET.ElementTree = ET.ElementTree(ET.fromstring(xml_string))
+    yield tree.getroot()
+
+
+@pytest.mark.parametrize("etree_root", [
+    "<test>1</test>",
+    "<test>some_string</test>",
+    "<test/>"
+], indirect=True)
+def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
+    output_dict: dict = xml_utils.etree_to_dict(etree_root)
+
+    assert output_dict["test"] == etree_root.text
+    assert len(list(output_dict.keys())) == 1

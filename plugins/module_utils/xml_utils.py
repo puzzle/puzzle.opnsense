@@ -11,6 +11,10 @@ from xml.etree.ElementTree import Element
 __metaclass__ = type
 
 
+###############################
+# --- Dict to ElementTree --- #
+###############################
+
 def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list[Element]:
     """
     Converts a Python dictionary to an ElementTree.Element structure.
@@ -124,3 +128,12 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
         root.extend(child_elements)
 
     return root
+
+
+###############################
+# --- ElementTree to Dict --- #
+###############################
+
+
+def etree_to_dict(input_etree: Element) -> dict:
+    return {input_etree.tag: input_etree.text}
