@@ -117,3 +117,49 @@ def test_dict_to_etree__primitive_list(input_data: list) -> None:
 
     for actual_etree, expected_data in zip(output_etree, input_data):
         assert actual_etree.text == expected_data
+
+
+def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
+    """
+    An input list with dict elements must return multiple elements.
+
+    {                                           <foo>
+        "foo" : [                                   <bar>1</bar>
+            {"bar":1},{"bar":2},{"bar":3}   =>      <bar>2</bar>
+        ]                                           <bar>3</bar>
+    }                                           </foo>
+
+    """
+    test_tag: str = "foo"
+    input_list: list[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
+    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_list)
+
+    assert len(output_etree) == 1
+    children: list[Element] = list(output_etree[0])
+    assert len(children) == 3
+    for actual_etree, expected_data in zip(children, input_list):
+        assert actual_etree.text == (expected_data[actual_etree.tag] or None)
+
+
+def test_dict_to_etree__list_with_dicts_dict_flattening() -> None:
+    """
+    An input list with dict of which some could contain multiple items,
+    must return a flattened xml structure.
+
+    {                                           <foo>
+        "foo" : [                                   <bar>1</bar>
+            {"bar":1},{"bob":2, "cat":3}    =>      <bob>2</bob>
+        ]                                           <cat>3</cat>
+    }                                           </foo>
+
+    """
+    test_tag: str = "foo"
+    input_list: list[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
+    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_list)
+
+    assert len(output_etree) == 1
+    children: list[Element] = list(output_etree[0])
+    assert len(children) == 3
+    assert children[0].text == 1
+    assert children[1].text == 2
+    assert children[2].text == 3

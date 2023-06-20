@@ -14,31 +14,6 @@ def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list
     """
     Generates a python dictionary to an ElementTree.Element.
 
-                            <foo>1</foo>
-    { "foo" : [1,2,3] } =>  <foo>2</foo>
-                            <foo>3</foo>
-
-    {                                           <foo>
-        "foo" : [                                   <bar>1</bar>
-            {"bar":1},{"bar":2},{"bar":3}   =>      <bar>2</bar>
-        ]                                           <bar>3</bar>
-    }                                           </foo>
-
-
-    {                                           <foo>
-        "foo" : [                                   <bar>1</bar>
-            {"bar":1},{"bob":2},{"cat":3}   =>      <bob>2</bob>
-        ]                                           <cat>3</cat>
-    }                                           </foo>
-
-    {
-        "foo" : [
-            1,
-            { "bar": 2 },
-            [ 3,4,5 ],
-            [{ "bob": 2 },{ "bob": 2 },{ "bob": 2 }]
-
-    }
     :param tag: root element tag
     :param data: root element children structure data
     :return: generated ElementTree.Element
@@ -59,8 +34,28 @@ def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list
 
     elif isinstance(data, list):
         new_elements: list[Element] = []
+        root: Optional[Element] = None
+
         for data_item in data:
-            new_items: list[Element] = dict_to_etree(tag, data_item)
-            for item in new_items:
-                new_elements.append(item)
+            # primitive list elements
+            if isinstance(data_item, int) or isinstance(data_item, str) or data_item is None:
+                new_items: list[Element] = dict_to_etree(tag, data_item)
+
+                if len(new_items) != 1:
+                    raise AssertionError("Primitive or None type must return only a single element")
+
+                for item in new_items:
+                    new_elements.append(item)
+
+            # dict list elements
+            elif isinstance(data_item, dict):
+                if root is None:
+                    root = Element(tag)
+                for key, val in data_item.items():
+                    child_elements: list[Element] = dict_to_etree(key, val)
+                    for child in child_elements:
+                        root.append(child)
+
+        if root is not None:
+            new_elements.append(root)
         return new_elements
