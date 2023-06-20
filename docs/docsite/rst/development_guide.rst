@@ -25,8 +25,8 @@ Ansible documentation (`Prepare your environment
 1. Create a fork of the repository to work on:
    https://github.com/puzzle/puzzle.opnsense/fork
 2. Create a local collection directory from which you will develop the
-   collection. The cloned repository must be in a destination following this
-   path structure: ``<YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense``.
+   collection. **The cloned repository must be cloned into a folder following this
+   path structure:** ``<YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense``.
    Therefore you could clone your fork like this:
    
    .. code-block:: shell-session
@@ -34,7 +34,8 @@ Ansible documentation (`Prepare your environment
     git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense \
        <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense
 
-3. Setup the pipenv:
+3. Python 3.10 is used in this pipenv, therefore make sure you have this version on your system.
+4. Setup the pipenv:
 
    .. code-block:: shell-session
    
