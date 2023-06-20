@@ -247,6 +247,16 @@ def etree_root(request: pytest.FixtureRequest) -> Element:
     "<test/>"
 ], indirect=True)
 def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
+    """
+    Test converting an ElementTree.Element containing a primitive value to a dictionary.
+
+    Given an ElementTree.Element with a single tag and a text content representing a primitive value,
+    the function should convert it into a dictionary with the tag as the key and the text content as the value.
+
+    Example:
+    - Input: <test>1</test>
+    - Expected Output: {"test": "1"}
+    """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
     assert output_dict["test"] == etree_root.text
@@ -257,7 +267,18 @@ def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
     "<foo><bar>1</bar></foo>",
     "<foo><bar>some_string</bar></foo>",
 ], indirect=True)
-def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
+def test_etree_to_dict__simple_children(etree_root: Element) -> None:
+    """
+    Test converting a simple ElementTree.Element with child elements to a dictionary.
+
+    Given an ElementTree.Element with a single tag and one or more child elements,
+    the function should convert it into a dictionary with the tag as the key and a nested dictionary
+    representing the child elements.
+
+    Example:
+    - Input: <foo><bar>1</bar></foo>
+    - Expected Output: {"foo": {"bar": "1"}}
+    """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
     assert isinstance(output_dict["foo"], dict)
@@ -273,6 +294,17 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     "<foo><bar>test</bar><bob>cat</bob></foo>",
 ], indirect=True)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
+    """
+    Test converting an ElementTree.Element with multiple child elements of the same tag to a list in the dictionary.
+
+    Given an ElementTree.Element with a single tag and multiple child elements of the same tag,
+    the function should convert it into a dictionary with the tag as the key and a list of values representing
+    the child elements.
+
+    Example:
+    - Input: <foo><bar>1</bar><bar>2</bar><bar>3</bar></foo>
+    - Expected Output: {"foo": [{ "bar" : 1 }, {"bar": 2 }, {"bar" :3 }]}
+    """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
     assert isinstance(output_dict["foo"], list)

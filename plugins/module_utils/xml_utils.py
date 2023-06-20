@@ -136,6 +136,12 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 
 
 def etree_to_dict(input_etree: Element) -> dict:
+    """
+    Converts an ElementTree.Element structure to a Python dictionary.
+
+    :param input_etree: Input ElementTree.Element.
+    :return: The generated dict.
+    """
     input_children: list[Element] = list(input_etree)
     if len(input_children) > 0:
         new_children: list[dict] = []
