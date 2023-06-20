@@ -4,39 +4,55 @@
 """Utilities for XML operations."""
 from __future__ import (absolute_import, division, print_function)
 
-from typing import Union
+from typing import Union, Optional
 from xml.etree.ElementTree import Element
 
 __metaclass__ = type
 
 
-class XMLUtilsUnsupportedInputFormatError(Exception):
-    pass
-
-
-def _parse_children_from_dict() -> Element:
-    pass
-
-
-def dict_to_etree(input_dict: dict) -> Element:
+def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list[Element]:
     """
     Generates a python dictionary to an ElementTree.Element.
-    :param input_dict: dictionary with input data
+
+                            <foo>1</foo>
+    { "foo" : [1,2,3] } =>  <foo>2</foo>
+                            <foo>3</foo>
+
+    {                                           <foo>
+        "foo" : [                                   <bar>1</bar>
+            {"bar":1},{"bar":2},{"bar":3}   =>      <bar>2</bar>
+        ]                                           <bar>3</bar>
+    }                                           </foo>
+
+
+    {                                           <foo>
+        "foo" : [                                   <bar>1</bar>
+            {"bar":1},{"bob":2},{"cat":3}   =>      <bob>2</bob>
+        ]                                           <cat>3</cat>
+    }                                           </foo>
+
+    {
+        "foo" : [
+            1,
+            { "bar": 2 },
+            [ 3,4,5 ],
+            [{ "bob": 2 },{ "bob": 2 },{ "bob": 2 }]
+
+    }
+    :param tag: root element tag
+    :param data: root element children structure data
     :return: generated ElementTree.Element
     """
-    input_dict_keys = list(input_dict.keys())
+    if isinstance(data, int) or isinstance(data, str) or data is None:
+        new_element: Element = Element(tag)
+        new_element.text = data
+        return [new_element]
 
-    if len(input_dict_keys) > 1:
-        raise XMLUtilsUnsupportedInputFormatError(
-            "xml_utils only support dictionaries using a single root entry."
-        )
+    elif isinstance(data, dict):
+        new_element: Element = Element(tag)
+        for key, val in data.items():
+            child_elements: list[Element] = dict_to_etree(key, val)
+            for child in child_elements:
+                new_element.append(child)
 
-    input_tag = input_dict_keys[0]
-    input_content: Union[int, str, list, dict] = input_dict[input_tag]
-
-    if isinstance(input_content, list) or isinstance(input_content, dict):
-        _parse_children_from_dict()
-
-    new_element = Element(input_tag)
-    new_element.text = input_content
-    return new_element
+        return [new_element]
