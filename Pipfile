@@ -17,6 +17,7 @@ pyyaml = "*"
 # See https://github.com/ansible/ansible/blob/devel/test/lib/ansible_test/_data/requirements/ansible-test.txt
 # for version compatibility
 coverage = "==6.5.0"
+antsibull-docs = "*"
 
 [requires]
 python_version = "3.10"
