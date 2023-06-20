@@ -32,7 +32,7 @@ Ansible documentation (`Prepare your environment
    .. code-block:: shell-session
 
     git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense \
-       <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense`
+       <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense
 
 3. Setup the pipenv:
 
