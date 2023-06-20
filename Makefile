@@ -16,3 +16,4 @@ test-sanity:
 test-coverage-report:
 	pipenv run ansible-test coverage report
 
+test: test-sanity test-unit test-coverage-report
