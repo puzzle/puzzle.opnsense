@@ -56,3 +56,11 @@ def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list
                 new_element.append(child)
 
         return [new_element]
+
+    elif isinstance(data, list):
+        new_elements: list[Element] = []
+        for data_item in data:
+            new_items: list[Element] = dict_to_etree(tag, data_item)
+            for item in new_items:
+                new_elements.append(item)
+        return new_elements

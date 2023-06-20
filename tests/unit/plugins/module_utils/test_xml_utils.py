@@ -75,7 +75,7 @@ def test_dict_to_etree__dict_recursion() -> None:
     test_tag: str = "foo"
     input_dict: dict = {"bar": {"test": 1, "john": {"doe": 1}}}
 
-    output_etree = xml_utils.dict_to_etree(test_tag, input_dict)
+    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_dict)
 
     assert len(output_etree) == 1
     assert output_etree[0].tag == test_tag
@@ -94,3 +94,26 @@ def test_dict_to_etree__dict_recursion() -> None:
     assert len(children) == 1
     assert children[0].tag == "doe"
     assert children[0].text == 1
+
+
+@pytest.mark.parametrize("input_data", [
+    [1, 2, 3, 4],
+    ["a", "b", "c", "d"]
+])
+def test_dict_to_etree__primitive_list(input_data: list) -> None:
+    """
+    A primitive input list (int/str) must return multiple elements.
+
+                            <foo>1</foo>
+    { "foo" : [1,2,3] } =>  <foo>2</foo>
+                            <foo>3</foo>
+
+    """
+    test_tag: str = "foo"
+
+    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_data)
+
+    assert len(output_etree) == len(input_data)
+
+    for actual_etree, expected_data in zip(output_etree, input_data):
+        assert actual_etree.text == expected_data
