@@ -1,4 +1,4 @@
-COLLECTION_PATH=~/ansible_collections:~/.ansible/collections:/usr/share/ansible/collections
+COLLECTION_PATH=$(realpath ../../../):~/.ansible/collections:/usr/share/ansible/collections
 
 build-doc:
 	rm -rf dest && mkdir --mode 0700 dest && \
