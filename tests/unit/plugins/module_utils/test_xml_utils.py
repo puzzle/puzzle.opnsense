@@ -12,7 +12,7 @@ from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 import pytest
-from plugins.module_utils import xml_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 
 
 ###############################
