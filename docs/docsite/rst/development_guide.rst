@@ -128,3 +128,34 @@ directory structure like this:
 For further details regarding the ansible collection path configuration see the
 documentation. (`Ansible Collection Path Doc
 <https://docs.ansible.com/ansible/latest/reference_appendices/config.html#collections-paths>`__)
+
+
+Reviewing Code
+=================
+
+Prerequisite for a successful review is to have setup your environment according
+to the section *Local Setup*. To review changes of other contributors use these
+steps as a review guideline:
+
+1. Check out the new branch
+
+   .. code-block::
+
+    git checkout feature/something-new
+
+2. If documentation has been added, build the site and check it locally:
+
+   .. code-block::
+
+    make build-doc
+
+   Open the newly created docsite located in ``./dest/build/html/index.html`` and
+   review the changes.
+
+3. Run all tests locally:
+
+   .. code-block::
+
+    make test
+
+4. Comment results directly in the Github PR.
