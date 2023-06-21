@@ -5,7 +5,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Dict, Set
 from xml.etree.ElementTree import Element
 
 __metaclass__ = type
@@ -134,7 +134,6 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 # --- ElementTree to Dict --- #
 ###############################
 
-
 def etree_to_dict(input_etree: Element) -> dict:
     """
     Converts an ElementTree.Element structure to a Python dictionary.
@@ -143,12 +142,27 @@ def etree_to_dict(input_etree: Element) -> dict:
     :return: The generated dict.
     """
     input_children: List[Element] = list(input_etree)
-    if len(input_children) > 0:
-        new_children: list[dict] = []
-        for child in input_children:
-            new_children.append(etree_to_dict(child))
 
-        if len(new_children) == 1:
-            return {input_etree.tag: new_children[0]}
-        return {input_etree.tag: new_children}
-    return {input_etree.tag: input_etree.text}
+    # input element has no children, so it is a 'primitive' element
+    # with just a tag and a content.
+    if len(input_children) == 0:
+        return {input_etree.tag: input_etree.text}
+
+    unique_input_tags: Set[str] = set([input_child.tag for input_child in input_etree])
+
+    # if any group has more than one sub element a list must be constructed
+    if len(unique_input_tags) != len(input_children):
+        child_list: list = []
+        for child in input_children:
+            child_list.append(etree_to_dict(child))
+        return {input_etree.tag: child_list}
+
+    # here all children have a unique tag, therefore a dict will be built
+    child_dict: dict = {}
+
+    for child in input_children:
+        sub = etree_to_dict(child)
+
+        child_dict = {**child_dict, **sub}
+
+    return {input_etree.tag: child_dict}

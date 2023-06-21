@@ -12,7 +12,7 @@ from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 import pytest
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
+from plugins.module_utils import xml_utils
 
 
 ###############################
@@ -160,7 +160,7 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
         </foo>
     """
     test_tag: str = "foo"
-    input_list: list[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
+    input_list: List[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
     output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_list)
 
     assert len(output_etree) == 1
@@ -260,7 +260,7 @@ def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
     assert output_dict["test"] == etree_root.text
-    assert len(list(output_dict.keys())) == 1
+    assert len(output_dict) == 1
 
 
 @pytest.mark.parametrize("etree_root", [
@@ -282,7 +282,7 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
     assert isinstance(output_dict["foo"], dict)
-    assert len(list(output_dict.keys())) == len(list(etree_root))
+    assert len(output_dict) == len(list(etree_root))
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
@@ -290,8 +290,8 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
 
 
 @pytest.mark.parametrize("etree_root", [
-    "<foo><bar>1</bar><bob>2</bob></foo>",
-    "<foo><bar>test</bar><bob>cat</bob></foo>",
+    "<foo><bar>1</bar><bar>2</bar></foo>",
+    "<foo><bar>test</bar><bar>cat</bar></foo>",
 ], indirect=True)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     """
@@ -313,3 +313,34 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     input_children: List[Element] = list(etree_root)
     for child in input_children:
         assert any(list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"])))
+
+
+@pytest.mark.parametrize("etree_root", [
+    "<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"
+], indirect=True)
+def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
+    """
+    Test converting an ElementTree.Element structure to a nested dictionary.
+
+    Given an ElementTree.Element with a single tag and multiple child elements of different tags,
+    the function should convert it into a dictionary with the tags as the keys each containing
+    the corresponding substructures as dict.
+
+    Example:
+    - Input: <foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>
+    - Expected Output: {"foo": { "bar" : { "bob" : 1, "cat": 2 }, "john" : { "bob" : 1, "cat": 2 }}}
+    """
+    output_dict: dict = xml_utils.etree_to_dict(etree_root)
+
+    # foo should be a dict with two elements
+    assert isinstance(output_dict["foo"], dict)
+
+    # check "bar" : { "bob" : 1, "cat": 2 }
+    for child_key in ["bar", "john"]:
+        assert child_key in output_dict["foo"].keys()
+
+        child_dict: dict = output_dict["foo"][child_key]
+        assert "bob" in child_dict.keys()
+        assert child_dict["bob"] is not None
+        assert "cat" in list(child_dict.keys())
+        assert child_dict["cat"] is not None

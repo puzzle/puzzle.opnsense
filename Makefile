@@ -12,6 +12,10 @@ build-doc:
 test-unit:
 	pipenv run ansible-test units --coverage --docker
 
+# runs a little faster because only one version is checked
+test-unit-dev:
+	pipenv run ansible-test units --coverage --python 3.10
+
 test-sanity:
 	pipenv run ansible-test sanity --docker
 
