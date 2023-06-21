@@ -32,8 +32,8 @@ def test_dict_to_etree__primitive_values(input_data: Optional[Union[int, str]]) 
     and set the text content of the element to the input value.
 
     For example:
-    - Input: 1
-    - Expected XML: <test>1</test>
+    - Input: tag: foo, dict: 1
+    - Expected XML: <foo>1</foo>
     """
     test_tag: str = "test"
     output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_data)
@@ -56,8 +56,8 @@ def test_dict_to_etree__tags_on_simple_dicts(input_data: dict) -> None:
     and add child elements for each key-value pair in the dictionary.
 
     For example:
-    - Input: {"test": 1}
-    - Expected XML: <test>1</test>
+    - Input: tag: foo, dict: {"test": 1}
+    - Expected XML: <foo><test>1</test></foo>
     """
     test_tag: str = "test"
     output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_data)
@@ -79,7 +79,7 @@ def test_dict_to_etree__dict_recursion() -> None:
     with the corresponding tags and values.
 
     For example:
-    - Input: {"bar": {"test": 1, "john": {"doe": 1}}}
+    - Input: tag: foo, dict: {"bar": {"test": 1, "john": {"doe": 1}}}
     - Expected XML:
         <foo>
             <bar>
@@ -126,7 +126,7 @@ def test_dict_to_etree__primitive_list(input_data: list) -> None:
     each with the given tag and corresponding value.
 
     For example:
-    - Input: [1, 2, 3, 4]
+    - Input: tag: foo, dict: [1, 2, 3, 4]
     - Expected XML:
         <foo>1</foo>
         <foo>2</foo>
@@ -151,7 +151,7 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
     each representing the corresponding dictionary or sub-list.
 
     For example:
-    - Input: [{"bar": 1}, {"bar": 2}, {"bar": 3}]
+    - Input: tag: foo, dict: [{"bar": 1}, {"bar": 2}, {"bar": 3}]
     - Expected XML:
         <foo>
             <bar>1</bar>
@@ -184,11 +184,11 @@ def test_dict_to_etree__empty_input(input_data: Union[dict, list]) -> None:
     the function returns an empty Element with the provided tag.
 
     Example:
-    - Input: {}
-    - Expected Output: []
+    - Input: tag: foo, dict: {}
+    - Expected Output: <foo/>
 
-    - Input: []
-    - Expected Output: []
+    - Input: tag: foo, dict: []
+    - Expected Output: <foo/>
     """
     output_etree: List[Element] = xml_utils.dict_to_etree("test", input_data)
     assert len(output_etree) == 1
@@ -204,8 +204,14 @@ def test_dict_to_etree__nested_lists() -> None:
     the corresponding XML elements.
 
     Example:
-    - Input: {"foo": [[1, 2], [3, 4]]}
-    - Expected Output: <foo>1</foo><foo>2</foo><foo>3</foo><foo>4</foo>
+    - Input: tag: test, dict: {"foo": [[1, 2], [3, 4]]}
+    - Expected Output:
+        <test>
+            <foo>1</foo>
+            <foo>2</foo>
+            <foo>3</foo>
+            <foo>4</foo>
+        </test>
     """
     input_dict: dict = {"foo": [[1, 2], [3, 4]]}
     output_etree: List[Element] = xml_utils.dict_to_etree("test", input_dict)
@@ -302,7 +308,12 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     the child elements.
 
     Example:
-    - Input: <foo><bar>1</bar><bar>2</bar><bar>3</bar></foo>
+    - Input:
+        <foo>
+            <bar>1</bar>
+            <bar>2</bar>
+            <bar>3</bar>
+        </foo>
     - Expected Output: {"foo": [{ "bar" : 1 }, {"bar": 2 }, {"bar" :3 }]}
     """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
@@ -323,12 +334,28 @@ def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
     Test converting an ElementTree.Element structure to a nested dictionary.
 
     Given an ElementTree.Element with a single tag and multiple child elements of different tags,
-    the function should convert it into a dictionary with the tags as the keys each containing
-    the corresponding substructures as dict.
+    the function should convert it into a dictionary containing a sub dictionary with the
+    corresponding structures.
 
     Example:
-    - Input: <foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>
-    - Expected Output: {"foo": { "bar" : { "bob" : 1, "cat": 2 }, "john" : { "bob" : 1, "cat": 2 }}}
+    - Input:
+        <foo>
+            <bar>
+                <bob>1</bob>
+                <cat>2</cat>
+            </bar>
+            <john>
+                <bob>3</bob>
+                <cat>4</cat>
+            </john>
+        </foo>
+    - Expected Output:
+        {
+            "foo": {
+                "bar" : { "bob" : 1, "cat": 2 },
+                "john" : { "bob" : 1, "cat": 2 }
+            }
+        }
     """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
 
