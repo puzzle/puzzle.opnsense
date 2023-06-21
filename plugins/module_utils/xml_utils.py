@@ -5,7 +5,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 
-from typing import Union, Optional
+from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 __metaclass__ = type
@@ -15,7 +15,7 @@ __metaclass__ = type
 # --- Dict to ElementTree --- #
 ###############################
 
-def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> list[Element]:
+def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> List[Element]:
     """
     Converts a Python dictionary to an ElementTree.Element structure.
 
@@ -59,7 +59,7 @@ def _create_element_from_dict(tag: str, data: dict) -> Element:
     """
     new_element: Element = Element(tag)
     for key, val in data.items():
-        child_elements: list[Element] = dict_to_etree(key, val)
+        child_elements: List[Element] = dict_to_etree(key, val)
 
         new_element.extend(child_elements)
 
@@ -82,7 +82,7 @@ def _flatten_list(data: list) -> list:
     return flattened_list
 
 
-def _process_list(tag: str, data: list) -> list[Element]:
+def _process_list(tag: str, data: list) -> List[Element]:
     """
     Processes a list by iterating over its elements and converting them to ElementTree.Element.
 
@@ -90,7 +90,7 @@ def _process_list(tag: str, data: list) -> list[Element]:
     :param data: The list of elements to process.
     :return: The list of generated ElementTree.Element.
     """
-    new_elements: list[Element] = []
+    new_elements: List[Element] = []
     root: Optional[Element] = None
 
     if len(data) == 0:
@@ -98,7 +98,7 @@ def _process_list(tag: str, data: list) -> list[Element]:
 
     for data_item in data:
         if isinstance(data_item, (int, str, type(None), list)):
-            new_items: list[Element] = dict_to_etree(tag, data_item)
+            new_items: List[Element] = dict_to_etree(tag, data_item)
 
             new_elements.extend(new_items)
 
@@ -124,7 +124,7 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
         root = Element(tag)
 
     for key, val in input_dict.items():
-        child_elements: list[Element] = dict_to_etree(key, val)
+        child_elements: List[Element] = dict_to_etree(key, val)
         root.extend(child_elements)
 
     return root
@@ -142,7 +142,7 @@ def etree_to_dict(input_etree: Element) -> dict:
     :param input_etree: Input ElementTree.Element.
     :return: The generated dict.
     """
-    input_children: list[Element] = list(input_etree)
+    input_children: List[Element] = list(input_etree)
     if len(input_children) > 0:
         new_children: list[dict] = []
         for child in input_children:

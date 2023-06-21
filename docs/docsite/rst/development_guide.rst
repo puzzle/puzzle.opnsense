@@ -34,7 +34,8 @@ Ansible documentation (`Prepare your environment
     git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense \
        <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense
 
-3. Python 3.10 is used in this pipenv, therefore make sure you have this version on your system.
+3. This collection supports Python versions >=3.6 therefore make sure your system
+   supports any of those versions.
 4. Setup the pipenv:
 
    .. code-block:: shell-session
@@ -78,7 +79,11 @@ provides further reference regarding collection structure guidelines.
 Testing Your Code
 =================
 
-These steps require for the local pipenv to be set up.
+These steps require for the local pipenv to be set up. In addition to the pipenv
+it is required to have **docker** installed as well. This is required by
+``ansible-test`` such that all sanity and unit tests can be run in docker
+environments against all supported Python versions configured in
+``tests/config.yml``.
 
 Local Unit Tests
 ----------------
