@@ -1,0 +1,4 @@
+---
+# ansible-test configurations
+modules:
+  python_requires: ">=3.6"

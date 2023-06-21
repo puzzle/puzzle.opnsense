@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import xml.etree.ElementTree as ET
-from typing import Union, Optional
+from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 import pytest
@@ -36,7 +36,7 @@ def test_dict_to_etree__primitive_values(input_data: Optional[Union[int, str]]) 
     - Expected XML: <test>1</test>
     """
     test_tag: str = "test"
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_data)
+    output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_data)
 
     assert len(output_etree) == 1
     assert output_etree[0].tag == test_tag
@@ -60,8 +60,8 @@ def test_dict_to_etree__tags_on_simple_dicts(input_data: dict) -> None:
     - Expected XML: <test>1</test>
     """
     test_tag: str = "test"
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_data)
-    output_children: list[Element] = list(output_etree[0])
+    output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_data)
+    output_children: List[Element] = list(output_etree[0])
 
     assert len(output_etree) == 1
     assert output_etree[0].tag == test_tag
@@ -93,12 +93,12 @@ def test_dict_to_etree__dict_recursion() -> None:
     test_tag: str = "foo"
     input_dict: dict = {"bar": {"test": 1, "john": {"doe": 1}}}
 
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_dict)
+    output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_dict)
 
     assert len(output_etree) == 1
     assert output_etree[0].tag == test_tag
     assert output_etree[0].text is None
-    children: list[Element] = list(output_etree[0])
+    children: List[Element] = list(output_etree[0])
     assert len(children) == 1
     assert children[0].tag == "bar"
     assert children[0].text is None
@@ -135,7 +135,7 @@ def test_dict_to_etree__primitive_list(input_data: list) -> None:
     """
     test_tag: str = "foo"
 
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_data)
+    output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_data)
 
     assert len(output_etree) == len(input_data)
 
@@ -161,10 +161,10 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
     """
     test_tag: str = "foo"
     input_list: list[dict] = [{"bar": 1}, {"bar": 2}, {"bar": 3}]
-    output_etree: list[Element] = xml_utils.dict_to_etree(test_tag, input_list)
+    output_etree: List[Element] = xml_utils.dict_to_etree(test_tag, input_list)
 
     assert len(output_etree) == 1
-    children: list[Element] = list(output_etree[0])
+    children: List[Element] = list(output_etree[0])
     assert len(children) == 3
     assert children[0].tag == "bar"
     assert children[0].text == 1
@@ -190,7 +190,7 @@ def test_dict_to_etree__empty_input(input_data: Union[dict, list]) -> None:
     - Input: []
     - Expected Output: []
     """
-    output_etree: list[Element] = xml_utils.dict_to_etree("test", input_data)
+    output_etree: List[Element] = xml_utils.dict_to_etree("test", input_data)
     assert len(output_etree) == 1
     assert output_etree[0].tag == "test"
     assert output_etree[0].text is None
@@ -208,11 +208,11 @@ def test_dict_to_etree__nested_lists() -> None:
     - Expected Output: <foo>1</foo><foo>2</foo><foo>3</foo><foo>4</foo>
     """
     input_dict: dict = {"foo": [[1, 2], [3, 4]]}
-    output_etree: list[Element] = xml_utils.dict_to_etree("test", input_dict)
+    output_etree: List[Element] = xml_utils.dict_to_etree("test", input_dict)
 
     assert len(output_etree) == 1
     assert output_etree[0].tag == "test"
-    children: list[Element] = list(output_etree[0])
+    children: List[Element] = list(output_etree[0])
     assert len(children) == 4
 
     # check that all children have the same tag "foo"
@@ -284,7 +284,7 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
     assert isinstance(output_dict["foo"], dict)
     assert len(list(output_dict.keys())) == len(list(etree_root))
 
-    input_children: list[Element] = list(etree_root)
+    input_children: List[Element] = list(etree_root)
     for child in input_children:
         assert child.tag in list(output_dict["foo"].keys())
 
@@ -310,6 +310,6 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     assert isinstance(output_dict["foo"], list)
     assert len(output_dict["foo"]) == len(list(etree_root))
 
-    input_children: list[Element] = list(etree_root)
+    input_children: List[Element] = list(etree_root)
     for child in input_children:
         assert any(list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"])))
