@@ -137,11 +137,19 @@ Prerequisite for a successful review is to have setup your environment according
 to the section *Local Setup*. To review changes of other contributors use these
 steps as a review guideline:
 
-1. Check out the new branch
+1. Clone the Fork or add it as a new remote:
 
    .. code-block::
+    git remote add NEW_REMOTE_NAME REMOTE_URL
+    git checkout NEW_REMOTE_NAME/BRANCH_NAME
 
-    git checkout feature/something-new
+   For example checking out the branch ``feature/review-guide`` of the fork
+   ``dongiovanni83/puzzle.opnsense`` you would use this workflow:
+
+   .. code-block::
+    git remote add dongiovanni83 git@github.com:dongiovanni83/puzzle.opnsense.git
+    git checkout dongiovanni83/feature/review-guide
+
 
 2. If documentation has been added, build the site and check it locally:
 
@@ -158,4 +166,4 @@ steps as a review guideline:
 
     make test
 
-4. Comment results directly in the Github PR.
+4. Comment your Feedback directly in the Github PR.
