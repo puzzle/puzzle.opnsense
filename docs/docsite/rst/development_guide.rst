@@ -75,6 +75,36 @@ The official Ansible Documentation (`Collection Structure
 <https://docs.ansible.com/ansible/latest/dev_guide/developing_collections_structure.html#collection-structure>`__)
 provides further reference regarding collection structure guidelines.
 
+Using the OPNsense config XML in plugins
+----------------------------------------
+The `OPNsenseConfig` utility module provides a convenient way to interact with
+the OPNsense config file `/conf/config.xml` in Ansible plugins. It offers a
+context manager that simplifies accessing, modifying, and managing configuration
+values.
+
+When working with Ansible plugins that require reading or updating configuration
+settings in the OPNsense config file, the `OPNsenseConfig` utility can be used
+to streamline the process. It abstracts away the complexities of parsing and
+manipulating XML, allowing developers to focus on the specific configuration
+logic.
+
+Example
+~~~~~~~
+
+Here's an example of how to use the `OPNsenseConfig` utility:
+
+.. code-block:: python
+
+    from ansible_collections.puzzle.opnsense.plugins.module_utils import OPNsenseConfig
+
+    ...
+
+    with OPNsenseConfig() as config:
+        value = config["key"]  # Access a configuration value
+        config["key"] = new_value  # Modify a configuration value
+        del config["key"]  # Delete a configuration value
+        config.save()  # Save changes
+
 
 Testing Your Code
 =================
