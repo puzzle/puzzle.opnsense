@@ -7,6 +7,7 @@ readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
   - Fabio Bertagna (github.com/dongiovanni83)
+  - Philipp Matti (github.com/acteru)
 description: OPNsense collection for Ansible
 license_file: LICENSE
 tags:

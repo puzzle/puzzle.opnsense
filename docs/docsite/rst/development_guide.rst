@@ -28,7 +28,7 @@ Ansible documentation (`Prepare your environment
    collection. **The cloned repository must be cloned into a folder following this
    path structure:** ``<YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense``.
    Therefore you could clone your fork like this:
-   
+
    .. code-block:: shell-session
 
     git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense \
@@ -39,7 +39,7 @@ Ansible documentation (`Prepare your environment
 4. Setup the pipenv:
 
    .. code-block:: shell-session
-   
+
     pipenv install --dev
 
 Your environment is now set up for local development and testing.
@@ -71,7 +71,7 @@ Reusable code and utilities must be added in the ``module_utils`` directory.
 When these utils are needed e.g. in modules they must be imported using the
 FQCN e.g. ``from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import XMLParser``.
 
-The official Ansible Documentation (`Collection Structure 
+The official Ansible Documentation (`Collection Structure
 <https://docs.ansible.com/ansible/latest/dev_guide/developing_collections_structure.html#collection-structure>`__)
 provides further reference regarding collection structure guidelines.
 
@@ -105,6 +105,60 @@ Here's an example of how to use the `OPNsenseConfig` utility:
         del config["key"]  # Delete a configuration value
         config.save()  # Save changes
 
+Using Vagrant
+=============
+
+Run ansible directlyagainst a running instance of opnsense with Vagrant.
+For this to work it is required to have **vagrant** installed alongside with **virtualbox**.
+
+.. code-block::
+
+    Vagrant.configure(2) do |config|
+      config.vm.guest = :freebsd
+      config.vm.boot_timeout = 600
+
+      config.vm.box = "puzzle/opnsense"
+      config.vm.communicator = 'ssh'
+
+      config.ssh.sudo_command = "%c"
+      config.ssh.shell = "/bin/sh"
+
+      config.vm.provider 'virtualbox' do |vb|
+        vb.memory = 1024
+        vb.cpus = 1
+        vb.gui = false
+        vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']
+        vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']
+        vb.customize ['modifyvm', :id, '--nicpromisc4', 'allow-all']
+      end
+
+      config.vm.network :forwarded_port, guest: 443, host: 10443, auto_correct: true
+      config.vm.network "private_network", adapter: 2, virtualbox__intnet: true, auto_config: false
+      config.vm.network "private_network", adapter: 3, virtualbox__intnet: true, auto_config: false
+      config.vm.network "private_network", adapter: 4, virtualbox__intnet: true, auto_config: false
+
+      config.vm.provision "ansible" do |ansible|
+        ansible.playbook = "playbook.yml"
+      end
+    end
+
+Start up the vm
+
+.. code-block::
+
+    vagrant up
+
+Apply any changes made, while using the vm
+
+.. code-block::
+
+   vagrant provision
+
+Stop the current vm
+
+.. code-block::
+
+   vagrant down
 
 Testing Your Code
 =================
