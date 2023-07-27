@@ -65,10 +65,9 @@ def main():
     if module.check_mode:
         module.exit_json(**result)
 
-    config_mgr = config_utils.OPNsenseConfig()
-
-    # Get xml via key
-    result['message'] = config_mgr[str(module.params["tag"])]
+    with config_utils.OPNsenseConfig() as config_mgr:
+        # Get xml via key
+        result['message'] = config_mgr[str(module.params["tag"])]
 
     # Return results
     module.exit_json(**result)
