@@ -108,7 +108,7 @@ Here's an example of how to use the `OPNsenseConfig` utility:
 Using Vagrant
 =============
 
-Run ansible directlyagainst a running instance of opnsense with Vagrant.
+Run ansible directly against a running instance of OPNsense with Vagrant.
 For this to work it is required to have **vagrant** installed alongside with **virtualbox**.
 
 .. code-block::
