@@ -26,7 +26,7 @@ EXAMPLES = r'''
 - name: Print the opnsense xml
   puzzle.opnsense.get_xml_tag:
     path: /conf/config.xml
-    key: "sysctl"
+    tag: "sysctl"
   register: xmlconfig
 
 - name: Print return value
