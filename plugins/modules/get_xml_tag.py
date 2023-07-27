@@ -6,6 +6,7 @@
 
 """Example module: Show minimal functionality of OPNsenseConfig class"""
 
+# https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 DOCUMENTATION = r'''
 ---
 author:
@@ -35,6 +36,7 @@ EXAMPLES = r'''
 
 RETURN = r''' # '''
 
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils import config_utils
 
@@ -55,10 +57,12 @@ def main():
         supports_check_mode=True
     )
 
+    # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
+    # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block
     result = {
         'changed': False,
-        'original_message': module.params,
-        'message': '',
+        'invocation': module.params,
+        'msg': '',
     }
 
     # check-mode handler
@@ -67,7 +71,7 @@ def main():
 
     with config_utils.OPNsenseConfig() as config_mgr:
         # Get xml via key
-        result['message'] = config_mgr[str(module.params["tag"])]
+        result['msg'] = config_mgr[str(module.params["tag"])]
 
     # Return results
     module.exit_json(**result)
