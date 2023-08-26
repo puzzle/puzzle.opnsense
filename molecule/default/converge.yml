@@ -1,6 +1,0 @@
----
-- name: converge
-  hosts: all
-  tasks:
-    - debug:
-        msg: "Test"
