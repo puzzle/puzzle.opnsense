@@ -1,0 +1,11 @@
+---
+- name: converge
+  hosts: all
+  tasks:
+    - name: Converge - Read theme value from config
+      puzzle.opnsense.get_xml_tag:
+        tag: theme
+      register: theme_value
+
+    - ansible.builtin.assert:
+        that: theme_value.msg == "opnsense"

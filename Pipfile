@@ -4,11 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ansible = "*"
-
-[dev-packages]
-antsibull-docs = "*"
+ansible = "==8.2.0"
+molecule = "<6"
+antsibull-docs = "==2.3.1"
 coverage = "==6.5.0"
+# See current bug https://github.com/ansible-community/molecule-plugins/issues/176
+molecule-plugins = {extras = ["vagrant"], git = "https://github.com/ansible-community/molecule-plugins.git"}
 
 [requires]
 python_version = "3.10"
