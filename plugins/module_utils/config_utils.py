@@ -55,6 +55,8 @@ class OPNsenseConfig:
         :raises RuntimeError: If changes are present which have not been saved.
         :return:
         """
+        if exc_type:
+            raise exc_type(f"Exception occurred: {exc_val}")
         if self.changed:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
