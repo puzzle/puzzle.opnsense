@@ -127,4 +127,53 @@ VERSION_MAP = {
             },
         },
     },
+    "OPNsense 23.7": {
+        "system_settings_general": {
+            "hostname": "system/hostname",
+            "domain": "system/domain",
+            "timezone": "system/timezone",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "system_timezone_configure": {
+                    "name": "system_timezone_configure",
+                    "configure_params": ["true"],
+                },
+                "system_trust_configure": {
+                    "name": "system_trust_configure",
+                    "configure_params": ["true"],
+                },
+                "system_hostname_configure": {
+                    "name": "system_hostname_configure",
+                    "configure_params": ["true"],
+                },
+                "system_hosts_generate": {
+                    "name": "system_hosts_generate",
+                    "configure_params": ["true"],
+                },
+                "system_resolvconf_generate": {
+                    "name": "system_resolvconf_generate",
+                    "configure_params": ["true"],
+                },
+                "plugins_configure_dns": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dns'", "true"],
+                },
+                "plugins_configure_dhcp": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dhcp'", "true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+    },
 }

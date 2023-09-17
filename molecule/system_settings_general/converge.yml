@@ -1,0 +1,20 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Set hostname
+      puzzle.opnsense.system_settings_general:
+        hostname: opnsense01
+
+    - name: Converge - Set domain
+      puzzle.opnsense.system_settings_general:
+        domain: example.org
+
+    - name: get hostname
+      ansible.builtin.command: hostname
+      register: hostname_value
+      changed_when: false
+
+    - ansible.builtin.assert:
+        that: hostname_value.stdout == "opnsense01.example.org"

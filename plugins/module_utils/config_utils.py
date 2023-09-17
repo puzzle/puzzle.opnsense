@@ -157,6 +157,7 @@ class OPNsenseModuleConfig:
         Returns:
         - bool: True if changes were saved, False if no changes were detected.
         """
+
         if self.changed:
             tree: ElementTree.ElementTree = ElementTree.ElementTree(
                 self._config_xml_tree
