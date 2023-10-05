@@ -38,7 +38,7 @@ RETURN = r''' # '''
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils import config_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import config_utils, version_utils, path_resolution
 
 __metaclass__ = type
 
@@ -57,6 +57,8 @@ def main():
         supports_check_mode=True
     )
 
+    version = version_utils.get_opnsense_version()
+
     # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
     # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block
     result = {
@@ -71,7 +73,7 @@ def main():
 
     with config_utils.OPNsenseConfig() as config_mgr:
         # Get xml via key
-        result['msg'] = config_mgr[str(module.params["tag"])]
+        result['msg'] = config_mgr[str(path_resolution.resolve_path(version, module.params["tag"]))]
 
     # Return results
     module.exit_json(**result)

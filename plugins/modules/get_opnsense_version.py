@@ -47,7 +47,7 @@ def main():
     if opnsense_version:
         module.exit_json(changed=False, opnsense_version=opnsense_version)
     else:
-        module.fail_json(msg="Failed to get opnsense version")
+        module.fail_json(msg="Failed to get OPNsense version")
 
 
 if __name__ == '__main__':

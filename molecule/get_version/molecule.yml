@@ -1,6 +1,6 @@
 ---
 scenario:
-    name: default1
+    name: get_version
     test_sequence:
         # - dependency not relevant uless we have requirements
         - destroy
