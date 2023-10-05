@@ -4,7 +4,6 @@
 """path resolution utility"""
 
 from __future__ import (absolute_import, division, print_function)
-import os
 
 __metaclass__ = type
 
@@ -25,16 +24,19 @@ class PathResolutionError(Exception):
     """
     Execption class for pathresolution
     """
-    def __init__(self, version, path_key):
+    def __init__(self, version, path_key = None):
 
         if not version:
             super().__init__(f"version {version} was not found")
 
         if not path_key:
-            super().__init__(f"path {path_key} was not found")
+            super().__init__(f"path {path_key} was not found" if path_key else "")
 
 def resolve_path(version, path_key):
     """
+
+
+
     funtion that either returns the resolved path to a specific version or
     returns an error
     """

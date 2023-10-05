@@ -9,3 +9,17 @@
 
     - ansible.builtin.assert:
         that: theme_value.msg == "opnsense"
+
+    - name: Converge - Read not existing value from config
+      puzzle.opnsense.get_xml_tag:
+        tag: puzzle
+      register: puzzle_value
+      ignore_errors: yes  # Ignore errors to prevent task failure if "puzzle" tag doesn't exist
+
+    - name: Handle missing "puzzle" tag
+      debug:
+        msg: "The 'puzzle' tag does not exist in the XML configuration."
+      when: puzzle_value is failed
+
+    - ansible.builtin.assert:
+        that: puzzle_value.failed
