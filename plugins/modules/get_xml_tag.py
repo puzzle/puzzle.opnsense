@@ -38,7 +38,7 @@ RETURN = r''' # '''
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils import config_utils, version_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import config_utils
 
 __metaclass__ = type
 
