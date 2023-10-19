@@ -74,7 +74,7 @@ class OPNsenseConfig:
 
     def _parse_config_from_file(self) -> dict:
         _config_root: ElementTree = ElementTree.parse(self._config_path).getroot()
-        return xml_utils.etree_to_dict(_config_root) or {}
+        return xml_utils.etree_to_dict(_config_root)["opnsense"] or {}
 
     def save(self) -> bool:
         """

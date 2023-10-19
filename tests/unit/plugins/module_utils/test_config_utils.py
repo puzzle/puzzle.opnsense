@@ -119,7 +119,7 @@ def test_save(sample_config_path):
         config["test_key"] = "modified_value"
         assert config.save()
     # Reload the saved config and assert the changes were saved
-    reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())
+    reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())["opnsense"]
     assert reloaded_config["test_key"] == "modified_value"
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
