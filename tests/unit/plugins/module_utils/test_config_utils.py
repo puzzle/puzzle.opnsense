@@ -24,13 +24,15 @@ def sample_config_path():
     <test_nested_key_1>
         <test_nested_key_2>test_value</test_nested_key_2>
     </test_nested_key_1>
+    <new_key>
+        <new_nested_key></new_nested_key>
+    </new_key>
 </opnsense>"""
     with NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(config_content.encode())
         temp_file.flush()
         yield temp_file.name
     os.unlink(temp_file.name)
-
 
 def test_get_item(sample_config_path):
     """
@@ -117,13 +119,16 @@ def test_save(sample_config_path):
     """
     with OPNsenseConfig(path=sample_config_path) as config:
         config["test_key"] = "modified_value"
+        config["test_nested_key_1"]["test_nested_key_2"] = "modified_nested_value"
         assert config.save()
     # Reload the saved config and assert the changes were saved
     reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())["opnsense"]
     assert reloaded_config["test_key"] == "modified_value"
+    assert reloaded_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
         assert new_config["test_key"] == "modified_value"
+        assert new_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
 
 def test_changed(sample_config_path):
@@ -160,13 +165,56 @@ def test_exit_without_saving(sample_config_path):
 
 def test_get_nested_item(sample_config_path):
     """
-    Test retrieving a value from the config.
+    Test retrieving a nested value from the config.
 
-    Given a sample OPNsense configuration file, the test verifies that a specific key-value pair
-    can be retrieved using the OPNsenseConfig object.
+    Given a sample OPNsense configuration file, the test verifies that a specific nested key-value
+    pair can be retrieved using the OPNsenseConfig object.
 
     The expected behavior is that the retrieved value matches the original value in the config file.
     """
     with OPNsenseConfig(path=sample_config_path) as config:
         assert config["test_nested_key_1"]["test_nested_key_2"] == "test_value"
         assert not config.save()
+
+
+def test_set_nested_item(sample_config_path):
+    """
+    Test setting a nested value in the config.
+
+    Given a sample OPNsense configuration file, the test verifies that a new nested key-value pair
+    can be added to the config using the OPNsenseConfig object.
+
+    The expected behavior is that the added key-value pair is present in the config
+    and the `save` method returns True indicating that the config has changed. When using
+    a new config context the changes are expected to persist.
+    """
+    with OPNsenseConfig(path=sample_config_path) as config:
+        config["new_key"]["new_nested_key"] = "new_value"
+        assert config["new_key"]["new_nested_key"] == "new_value"
+        assert config.save()
+
+    with OPNsenseConfig(path=sample_config_path) as new_config:
+        assert "new_key" in new_config
+        assert new_config["new_key"]["new_nested_key"] == "new_value"
+
+
+def test_del_nested_item(sample_config_path):
+    """
+    Test deleting a nested value from the config.
+
+    Given a sample OPNsense configuration file, the test verifies that a nested key-value pair
+    can be removed from the config using the `del` statement with the OPNsenseConfig object.
+
+    The expected behavior is that the deleted key is no longer present in the config,
+    the `changed` property is True indicating that the config has changed,
+    and the `save` method returns True indicating that the config has changed. When using
+    a new config context the changes are expected to persist.
+    """
+    with OPNsenseConfig(path=sample_config_path) as config:
+        del config["test_nested_key_1"]["test_nested_key_2"]
+        assert "test_nested_key_2" not in config["test_nested_key_1"]
+        assert config.changed
+        assert config.save()
+
+    with OPNsenseConfig(path=sample_config_path) as new_config:
+        assert "test_nested_key_2" not in new_config

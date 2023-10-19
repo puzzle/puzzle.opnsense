@@ -163,4 +163,3 @@ def etree_to_dict(input_etree: Element) -> dict:
                 result[key] = value
 
     return {input_etree.tag: result}
-
