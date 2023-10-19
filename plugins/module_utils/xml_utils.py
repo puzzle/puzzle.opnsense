@@ -141,28 +141,22 @@ def etree_to_dict(input_etree: Element) -> dict:
     :param input_etree: Input ElementTree.Element.
     :return: The generated dict.
     """
+
     input_children: List[Element] = list(input_etree)
 
     # input element has no children, so it is a 'primitive' element
     # with just a tag and a content.
     if len(input_children) == 0:
-        return {input_etree.tag: input_etree.text}
+        return input_etree.text  # Return the text directly
 
-    unique_input_tags: Set[str] = set([input_child.tag for input_child in input_etree])
-
-    # if any group has more than one sub element a list must be constructed
-    if len(unique_input_tags) != len(input_children):
-        child_list: list = []
-        for child in input_children:
-            child_list.append(etree_to_dict(child))
-        return {input_etree.tag: child_list}
-
-    # here all children have a unique tag, therefore a dict will be built
-    child_dict: dict = {}
-
+    result = {}
     for child in input_children:
-        sub = etree_to_dict(child)
-
-        child_dict = {**child_dict, **sub}
-
-    return {input_etree.tag: child_dict}
+        child_data = etree_to_dict(child)
+        if child.tag in result:
+            if isinstance(result[child.tag], list):
+                result[child.tag].append(child_data)
+            else:
+                result[child.tag] = [result[child.tag], child_data]
+        else:
+            result[child.tag] = child_data
+    return result
