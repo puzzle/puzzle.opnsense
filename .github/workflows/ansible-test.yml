@@ -234,7 +234,7 @@ jobs:
       - units
       - integration
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Decide whether the needed jobs succeeded or failed
