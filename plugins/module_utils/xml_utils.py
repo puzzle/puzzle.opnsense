@@ -135,28 +135,32 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 ###############################
 
 def etree_to_dict(input_etree: Element) -> dict:
-    """
-    Converts an ElementTree.Element structure to a Python dictionary.
-
-    :param input_etree: Input ElementTree.Element.
-    :return: The generated dict.
-    """
-
     input_children: List[Element] = list(input_etree)
 
     # input element has no children, so it is a 'primitive' element
-    # with just a tag and a content.
     if len(input_children) == 0:
-        return input_etree.text  # Return the text directly
+        return {input_etree.tag: input_etree.text}  # Return the text directly
+
+    children_results = [etree_to_dict(child) for child in input_children]
+
+    # If there's only one child node, return it as a dictionary
+    if len(input_children) == 1:
+        return {input_etree.tag: children_results[0]}
+
+    # If all child tags are the same, wrap them in a list
+    if len(set(child.tag for child in input_children)) == 1:
+        return {input_etree.tag: children_results}
 
     result = {}
-    for child in input_children:
-        child_data = etree_to_dict(child)
-        if child.tag in result:
-            if isinstance(result[child.tag], list):
-                result[child.tag].append(child_data)
+    for child_data in children_results:
+        for key, value in child_data.items():
+            if key in result:
+                if isinstance(result[key], list):
+                    result[key].append(value)
+                else:
+                    result[key] = [result[key], value]
             else:
-                result[child.tag] = [result[child.tag], child_data]
-        else:
-            result[child.tag] = child_data
-    return result
+                result[key] = value
+
+    return {input_etree.tag: result}
+
