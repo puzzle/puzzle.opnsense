@@ -5,7 +5,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 
-from typing import Union, Optional, List, Set
+from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 __metaclass__ = type

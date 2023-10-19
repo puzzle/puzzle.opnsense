@@ -21,6 +21,9 @@ def sample_config_path():
     config_content = """<?xml version="1.0"?>
 <opnsense>
     <test_key>test_value</test_key>
+    <test_nested_key_1>
+        <test_nested_key_2>test_value</test_nested_key_2>
+    </test_nested_key_1>
 </opnsense>"""
     with NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(config_content.encode())
@@ -116,7 +119,7 @@ def test_save(sample_config_path):
         config["test_key"] = "modified_value"
         assert config.save()
     # Reload the saved config and assert the changes were saved
-    reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())["opnsense"]
+    reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())
     assert reloaded_config["test_key"] == "modified_value"
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
@@ -153,3 +156,17 @@ def test_exit_without_saving(sample_config_path):
         with OPNsenseConfig(path=sample_config_path) as config:
             config["test_key"] = "modified_value"
             # The RuntimeError should be raised upon exiting the context without saving
+
+
+def test_get_nested_item(sample_config_path):
+    """
+    Test retrieving a value from the config.
+
+    Given a sample OPNsense configuration file, the test verifies that a specific key-value pair
+    can be retrieved using the OPNsenseConfig object.
+
+    The expected behavior is that the retrieved value matches the original value in the config file.
+    """
+    with OPNsenseConfig(path=sample_config_path) as config:
+        assert config["test_nested_key_1"]["test_nested_key_2"] == "test_value"
+        assert not config.save()
