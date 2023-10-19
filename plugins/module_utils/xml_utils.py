@@ -135,34 +135,31 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 ###############################
 
 def etree_to_dict(input_etree: Element) -> dict:
-    """
-    Converts an ElementTree.Element structure to a Python dictionary.
-
-    :param input_etree: Input ElementTree.Element.
-    :return: The generated dict.
-    """
     input_children: List[Element] = list(input_etree)
 
     # input element has no children, so it is a 'primitive' element
-    # with just a tag and a content.
     if len(input_children) == 0:
-        return {input_etree.tag: input_etree.text}
+        return {input_etree.tag: input_etree.text}  # Return the text directly
 
-    unique_input_tags: Set[str] = set([input_child.tag for input_child in input_etree])
+    children_results = [etree_to_dict(child) for child in input_children]
 
-    # if any group has more than one sub element a list must be constructed
-    if len(unique_input_tags) != len(input_children):
-        child_list: list = []
-        for child in input_children:
-            child_list.append(etree_to_dict(child))
-        return {input_etree.tag: child_list}
+    # If there's only one child node, return it as a dictionary
+    if len(input_children) == 1:
+        return {input_etree.tag: children_results[0]}
 
-    # here all children have a unique tag, therefore a dict will be built
-    child_dict: dict = {}
+    # If all child tags are the same, wrap them in a list
+    if len(set(child.tag for child in input_children)) == 1:
+        return {input_etree.tag: children_results}
 
-    for child in input_children:
-        sub = etree_to_dict(child)
+    result = {}
+    for child_data in children_results:
+        for key, value in child_data.items():
+            if key in result:
+                if isinstance(result[key], list):
+                    result[key].append(value)
+                else:
+                    result[key] = [result[key], value]
+            else:
+                result[key] = value
 
-        child_dict = {**child_dict, **sub}
-
-    return {input_etree.tag: child_dict}
+    return {input_etree.tag: result}

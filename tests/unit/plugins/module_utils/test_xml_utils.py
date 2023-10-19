@@ -244,7 +244,7 @@ def etree_root(request: pytest.FixtureRequest) -> Element:
     """
     xml_string = request.param
     tree: ET.ElementTree = ET.ElementTree(ET.fromstring(xml_string))
-    yield tree.getroot()
+    return tree.getroot()
 
 
 @pytest.mark.parametrize("etree_root", [
