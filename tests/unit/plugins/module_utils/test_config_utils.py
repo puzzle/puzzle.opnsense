@@ -34,6 +34,7 @@ def sample_config_path():
         yield temp_file.name
     os.unlink(temp_file.name)
 
+
 def test_get_item(sample_config_path):
     """
     Test retrieving a value from the config.
