@@ -1,0 +1,11 @@
+---
+- name: converge
+  hosts: all
+  tasks:
+    - name: Converge - Read Hostname value from config
+      puzzle.opnsense.get_xml_tag_with_config_context:
+        tag: hostname
+      register: hostname_value
+
+    - ansible.builtin.assert:
+        that: hostname_value.msg == "OPNsense"
