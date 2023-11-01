@@ -10,7 +10,7 @@ __metaclass__ = type
 from typing import Any
 from xml.etree import ElementTree
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils
 
 
 class OPNsenseConfig:
@@ -34,6 +34,26 @@ class OPNsenseConfig:
     Note:
        - The context manager ensures that any changes made to the config are saved before exiting the block.
     """
+
+    VERSION_MAP = {
+        "OPNsense 22.7 (amd64/OpenSSL)": {
+            "system_settings":{
+                "hostname": "system/hostname",
+                "domain": "system/domain",
+                # Add other mappings here.
+            }
+        },
+        "OPNsense 23.1": {
+            "system_settings":{
+                "hostname": 'system/hostname',
+                "domain": "system/domain",
+                # Add other mappings here.
+            },
+            "test":"test1"
+        },
+        # Add other versions and their mappings here.
+    }
+
     _config_path: str
     _config_dict: dict
 
@@ -45,6 +65,7 @@ class OPNsenseConfig:
         """
         self._config_path = path
         self._config_dict = self._parse_config_from_file()
+        self.version = version_utils.get_opnsense_version()
 
     def __enter__(self) -> "OPNsenseConfig":
         return self
@@ -99,3 +120,57 @@ class OPNsenseConfig:
         """
         orig_dict = self._parse_config_from_file()
         return orig_dict != self._config_dict
+
+
+    def _get_xpath(self, module: str = None, setting: str = None, map_dict = None):
+
+        map_dict = self.VERSION_MAP.get(self.version)
+
+        if module in map_dict:
+            if setting in map_dict[module]:
+                return map_dict[module][setting]
+
+        #for key, value in map_dict.items():
+        #    if isinstance(value, dict):
+        #        result = self.get_by_xpath(value)
+        #        if result is not None:
+        #            return result
+
+
+    def set_module_setting(self, value: str, module: str = None, setting: str = None):
+        """
+        utility to set config specific setting
+        """
+
+        # get xpath from key_mapping
+        xpath = self._get_xpath(module = module, setting = setting)
+
+        # create a copy of the _config_dict
+        #_config_dict = self._config_dict
+
+        # iterate over xpath value to get specific key
+        for key in xpath.split("/"):
+            self._config_dict = self._config_dict[key]
+
+        print(self._config_dict)
+
+        self._config_dict = value
+
+
+    def get_module_setting(self, module: str = None, setting: str = None) -> str:
+        """
+        utility to get config specific setting
+        """
+
+        # get xpath from key_mapping
+        xpath = self._get_xpath(module = module, setting = setting)
+
+        # create a copy of the _config_dict
+        _config_dict = self._config_dict
+
+        # iterate over xpath value to get specific key
+        for key in xpath.split("/"):
+            _config_dict = _config_dict[key]
+
+        # return key
+        return _config_dict
