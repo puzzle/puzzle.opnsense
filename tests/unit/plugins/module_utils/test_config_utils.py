@@ -9,6 +9,7 @@ __metaclass__ = type
 import os
 from tempfile import NamedTemporaryFile
 from xml.etree import ElementTree
+from unittest.mock import patch, MagicMock
 
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -20,6 +21,16 @@ def sample_config_path():
     # Create a temporary file with sample config for testing
     config_content = """<?xml version="1.0"?>
 <opnsense>
+    <system>
+        <optimization>normal</optimization>
+        <hostname>test_name</hostname>
+        <domain>test.domain.someplace</domain>
+    </system>
+    <interfaces>
+        <wan>
+            <if>vtnet0</if>
+        </wan>
+    </interfaces>
     <test_key>test_value</test_key>
     <test_nested_key_1>
         <test_nested_key_2>test_value</test_nested_key_2>
@@ -35,7 +46,13 @@ def sample_config_path():
     os.unlink(temp_file.name)
 
 
-def test_get_item(sample_config_path):
+@pytest.fixture(scope="module")
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def opnsense_config(_: MagicMock, sample_config_path):
+    with OPNsenseConfig(sample_config_path) as config:
+        return config
+
+def test_get_item(opnsense_config):
     """
     Test retrieving a value from the config.
 
@@ -44,12 +61,12 @@ def test_get_item(sample_config_path):
 
     The expected behavior is that the retrieved value matches the original value in the config file.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        assert config["test_key"] == "test_value"
-        assert not config.save()
+    assert opnsense_config["test_key"] == "test_value"
+    assert not opnsense_config.save()
 
 
-def test_set_item(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_set_item(_: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting a value in the config.
 
@@ -60,17 +77,18 @@ def test_set_item(sample_config_path):
     and the `save` method returns True indicating that the config has changed. When using
     a new config context the changes are expected to persist.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        config["new_key"] = "new_value"
-        assert config["new_key"] == "new_value"
-        assert config.save()
+
+    opnsense_config["new_key"] = "new_value"
+    assert opnsense_config["new_key"] == "new_value"
+    assert opnsense_config.save()
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
         assert "new_key" in new_config
         assert new_config["new_key"] == "new_value"
 
 
-def test_del_item(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_del_item(_: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting a value from the config.
 
@@ -82,17 +100,17 @@ def test_del_item(sample_config_path):
     and the `save` method returns True indicating that the config has changed. When using
     a new config context the changes are expected to persist.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        del config["test_key"]
-        assert "test_key" not in config
-        assert config.changed
-        assert config.save()
+
+    del opnsense_config["test_key"]
+    assert "test_key" not in opnsense_config
+    assert opnsense_config.changed
+    assert opnsense_config.save()
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
         assert "test_key" not in new_config
 
 
-def test_contains(sample_config_path):
+def test_contains(opnsense_config):
     """
     Test checking if a key exists in the config.
 
@@ -102,13 +120,13 @@ def test_contains(sample_config_path):
     The expected behavior is that the test_key is found in the config,
     and a non-existent key is not found.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        assert "test_key" in config
-        assert "nonexistent_key" not in config
-        assert not config.save()
+    assert "test_key" in opnsense_config
+    assert "nonexistent_key" not in opnsense_config
+    assert not opnsense_config.save()
 
 
-def test_save(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_save(_: MagicMock, sample_config_path):
     """
     Test saving changes to the config.
 
@@ -118,6 +136,7 @@ def test_save(sample_config_path):
     The expected behavior is that the `save` method returns True when the config has changed,
     indicating that the changes were successfully saved.
     """
+
     with OPNsenseConfig(path=sample_config_path) as config:
         config["test_key"] = "modified_value"
         config["test_nested_key_1"]["test_nested_key_2"] = "modified_nested_value"
@@ -132,7 +151,8 @@ def test_save(sample_config_path):
         assert new_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
 
-def test_changed(sample_config_path):
+
+def test_changed(opnsense_config):
     """
     Test checking if the config has changed.
 
@@ -142,14 +162,15 @@ def test_changed(sample_config_path):
     The expected behavior is that the `changed` property is False initially, and True after making changes
     to the config.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        assert not config.changed
-        config["test_key"] = "modified_value"
-        assert config.changed
-        config.save()
+
+    assert not opnsense_config.changed
+    opnsense_config["test_key"] = "modified_value"
+    assert opnsense_config.changed
+    opnsense_config.save()
 
 
-def test_exit_without_saving(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_exit_without_saving(_: MagicMock, sample_config_path):
     """
     Test exiting the context without saving changes.
 
@@ -164,7 +185,7 @@ def test_exit_without_saving(sample_config_path):
             # The RuntimeError should be raised upon exiting the context without saving
 
 
-def test_get_nested_item(sample_config_path):
+def test_get_nested_item(opnsense_config):
     """
     Test retrieving a nested value from the config.
 
@@ -173,12 +194,13 @@ def test_get_nested_item(sample_config_path):
 
     The expected behavior is that the retrieved value matches the original value in the config file.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        assert config["test_nested_key_1"]["test_nested_key_2"] == "test_value"
-        assert not config.save()
+
+    assert opnsense_config["test_nested_key_1"]["test_nested_key_2"] == "test_value"
+    assert not opnsense_config.save()
 
 
-def test_set_nested_item(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_set_nested_item(_: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting a nested value in the config.
 
@@ -189,17 +211,18 @@ def test_set_nested_item(sample_config_path):
     and the `save` method returns True indicating that the config has changed. When using
     a new config context the changes are expected to persist.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        config["new_key"]["new_nested_key"] = "new_value"
-        assert config["new_key"]["new_nested_key"] == "new_value"
-        assert config.save()
+
+    opnsense_config["new_key"]["new_nested_key"] = "new_value"
+    assert opnsense_config["new_key"]["new_nested_key"] == "new_value"
+    assert opnsense_config.save()
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
         assert "new_key" in new_config
         assert new_config["new_key"]["new_nested_key"] == "new_value"
 
 
-def test_del_nested_item(sample_config_path):
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_del_nested_item(_: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting a nested value from the config.
 
@@ -211,11 +234,91 @@ def test_del_nested_item(sample_config_path):
     and the `save` method returns True indicating that the config has changed. When using
     a new config context the changes are expected to persist.
     """
-    with OPNsenseConfig(path=sample_config_path) as config:
-        del config["test_nested_key_1"]["test_nested_key_2"]
-        assert "test_nested_key_2" not in config["test_nested_key_1"]
-        assert config.changed
-        assert config.save()
+
+    del opnsense_config["test_nested_key_1"]["test_nested_key_2"]
+    assert "test_nested_key_2" not in opnsense_config["test_nested_key_1"]
+    assert opnsense_config.changed
+    assert opnsense_config.save()
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
         assert "test_nested_key_2" not in new_config
+
+
+def test_get_module_setting(opnsense_config):
+    """
+    Test retrieving module settings from the config.
+
+    Given a sample OPNsense configuration file, the test verifies that specific module settings
+    can be retrieved using the `get_module_setting` method of the OPNsenseConfig object.
+
+    The expected behavior is that the retrieved values for given module settings match
+    the original values in the config file. Additionally, the `save` method should return False
+    indicating that no changes to the config were made during the retrieval process.
+    """
+
+    assert opnsense_config.get_module_setting(
+        module="system_settings",
+        setting="hostname") == "test_name"
+    assert opnsense_config.get_module_setting(
+        module="system_settings",
+        setting="domain") == "test.domain.someplace"
+    assert opnsense_config.get_module_setting(
+        module="interfaces",
+        setting="if") == "vtnet0"
+    assert not opnsense_config.save()
+
+
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_set_module_setting(_: MagicMock, opnsense_config, sample_config_path):
+    """
+    Test setting module settings in the config.
+
+    Given a sample OPNsense configuration file, the test verifies that module settings
+    can be modified using the `set_module_setting` method of the OPNsenseConfig object.
+
+    The expected behavior is that after setting the module settings, the `save` method returns True
+    indicating that the config has changed. When using a new config context, the changes are
+    expected to persist and the new values for the given settings should be reflected in the config.
+    """
+
+    opnsense_config.set_module_setting(
+        module="system_settings",
+        setting="hostname",
+        value="new_test_name"
+        )
+    opnsense_config.set_module_setting(
+        module="system_settings",
+        setting="domain",
+        value="new_test.domain.someplace"
+        )
+    assert opnsense_config.save()
+
+    with OPNsenseConfig(path=sample_config_path) as new_config:
+        assert "system" in new_config
+        assert new_config["system"]["hostname"] == "new_test_name"
+        assert new_config["system"]["domain"] == "new_test.domain.someplace"
+
+
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_del_module_setting(_: MagicMock, opnsense_config, sample_config_path):
+    """
+    Test deleting module settings from the config.
+
+    Given a sample OPNsense configuration file, the test verifies that module settings
+    can be removed using the `del_module_setting` method of the OPNsenseConfig object.
+
+    The expected behavior is that the settings are no longer present in the config
+    after deletion. The `changed` property is True, indicating that the config has been modified,
+    and the `save` method returns True, confirming that the changes have been saved.
+    When using a new config context, the changes should persist and the settings should
+    be absent from the config.
+    """
+
+    opnsense_config.del_module_setting(module="system_settings", setting="hostname")
+    opnsense_config.del_module_setting(module="system_settings", setting="domain")
+    assert opnsense_config.save()
+
+    with OPNsenseConfig(path=sample_config_path) as new_config:
+        assert "system" in new_config
+        assert new_config["system"]["hostname"] is None
+        assert new_config["system"]["domain"] is None
