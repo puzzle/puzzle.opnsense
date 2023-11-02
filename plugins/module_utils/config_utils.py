@@ -49,9 +49,22 @@ class OPNsenseConfig:
                 "domain": "system/domain",
                 # Add other mappings here.
             },
-            "test":"test1"
+            "test":"test1",
+            "interfaces":{
+                "wan": {
+                    "if": 'interfaces/wan/if'
+                },
+                # Add other mappings here.
+            },
         },
+        "OPNsense 1.0.0": {
+            "system_settings":{
+                "hostname": "system/hostname",
+                "domain": "system/domain",
+                # Add other mappings here.
+            },
         # Add other versions and their mappings here.
+        },
     }
 
     _config_path: str
@@ -65,7 +78,9 @@ class OPNsenseConfig:
         """
         self._config_path = path
         self._config_dict = self._parse_config_from_file()
+
         self.version = version_utils.get_opnsense_version()
+
 
     def __enter__(self) -> "OPNsenseConfig":
         return self
@@ -121,20 +136,70 @@ class OPNsenseConfig:
         orig_dict = self._parse_config_from_file()
         return orig_dict != self._config_dict
 
+    def _search_map(self, dictionary, key):
+        """
+        Recursively search for a key in a nested dictionary.
+
+        This function traverses through a nested dictionary structure to find the value associated with the
+        specified key. It searches through all levels of nested dictionaries until it finds the key or
+        exhausts all possibilities.
+
+        Parameters:
+        - dictionary (dict): The dictionary to search through. This can be a multi-level nested dictionary.
+        - key (str): The key to search for in the dictionary.
+
+        Returns:
+        - The value associated with the found key, or None if the key is not found in the dictionary.
+
+        Example:
+        - Given the dictionary `{"interfaces": {"wan": {"if": 'interfaces/wan/if'}}}` and the key `'if'`,
+        the function will return `'interfaces/wan/if'`.
+        """
+
+        if isinstance(dictionary, dict):
+            for k, v in dictionary.items():
+                if k == key:
+                    return v
+                else:
+                    result = self._search_map(v, key)
+                    if result is not None:
+                        return result
 
     def _get_xpath(self, module: str = None, setting: str = None, map_dict = None):
+        """
+        Retrieve the XPath for a given module and setting from the version-specific mapping.
+
+        This method takes a module and setting as input and looks up their corresponding XPath
+        in a version-specific mapping dictionary. It performs a direct lookup if the setting is
+        top-level within the module or initiates a recursive search if the setting is nested.
+
+        Parameters:
+        - module (str, optional): The name of the module to look up. Defaults to None.
+        - setting (str, optional): The name of the setting within the module to look up. Defaults to None.
+        - map_dict (dict, optional): A pre-fetched version map dictionary. If not provided,
+        it will use the VERSION_MAP attribute based on the instance's version attribute. Defaults to None.
+
+        Returns:
+        - str or None: The XPath as a string if the module and setting are found within the map. If the
+        module or setting cannot be found, or the inputs are None, it returns None.
+
+        Example:
+        - For an instance with version 'OPNsense 23.1', if VERSION_MAP['OPNsense 23.1'] contains {'system': {'hostname': 'system/hostname'}},
+        and we call _get_xpath(module='system', setting='hostname'), it will return 'system/hostname'.
+        """
 
         map_dict = self.VERSION_MAP.get(self.version)
 
+        # Check if the provided module is in the map
         if module in map_dict:
+            # If the setting is directly within the module, return it
             if setting in map_dict[module]:
                 return map_dict[module][setting]
+            # If the setting is nested, search recursively
+            else:
+                return self._search_map(map_dict[module], setting)
 
-        #for key, value in map_dict.items():
-        #    if isinstance(value, dict):
-        #        result = self.get_by_xpath(value)
-        #        if result is not None:
-        #            return result
+        return None
 
 
     def set_module_setting(self, value: str, module: str = None, setting: str = None):
@@ -146,15 +211,37 @@ class OPNsenseConfig:
         xpath = self._get_xpath(module = module, setting = setting)
 
         # create a copy of the _config_dict
-        #_config_dict = self._config_dict
+        _config_dict = self._config_dict.copy()
 
         # iterate over xpath value to get specific key
-        for key in xpath.split("/"):
-            self._config_dict = self._config_dict[key]
+        keys = xpath.split("/")
 
-        print(self._config_dict)
+        for key in keys[:-1]:
+            _config_dict = _config_dict.setdefault(key, {})
 
-        self._config_dict = value
+        # Update the final value
+        _config_dict[keys[-1]] = value
+
+
+    def del_module_setting(self, module: str = None, setting: str = None):
+        """
+        utility to delete config specific setting
+        """
+
+        # get xpath from key_mapping
+        xpath = self._get_xpath(module = module, setting = setting)
+
+        # create a copy of the _config_dict
+        _config_dict = self._config_dict.copy()
+
+        # iterate over xpath value to get specific key
+        keys = xpath.split("/")
+
+        for key in keys[:-1]:
+            _config_dict = _config_dict.setdefault(key, {})
+
+        # Update the final value
+        _config_dict[keys[-1]] = None
 
 
     def get_module_setting(self, module: str = None, setting: str = None) -> str:
@@ -166,7 +253,7 @@ class OPNsenseConfig:
         xpath = self._get_xpath(module = module, setting = setting)
 
         # create a copy of the _config_dict
-        _config_dict = self._config_dict
+        _config_dict = self._config_dict.copy()
 
         # iterate over xpath value to get specific key
         for key in xpath.split("/"):
