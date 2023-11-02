@@ -9,6 +9,7 @@ __metaclass__ = type
 
 import subprocess
 
+
 def get_opnsense_version() -> str:
     """
     Returns output of command opensense-version

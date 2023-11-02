@@ -48,9 +48,10 @@ def sample_config_path():
 
 @pytest.fixture(scope="module")
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def opnsense_config(_: MagicMock, sample_config_path):
+def opnsense_config(mock_object: MagicMock, sample_config_path):
     with OPNsenseConfig(sample_config_path) as config:
         return config
+
 
 def test_get_item(opnsense_config):
     """
@@ -66,7 +67,7 @@ def test_get_item(opnsense_config):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_set_item(_: MagicMock, opnsense_config, sample_config_path):
+def test_set_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting a value in the config.
 
@@ -88,7 +89,7 @@ def test_set_item(_: MagicMock, opnsense_config, sample_config_path):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_del_item(_: MagicMock, opnsense_config, sample_config_path):
+def test_del_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting a value from the config.
 
@@ -126,7 +127,7 @@ def test_contains(opnsense_config):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_save(_: MagicMock, sample_config_path):
+def test_save(mock_object: MagicMock, sample_config_path):
     """
     Test saving changes to the config.
 
@@ -151,7 +152,6 @@ def test_save(_: MagicMock, sample_config_path):
         assert new_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
 
-
 def test_changed(opnsense_config):
     """
     Test checking if the config has changed.
@@ -170,7 +170,7 @@ def test_changed(opnsense_config):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_exit_without_saving(_: MagicMock, sample_config_path):
+def test_exit_without_saving(mock_object: MagicMock, sample_config_path):
     """
     Test exiting the context without saving changes.
 
@@ -200,7 +200,7 @@ def test_get_nested_item(opnsense_config):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_set_nested_item(_: MagicMock, opnsense_config, sample_config_path):
+def test_set_nested_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting a nested value in the config.
 
@@ -222,7 +222,7 @@ def test_set_nested_item(_: MagicMock, opnsense_config, sample_config_path):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_del_nested_item(_: MagicMock, opnsense_config, sample_config_path):
+def test_del_nested_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting a nested value from the config.
 
@@ -269,7 +269,7 @@ def test_get_module_setting(opnsense_config):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_set_module_setting(_: MagicMock, opnsense_config, sample_config_path):
+def test_set_module_setting(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting module settings in the config.
 
@@ -285,12 +285,14 @@ def test_set_module_setting(_: MagicMock, opnsense_config, sample_config_path):
         module="system_settings",
         setting="hostname",
         value="new_test_name"
-        )
+    )
+
     opnsense_config.set_module_setting(
         module="system_settings",
         setting="domain",
         value="new_test.domain.someplace"
-        )
+    )
+
     assert opnsense_config.save()
 
     with OPNsenseConfig(path=sample_config_path) as new_config:
@@ -300,7 +302,7 @@ def test_set_module_setting(_: MagicMock, opnsense_config, sample_config_path):
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
-def test_del_module_setting(_: MagicMock, opnsense_config, sample_config_path):
+def test_del_module_setting(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting module settings from the config.
 
