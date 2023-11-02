@@ -3,7 +3,7 @@
   hosts: all
   tasks:
     - name: Converge - Read Hostname value from config
-      puzzle.opnsense.get_xml_tag_with_config_context:
+      puzzle.opnsense.get_xml_tag_with_module_setting:
         tag: hostname
       register: hostname_value
 
