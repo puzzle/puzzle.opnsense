@@ -78,7 +78,7 @@ class OPNsenseConfig:
                     },
                     "plugins_configure1":{
                         "name": "plugins_configure",
-                        "configure_params": ["'dns'", "true"]
+                        "configure_params": ["'dhcp'", "true"]
                     },
                     "filter_configure":{
                         "name": "filter_configure",
