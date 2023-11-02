@@ -270,7 +270,6 @@ class OPNsenseConfig:
             if isinstance(map_dict[module][setting], dict):
                 return map_dict[module][setting]
 
-
     def set_module_setting(self, value: str, module: str = None, setting: str = None):
         """
         utility to set config specific setting
@@ -291,7 +290,6 @@ class OPNsenseConfig:
         # Update the final value
         _config_dict[keys[-1]] = value
 
-
     def del_module_setting(self, module: str = None, setting: str = None):
         """
         utility to delete config specific setting
@@ -311,7 +309,6 @@ class OPNsenseConfig:
 
         # Update the final value
         _config_dict[keys[-1]] = None
-
 
     def get_module_setting(self, module: str = None, setting: str = None) -> str:
         """
