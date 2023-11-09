@@ -15,6 +15,75 @@ import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import OPNsenseConfig
 
+VERSION_MAP = {
+    "OPNsense 22.7 (amd64/OpenSSL)": {
+        "system_settings": {
+            "hostname": "system/hostname",
+            "domain": "system/domain",
+            # Add other mappings here.
+        }
+    },
+    "OPNsense 23.1": {
+        "system_settings": {
+            "hostname": 'system/hostname',
+            "domain": "system/domain",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/interfaces.lib.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+            ],
+            "configure_functions": {
+                "system_timezone_configure": {
+                    "name": "system_timezone_configure",
+                    "configure_params": ["true"]
+                },
+                "system_trust_configure": {
+                    "name": "system_trust_configure",
+                    "configure_params": ["true"]
+                },
+                "system_hostname_configure": {
+                    "name": "system_hostname_configure",
+                    "configure_params": ["true"]
+                },
+                "system_resolver_configure": {
+                    "name": "system_resolver_configure",
+                    "configure_params": ["true"]
+                },
+                "plugins_configure": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dns'", "true"]
+                },
+                "plugins_configure1": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dhcp'", "true"]
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": ["true"]
+                },
+            },
+            # Add other mappings here.
+        },
+        "test": "test1",
+        "interfaces": {
+            "wan": {
+                "if": 'interfaces/wan/if'
+            },
+            # Add other mappings here.
+        },
+    },
+    "OPNsense 1.0.0": {
+        "system_settings": {
+            "hostname": "system/hostname",
+            "domain": "system/domain",
+            # Add other mappings here.
+        },
+    },
+}
+
 
 @pytest.fixture(scope="module")
 def sample_config_path():
@@ -49,7 +118,7 @@ def sample_config_path():
 @pytest.fixture(scope="module")
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
 def opnsense_config(mock_object: MagicMock, sample_config_path):
-    with OPNsenseConfig(sample_config_path) as config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as config:
         return config
 
 
@@ -83,7 +152,7 @@ def test_set_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     assert opnsense_config["new_key"] == "new_value"
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "new_key" in new_config
         assert new_config["new_key"] == "new_value"
 
@@ -107,7 +176,7 @@ def test_del_item(mock_object: MagicMock, opnsense_config, sample_config_path):
     assert opnsense_config.changed
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "test_key" not in new_config
 
 
@@ -138,7 +207,7 @@ def test_save(mock_object: MagicMock, sample_config_path):
     indicating that the changes were successfully saved.
     """
 
-    with OPNsenseConfig(path=sample_config_path) as config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as config:
         config["test_key"] = "modified_value"
         config["test_nested_key_1"]["test_nested_key_2"] = "modified_nested_value"
         assert config.save()
@@ -147,7 +216,7 @@ def test_save(mock_object: MagicMock, sample_config_path):
     assert reloaded_config["test_key"] == "modified_value"
     assert reloaded_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert new_config["test_key"] == "modified_value"
         assert new_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
@@ -180,7 +249,7 @@ def test_exit_without_saving(mock_object: MagicMock, sample_config_path):
     The expected behavior is that a RuntimeError is raised with the message "Config has changed. Cannot exit without saving."
     """
     with pytest.raises(RuntimeError, match="Config has changed. Cannot exit without saving."):
-        with OPNsenseConfig(path=sample_config_path) as config:
+        with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as config:
             config["test_key"] = "modified_value"
             # The RuntimeError should be raised upon exiting the context without saving
 
@@ -216,7 +285,7 @@ def test_set_nested_item(mock_object: MagicMock, opnsense_config, sample_config_
     assert opnsense_config["new_key"]["new_nested_key"] == "new_value"
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "new_key" in new_config
         assert new_config["new_key"]["new_nested_key"] == "new_value"
 
@@ -240,7 +309,7 @@ def test_del_nested_item(mock_object: MagicMock, opnsense_config, sample_config_
     assert opnsense_config.changed
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "test_nested_key_2" not in new_config
 
 
@@ -295,7 +364,7 @@ def test_set_module_setting(mock_object: MagicMock, opnsense_config, sample_conf
 
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "system" in new_config
         assert new_config["system"]["hostname"] == "new_test_name"
         assert new_config["system"]["domain"] == "new_test.domain.someplace"
@@ -320,7 +389,29 @@ def test_del_module_setting(mock_object: MagicMock, opnsense_config, sample_conf
     opnsense_config.del_module_setting(module="system_settings", setting="domain")
     assert opnsense_config.save()
 
-    with OPNsenseConfig(path=sample_config_path) as new_config:
+    with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert "system" in new_config
         assert new_config["system"]["hostname"] is None
         assert new_config["system"]["domain"] is None
+
+
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense X.X.X")
+def test_version_not_found_in_version_map(mock_object: MagicMock, opnsense_config, sample_config_path):
+    """
+    Test behavior when a non-existent version is accessed in the version map.
+
+    This test patches the `get_opnsense_version` function to return a version string
+    that is not present in the version map. The purpose is to verify that the
+    `OPNsenseConfig` object raises the appropriate error when attempting to access
+    module settings associated with an undefined version.
+
+    The expected behavior is for a KeyError exception to be raised with a message
+    indicating that the specified version ("OPNsense X.X.X") was not found in the
+    version map. This confirms that the `OPNsenseConfig` object correctly handles
+    the situation where a configuration for a given version is requested but doesn't exist.
+    """
+
+    with pytest.raises(KeyError, match="OPNsense X.X.X was not not found in version_map"):
+        with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
+            new_config.get_module_setting(module="system_settings", setting="hostname")
+            # The RuntimeError should be raised upon accesing a version that not exists
