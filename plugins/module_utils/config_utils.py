@@ -7,10 +7,10 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from typing import Any
+from typing import Any, List
 from xml.etree import ElementTree
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils, opnsense_utils
 
 
 class OPNsenseConfig:
@@ -268,29 +268,28 @@ class OPNsenseConfig:
         # return key
         return _config_dict
 
-    #def apply_module_setting(self, module: str = None) -> List[str]:
-    #    """
-    #    utility to get and apply config specific php_requirements
-    #    """
-#
-    #    # get version and module specific php_requirements
-    #    php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
-#
-    #    # get version and module specific configure_functions
-    #    configure_functions = self._get_configure_functions(
-    #        module=module,
-    #        setting="configure_functions"
-    #    )
-#
-    #    cmd_output = []
-#
-    #    for key, value in configure_functions.items():
-    #        cmd_output.append(opnsense_utils.run_function(
-    #            php_requirements=php_requirements,
-    #            configure_function=value['name'],
-    #            configure_params=value['configure_params'],
-    #        )
-    #        )
-#
-    #    return cmd_output
-#
+    def apply_module_setting(self, module: str = None) -> List[str]:
+        """
+        utility to get and apply config specific php_requirements
+        """
+
+        # get version and module specific php_requirements
+        php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
+
+        # get version and module specific configure_functions
+        configure_functions = self._get_configure_functions(
+            module=module,
+            setting="configure_functions"
+        )
+
+        cmd_output = []
+
+        for key, value in configure_functions.items():
+            cmd_output.append(opnsense_utils.run_function(
+                php_requirements=php_requirements,
+                configure_function=value['name'],
+                configure_params=value['configure_params'],
+            )
+            )
+
+        return cmd_output
