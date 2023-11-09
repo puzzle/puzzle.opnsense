@@ -9,7 +9,7 @@ __metaclass__ = type
 import os
 from tempfile import NamedTemporaryFile
 from xml.etree import ElementTree
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -393,6 +393,87 @@ def test_del_module_setting(mock_object: MagicMock, opnsense_config, sample_conf
         assert "system" in new_config
         assert new_config["system"]["hostname"] is None
         assert new_config["system"]["domain"] is None
+
+
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function")
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils.OPNsenseConfig._get_configure_functions")
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils.OPNsenseConfig._get_php_requirements")
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense 23.1")
+def test_apply_module_setting(
+    version_mock_object: MagicMock,
+    php_mock_object: MagicMock,
+    configure_mock_object: MagicMock,
+    run_function_mock_object: MagicMock,
+    opnsense_config
+):
+    """
+    Test the application of module settings within the OPNsense configuration.
+
+    This test ensures that given a set of PHP requirements and configure functions,
+    the `apply_module_setting` method applies the settings correctly by invoking
+    the appropriate functions with the expected parameters.
+
+    The method under test should retrieve the PHP requirements and configuration
+    functions for the specified module and execute them, collecting the output.
+
+    We mock the dependencies involved in this process to assert that the functions
+    are called as expected, and the resultant output is correctly aggregated.
+
+    The expected behavior is that for each configure function provided, a corresponding
+    call to `opnsense_utils.run_function` is made with the appropriate PHP requirements
+    and parameters, and the result of these function calls is returned as a list of outputs.
+    """
+
+    test_php_requirements = [
+        "/usr/local/etc/inc/config.inc",
+        "/usr/local/etc/inc/util.inc",
+        "/usr/local/etc/inc/system.inc",
+        "/usr/local/etc/inc/interfaces.lib.inc",
+        "/usr/local/etc/inc/interfaces.inc",
+        "/usr/local/etc/inc/filter.inc",
+    ]
+
+    test_configure_functions = {
+        "system_timezone_configure": {
+            "name": "system_timezone_configure",
+            "configure_params": ["true"]
+        },
+        "system_resolver_configure": {
+            "name": "system_resolver_configure",
+            "configure_params": ["true"]
+        },
+        "plugins_configure": {
+            "name": "plugins_configure",
+            "configure_params": ["'dns'", "true"]
+        },
+    }
+
+    php_mock_object.return_value = test_php_requirements
+    configure_mock_object.return_value = test_configure_functions
+
+    # Act: Call the apply_module_setting method
+    result = opnsense_config.apply_module_setting(module="system_settings")
+
+    # Assert: Check that run_function was called correctly
+    expected_calls = [
+        call(
+            php_requirements=test_php_requirements,
+            configure_function='system_timezone_configure',
+            configure_params=["true"]
+        ),
+        call(
+            php_requirements=test_php_requirements,
+            configure_function='system_resolver_configure',
+            configure_params=["true"]
+        ),
+        call(
+            php_requirements=test_php_requirements,
+            configure_function='plugins_configure',
+            configure_params=["'dns'", "true"]
+        ),
+    ]
+    run_function_mock_object.assert_has_calls(expected_calls, any_order=True)
+    assert len(result) == len(test_configure_functions)
 
 
 @patch("ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", return_value="OPNsense X.X.X")

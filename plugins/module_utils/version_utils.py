@@ -15,8 +15,7 @@ def get_opnsense_version() -> str:
     Returns output of command opensense-version
     """
     try:
-        output = subprocess.check_output(["opnsense-version"]).decode("utf-8").strip()
-        return output
+        return subprocess.check_output(args=["opnsense-version"], encoding="utf-8").strip()
 
     except subprocess.CalledProcessError as exc:
         return str(exc)
