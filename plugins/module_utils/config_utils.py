@@ -7,10 +7,10 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from typing import Any, List
+from typing import Any
 from xml.etree import ElementTree
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils, opnsense_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils
 
 
 class OPNsenseConfig:
@@ -35,86 +35,19 @@ class OPNsenseConfig:
        - The context manager ensures that any changes made to the config are saved before exiting the block.
     """
 
-    VERSION_MAP = {
-        "OPNsense 22.7 (amd64/OpenSSL)": {
-            "system_settings": {
-                "hostname": "system/hostname",
-                "domain": "system/domain",
-                # Add other mappings here.
-            }
-        },
-        "OPNsense 23.1": {
-            "system_settings": {
-                "hostname": 'system/hostname',
-                "domain": "system/domain",
-                "php_requirements": [
-                    "/usr/local/etc/inc/config.inc",
-                    "/usr/local/etc/inc/util.inc",
-                    "/usr/local/etc/inc/system.inc",
-                    "/usr/local/etc/inc/interfaces.lib.inc",
-                    "/usr/local/etc/inc/interfaces.inc",
-                    "/usr/local/etc/inc/filter.inc",
-                ],
-                "configure_functions": {
-                    "system_timezone_configure": {
-                        "name": "system_timezone_configure",
-                        "configure_params": ["true"]
-                    },
-                    "system_trust_configure": {
-                        "name": "system_trust_configure",
-                        "configure_params": ["true"]
-                    },
-                    "system_hostname_configure": {
-                        "name": "system_hostname_configure",
-                        "configure_params": ["true"]
-                    },
-                    "system_resolver_configure": {
-                        "name": "system_resolver_configure",
-                        "configure_params": ["true"]
-                    },
-                    "plugins_configure": {
-                        "name": "plugins_configure",
-                        "configure_params": ["'dns'", "true"]
-                    },
-                    "plugins_configure1": {
-                        "name": "plugins_configure",
-                        "configure_params": ["'dhcp'", "true"]
-                    },
-                    "filter_configure": {
-                        "name": "filter_configure",
-                        "configure_params": ["true"]
-                    },
-                },
-                # Add other mappings here.
-            },
-            "test": "test1",
-            "interfaces": {
-                "wan": {
-                    "if": 'interfaces/wan/if'
-                },
-                # Add other mappings here.
-            },
-        },
-        "OPNsense 1.0.0": {
-            "system_settings": {
-                "hostname": "system/hostname",
-                "domain": "system/domain",
-                # Add other mappings here.
-            },
-        },
-    }
-
     _config_path: str
     _config_dict: dict
 
-    def __init__(self, path: str = "/conf/config.xml"):
+    def __init__(self, version_map: dict = None, path: str = "/conf/config.xml"):
         """
         Initializes an instance of OPNsenseConfig.
 
         :param path:  The path to the OPNsense config file (default: "/conf/config.xml").
+        :param version_map:  The version_map of the specific module.
         """
         self._config_path = path
         self._config_dict = self._parse_config_from_file()
+        self.version_map = version_map
 
         self.version = version_utils.get_opnsense_version()
 
@@ -213,18 +146,21 @@ class OPNsenseConfig:
         - module (str, optional): The name of the module to look up. Defaults to None.
         - setting (str, optional): The name of the setting within the module to look up. Defaults to None.
         - map_dict (dict, optional): A pre-fetched version map dictionary. If not provided,
-        it will use the VERSION_MAP attribute based on the instance's version attribute. Defaults to None.
+        it will use the version_map attribute based on the instance's version attribute. Defaults to None.
 
         Returns:
         - str or None: The XPath as a string if the module and setting are found within the map. If the
         module or setting cannot be found, or the inputs are None, it returns None.
 
         Example:
-        - For an instance with version 'OPNsense 23.1', if VERSION_MAP['OPNsense 23.1'] contains {'system': {'hostname': 'system/hostname'}},
+        - For an instance with version 'OPNsense 23.1', if version_map['OPNsense 23.1'] contains {'system': {'hostname': 'system/hostname'}},
         and we call _get_xpath(module='system', setting='hostname'), it will return 'system/hostname'.
         """
 
-        map_dict = self.VERSION_MAP.get(self.version)
+        map_dict = self.version_map.get(self.version)
+
+        if map_dict is None:
+            raise KeyError(f"{self.version} was not not found in version_map")
 
         # Check if the provided module is in the map
         if module in map_dict:
@@ -242,7 +178,10 @@ class OPNsenseConfig:
         Retrive list of php_requirements for a given module and setting from the version-specific mapping.
         """
 
-        map_dict = self.VERSION_MAP.get(self.version)
+        map_dict = self.version_map.get(self.version)
+
+        if map_dict is None:
+            raise KeyError(f"{self.version} was not not found in version_map")
 
         # Check if the provided module is in the map
         if module in map_dict:
@@ -260,7 +199,10 @@ class OPNsenseConfig:
         Retrive list of configure_functions for a given module and setting from the version-specific mapping.
         """
 
-        map_dict = self.VERSION_MAP.get(self.version)
+        map_dict = self.version_map.get(self.version)
+
+        if map_dict is None:
+            raise KeyError(f"{self.version} was not not found in version_map")
 
         # Check if the provided module is in the map
         if module in map_dict and setting in map_dict[module]:
@@ -326,28 +268,29 @@ class OPNsenseConfig:
         # return key
         return _config_dict
 
-    def apply_module_setting(self, module: str = None) -> List[str]:
-        """
-        utility to get and apply config specific php_requirements
-        """
-
-        # get version and module specific php_requirements
-        php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
-
-        # get version and module specific configure_functions
-        configure_functions = self._get_configure_functions(
-            module=module,
-            setting="configure_functions"
-        )
-
-        cmd_output = []
-
-        for key, value in configure_functions.items():
-            cmd_output.append(opnsense_utils.run_function(
-                php_requirements=php_requirements,
-                configure_function=value['name'],
-                configure_params=value['configure_params'],
-            )
-            )
-
-        return cmd_output
+    #def apply_module_setting(self, module: str = None) -> List[str]:
+    #    """
+    #    utility to get and apply config specific php_requirements
+    #    """
+#
+    #    # get version and module specific php_requirements
+    #    php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
+#
+    #    # get version and module specific configure_functions
+    #    configure_functions = self._get_configure_functions(
+    #        module=module,
+    #        setting="configure_functions"
+    #    )
+#
+    #    cmd_output = []
+#
+    #    for key, value in configure_functions.items():
+    #        cmd_output.append(opnsense_utils.run_function(
+    #            php_requirements=php_requirements,
+    #            configure_function=value['name'],
+    #            configure_params=value['configure_params'],
+    #        )
+    #        )
+#
+    #    return cmd_output
+#
