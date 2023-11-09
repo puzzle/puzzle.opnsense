@@ -37,14 +37,14 @@ class OPNsenseConfig:
 
     VERSION_MAP = {
         "OPNsense 22.7 (amd64/OpenSSL)": {
-            "system_settings":{
+            "system_settings": {
                 "hostname": "system/hostname",
                 "domain": "system/domain",
                 # Add other mappings here.
             }
         },
         "OPNsense 23.1": {
-            "system_settings":{
+            "system_settings": {
                 "hostname": 'system/hostname',
                 "domain": "system/domain",
                 "php_requirements": [
@@ -55,40 +55,40 @@ class OPNsenseConfig:
                     "/usr/local/etc/inc/interfaces.inc",
                     "/usr/local/etc/inc/filter.inc",
                 ],
-                "configure_functions":{
-                    "system_timezone_configure":{
+                "configure_functions": {
+                    "system_timezone_configure": {
                         "name": "system_timezone_configure",
                         "configure_params": ["true"]
                     },
-                    "system_trust_configure":{
+                    "system_trust_configure": {
                         "name": "system_trust_configure",
                         "configure_params": ["true"]
                     },
-                    "system_hostname_configure":{
+                    "system_hostname_configure": {
                         "name": "system_hostname_configure",
                         "configure_params": ["true"]
                     },
-                    "system_resolver_configure":{
+                    "system_resolver_configure": {
                         "name": "system_resolver_configure",
                         "configure_params": ["true"]
                     },
-                    "plugins_configure":{
+                    "plugins_configure": {
                         "name": "plugins_configure",
                         "configure_params": ["'dns'", "true"]
                     },
-                    "plugins_configure1":{
+                    "plugins_configure1": {
                         "name": "plugins_configure",
                         "configure_params": ["'dhcp'", "true"]
                     },
-                    "filter_configure":{
+                    "filter_configure": {
                         "name": "filter_configure",
                         "configure_params": ["true"]
                     },
                 },
                 # Add other mappings here.
             },
-            "test":"test1",
-            "interfaces":{
+            "test": "test1",
+            "interfaces": {
                 "wan": {
                     "if": 'interfaces/wan/if'
                 },
@@ -96,12 +96,11 @@ class OPNsenseConfig:
             },
         },
         "OPNsense 1.0.0": {
-            "system_settings":{
+            "system_settings": {
                 "hostname": "system/hostname",
                 "domain": "system/domain",
                 # Add other mappings here.
             },
-        # Add other versions and their mappings here.
         },
     }
 
@@ -118,7 +117,6 @@ class OPNsenseConfig:
         self._config_dict = self._parse_config_from_file()
 
         self.version = version_utils.get_opnsense_version()
-
 
     def __enter__(self) -> "OPNsenseConfig":
         return self
@@ -203,7 +201,7 @@ class OPNsenseConfig:
                     if result is not None:
                         return result
 
-    def _get_xpath(self, module: str = None, setting: str = None, map_dict = None):
+    def _get_xpath(self, module: str = None, setting: str = None, map_dict=None):
         """
         Retrieve the XPath for a given module and setting from the version-specific mapping.
 
@@ -276,7 +274,7 @@ class OPNsenseConfig:
         """
 
         # get xpath from key_mapping
-        xpath = self._get_xpath(module = module, setting = setting)
+        xpath = self._get_xpath(module=module, setting=setting)
 
         # create a copy of the _config_dict
         _config_dict = self._config_dict.copy()
@@ -296,7 +294,7 @@ class OPNsenseConfig:
         """
 
         # get xpath from key_mapping
-        xpath = self._get_xpath(module = module, setting = setting)
+        xpath = self._get_xpath(module=module, setting=setting)
 
         # create a copy of the _config_dict
         _config_dict = self._config_dict.copy()
@@ -316,7 +314,7 @@ class OPNsenseConfig:
         """
 
         # get xpath from key_mapping
-        xpath = self._get_xpath(module = module, setting = setting)
+        xpath = self._get_xpath(module=module, setting=setting)
 
         # create a copy of the _config_dict
         _config_dict = self._config_dict.copy()
@@ -334,22 +332,22 @@ class OPNsenseConfig:
         """
 
         # get version and module specific php_requirements
-        php_requirements = self._get_php_requirements(module = module, setting ="php_requirements")
+        php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
 
         # get version and module specific configure_functions
         configure_functions = self._get_configure_functions(
-            module = module,
-            setting ="configure_functions"
-            )
+            module=module,
+            setting="configure_functions"
+        )
 
         cmd_output = []
 
         for key, value in configure_functions.items():
             cmd_output.append(opnsense_utils.run_function(
-                    php_requirements=php_requirements,
-                    configure_function=value['name'],
-                    configure_params=value['configure_params'], # first param: verbose
-                )
+                php_requirements=php_requirements,
+                configure_function=value['name'],
+                configure_params=value['configure_params'],
+            )
             )
 
         return cmd_output
