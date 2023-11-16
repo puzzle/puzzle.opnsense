@@ -11,6 +11,16 @@ jobs:
     name: Molecule
     runs-on: self-hosted
     steps:
-      - name: Run Molecule tests
+      - name: Check out the codebase
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies.
+        run: pip3 install yamllint ansible-lint ansible "molecule[lint,docker]"
+      - name: Run molecule
         run: molecule test -s get_xml_tag
 
