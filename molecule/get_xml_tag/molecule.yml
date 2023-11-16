@@ -1,6 +1,6 @@
 ---
 scenario:
-    name: default
+    name: get_xml_tag
     test_sequence:
         # - dependency not relevant uless we have requirements
         - destroy
@@ -38,8 +38,11 @@ platforms:
           - 'ssh.shell = "/bin/sh"'
 
 provisioner:
-    name: ansible
+  name: ansible
+  config_options:
+    defaults:
+      fact_caching: jsonfile
 verifier:
-    name: ansible
-    options:
-        become: true
+  name: ansible
+  options:
+      become: true

@@ -1,0 +1,16 @@
+---
+name: CI - Molecule
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - stable-*
+jobs:
+  test:
+    name: Molecule
+    runs-on: self-hosted
+    steps:
+      - name: Run Molecule tests
+        run: molecule test -s get_xml_tag
+
