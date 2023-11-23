@@ -15,7 +15,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, 
 
 class OPNSenseConfigUsageError(Exception):
     """
-    Error Class to be raised in inproper module usage
+    Error Class to be raised in improper module usage
     """
 
 
@@ -199,7 +199,7 @@ class OPNsenseConfig:
                     if result is not None:
                         return result
 
-    def _get_xpath(self, module: str, setting: str) -> Union[str, dict, None]:
+    def _get_xpath(self, module: str, setting: str) -> Union[str, dict]:
         """
         Retrieves the XPath for a given module and setting based on the version-specific mapping.
 
@@ -244,9 +244,11 @@ class OPNsenseConfig:
             else:
                 return self._search_map(map_dict[module], setting)
 
-        return None
+        raise OPNSenseConfigUsageError(
+            "Module specific xpath was not found"
+        )
 
-    def _get_php_requirements(self, module: str, setting: str) -> Optional[list]:
+    def _get_php_requirements(self, module: str, setting: str) -> list:
         """
         Retrieves a list of PHP requirements for a specific module and setting based on the
         version-specific mapping.
@@ -282,9 +284,11 @@ class OPNsenseConfig:
             else:
                 return self._search_map(map_dict[module], setting)
 
-        return None
+        raise OPNSenseConfigUsageError(
+            "Module specific get_php_requirement were not found"
+        )
 
-    def _get_configure_functions(self, module: str, setting: str) -> Optional[dict]:
+    def _get_configure_functions(self, module: str, setting: str) -> dict:
         """
         Retrieves configure functions for a specific module and setting from the version-specific
         mapping.
@@ -317,6 +321,11 @@ class OPNsenseConfig:
             # Check if the setting contains a dictionary of configure functions
             if isinstance(map_dict[module][setting], dict):
                 return map_dict[module][setting]
+
+        else:
+            raise OPNSenseConfigUsageError(
+                "Module specific get_configure_functions were not found"
+            )
 
     def set_module_setting(self, value: str, module: str, setting: str) -> None:
         """
