@@ -9,6 +9,7 @@ __metaclass__ = type
 
 import subprocess
 
+
 class OPNSenseVersionUsageError(Exception):
     """
     Error Class to be raised in improper module usage
