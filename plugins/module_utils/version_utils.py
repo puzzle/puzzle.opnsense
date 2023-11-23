@@ -3,11 +3,16 @@
 
 """Utilities for versioning"""
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
 import subprocess
+
+class OPNSenseConfigUsageError(Exception):
+    """
+    Error Class to be raised in improper module usage
+    """
 
 
 def get_opnsense_version() -> str:
@@ -15,7 +20,11 @@ def get_opnsense_version() -> str:
     Returns output of command opensense-version
     """
     try:
-        return subprocess.check_output(args=["opnsense-version"], encoding="utf-8").strip()
+        return subprocess.check_output(
+            args=["opnsense-version"], encoding="utf-8"
+        ).strip()
 
     except subprocess.CalledProcessError as exc:
-        return str(exc)
+        raise OPNSenseConfigUsageError(
+            f"There was an error getting the version {exc}"
+        ) from subprocess.CalledProcessError
