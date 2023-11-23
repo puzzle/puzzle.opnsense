@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock, call
 
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
-from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import OPNsenseConfig
+from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import OPNsenseConfig, OPNSenseConfigUsageError
 
 VERSION_MAP = {
     "OPNsense 22.7 (amd64/OpenSSL)": {
@@ -492,7 +492,7 @@ def test_version_not_found_in_version_map(mock_object: MagicMock, opnsense_confi
     the situation where a configuration for a given version is requested but doesn't exist.
     """
 
-    with pytest.raises(KeyError, match="OPNsense X.X.X was not not found in version_map"):
+    with pytest.raises(OPNSenseConfigUsageError, match="Version OPNsense X.X.X not supported in module system_settings"):
         with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
             new_config.get_module_setting(module="system_settings", setting="hostname")
             # The RuntimeError should be raised upon accesing a version that not exists
