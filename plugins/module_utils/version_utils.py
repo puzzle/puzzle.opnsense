@@ -28,4 +28,4 @@ def get_opnsense_version() -> str:
     except subprocess.CalledProcessError as exc:
         raise OPNSenseVersionUsageError(
             f"There was an error getting the version {exc}"
-        ) from subprocess.CalledProcessError
+        ) from exc
