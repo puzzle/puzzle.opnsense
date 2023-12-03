@@ -189,14 +189,15 @@ class OPNsenseConfig:
         and the key `'if'`, the function will return `'interfaces/wan/if'`.
         """
 
-        if isinstance(dictionary, dict):
-            for k, v in dictionary.items():
-                if k == key:
-                    return v
-                else:
-                    result = self._search_map(v, key)
-                    if result is not None:
-                        return result
+        if not isinstance(dictionary, dict):
+            return None
+        
+        for k, v in dictionary.items():
+            if k == key:
+                return v
+            result = self._search_map(v, key)
+            if result is not None:
+                return result
 
     def _get_xpath(self, module: str, setting: str) -> Union[str, dict]:
         """
