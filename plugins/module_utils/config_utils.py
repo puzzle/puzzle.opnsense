@@ -240,13 +240,12 @@ class OPNsenseConfig:
         map_dict = self._get_module_version_map(module=module)
 
         # Check if the provided module is in the map
-        if module in map_dict:
+        if module in map_dict and setting in map_dict[module]:
             # If the setting is directly within the module, return it
-            if setting in map_dict[module]:
-                return map_dict[module][setting]
+            return map_dict[module][setting]
+        elif module in map_dict:
             # If the setting is nested, search recursively
-            else:
-                return self._search_map(map_dict[module], setting)
+            return self._search_map(map_dict[module], setting)
 
         raise OPNSenseConfigUsageError("Module specific xpath was not found")
 
