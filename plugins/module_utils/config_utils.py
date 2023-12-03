@@ -3,14 +3,18 @@
 
 """Utilities for interactions with the OPNsense config file /conf/config.xml"""
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
 from typing import Any, List, Optional, Union
 from xml.etree import ElementTree
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils, version_utils, opnsense_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils import (
+    xml_utils,
+    version_utils,
+    opnsense_utils,
+)
 
 
 class OPNSenseConfigUsageError(Exception):
@@ -120,7 +124,7 @@ class OPNsenseConfig:
         if self.changed:
             new_config_root = xml_utils.dict_to_etree("opnsense", self._config_dict)[0]
             new_tree = ElementTree.ElementTree(new_config_root)
-            new_tree.write(self._config_path, encoding='utf-8', xml_declaration=True)
+            new_tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
             self._config_dict = self._parse_config_from_file()
             return True
         return False
@@ -165,9 +169,10 @@ class OPNsenseConfig:
         if self.version_map.get(self.version):
             return self.version_map.get(self.version)
 
-        raise OPNSenseConfigUsageError(
-            f"Version {self.version} not supported in module {module}"
-        )
+        else:
+            raise OPNSenseConfigUsageError(
+                f"Version {self.version} not supported in module {module}"
+            )
 
     def _search_map(self, dictionary, key) -> Optional[str]:
         """
@@ -189,15 +194,14 @@ class OPNsenseConfig:
         and the key `'if'`, the function will return `'interfaces/wan/if'`.
         """
 
-        if not isinstance(dictionary, dict):
-            return None
-        
-        for k, v in dictionary.items():
-            if k == key:
-                return v
-            result = self._search_map(v, key)
-            if result is not None:
-                return result
+        if isinstance(dictionary, dict):
+            for k, v in dictionary.items():
+                if k == key:
+                    return v
+                else:
+                    result = self._search_map(v, key)
+                    if result is not None:
+                        return result
 
     def _get_xpath(self, module: str, setting: str) -> Union[str, dict]:
         """
@@ -241,11 +245,10 @@ class OPNsenseConfig:
             if setting in map_dict[module]:
                 return map_dict[module][setting]
             # If the setting is nested, search recursively
-            return self._search_map(map_dict[module], setting)
+            else:
+                return self._search_map(map_dict[module], setting)
 
-        raise OPNSenseConfigUsageError(
-            "Module specific xpath was not found"
-        )
+        raise OPNSenseConfigUsageError("Module specific xpath was not found")
 
     def _get_php_requirements(self, module: str, setting: str) -> list:
         """
@@ -274,18 +277,14 @@ class OPNsenseConfig:
 
         map_dict = self._get_module_version_map(module=module)
 
-        # Check if the provided module is in the map
-        if module in map_dict:
+        if module in map_dict and setting in map_dict[module]:
             # If the setting is directly within the module, return it
-            if setting in map_dict[module]:
-                return map_dict[module][setting]
+            return map_dict[module][setting]
+        elif module in map_dict:
             # If the setting is nested, search recursively
-            else:
-                return self._search_map(map_dict[module], setting)
+            return self._search_map(map_dict[module], setting)
 
-        raise OPNSenseConfigUsageError(
-            "Module specific get_php_requirement were not found"
-        )
+        raise OPNSenseConfigUsageError("Module specific get_php_requirement were not found")
 
     def _get_configure_functions(self, module: str, setting: str) -> dict:
         """
@@ -322,9 +321,7 @@ class OPNsenseConfig:
                 return map_dict[module][setting]
 
         else:
-            raise OPNSenseConfigUsageError(
-                "Module specific get_configure_functions were not found"
-            )
+            raise OPNSenseConfigUsageError("Module specific get_configure_functions were not found")
 
     def set_module_setting(self, value: str, module: str, setting: str) -> None:
         """
@@ -485,18 +482,18 @@ class OPNsenseConfig:
 
         # get version and module specific configure_functions
         configure_functions = self._get_configure_functions(
-            module=module,
-            setting="configure_functions"
+            module=module, setting="configure_functions"
         )
 
         cmd_output = []
 
         for key, value in configure_functions.items():
-            cmd_output.append(opnsense_utils.run_function(
-                php_requirements=php_requirements,
-                configure_function=value['name'],
-                configure_params=value['configure_params'],
-            )
+            cmd_output.append(
+                opnsense_utils.run_function(
+                    php_requirements=php_requirements,
+                    configure_function=value["name"],
+                    configure_params=value["configure_params"],
+                )
             )
 
         return cmd_output
