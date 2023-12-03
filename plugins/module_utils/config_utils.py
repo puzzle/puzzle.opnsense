@@ -313,14 +313,15 @@ class OPNsenseConfig:
 
         map_dict = self._get_module_version_map(module=module)
 
-        # Check if the provided module is in the map
-        if module in map_dict and setting in map_dict[module]:
-            # Check if the setting contains a dictionary of configure functions
-            if isinstance(map_dict[module][setting], dict):
-                return map_dict[module][setting]
+        # Check if the provided module is in the map and the setting contains a dictionary of configure functions
+        if (
+            module in map_dict
+            and setting in map_dict[module]
+            and isinstance(map_dict[module][setting], dict)
+        ):
+            return map_dict[module][setting]
 
-        else:
-            raise OPNSenseConfigUsageError("Module specific get_configure_functions were not found")
+        raise OPNSenseConfigUsageError("Module specific get_configure_functions were not found")
 
     def set_module_setting(self, value: str, module: str, setting: str) -> None:
         """
