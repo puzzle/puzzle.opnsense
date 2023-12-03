@@ -33,39 +33,15 @@ VERSION_MAP = {
             "php_requirements": [
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/util.inc",
-                "/usr/local/etc/inc/system.inc",
-                "/usr/local/etc/inc/interfaces.lib.inc",
-                "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/filter.inc",
             ],
             "configure_functions": {
                 "system_timezone_configure": {
                     "name": "system_timezone_configure",
                     "configure_params": ["true"],
                 },
-                "system_trust_configure": {
-                    "name": "system_trust_configure",
-                    "configure_params": ["true"],
-                },
-                "system_hostname_configure": {
-                    "name": "system_hostname_configure",
-                    "configure_params": ["true"],
-                },
-                "system_resolver_configure": {
-                    "name": "system_resolver_configure",
-                    "configure_params": ["true"],
-                },
                 "plugins_configure": {
                     "name": "plugins_configure",
                     "configure_params": ["'dns'", "true"],
-                },
-                "plugins_configure1": {
-                    "name": "plugins_configure",
-                    "configure_params": ["'dhcp'", "true"],
-                },
-                "filter_configure": {
-                    "name": "filter_configure",
-                    "configure_params": ["true"],
                 },
             },
             # Add other mappings here.
@@ -225,21 +201,15 @@ def test_save(mock_object: MagicMock, sample_config_path):
         config["test_nested_key_1"]["test_nested_key_2"] = "modified_nested_value"
         assert config.save()
     # Reload the saved config and assert the changes were saved
-    reloaded_config = xml_utils.etree_to_dict(
-        ElementTree.parse(sample_config_path).getroot()
-    )["opnsense"]
+    reloaded_config = xml_utils.etree_to_dict(ElementTree.parse(sample_config_path).getroot())[
+        "opnsense"
+    ]
     assert reloaded_config["test_key"] == "modified_value"
-    assert (
-        reloaded_config["test_nested_key_1"]["test_nested_key_2"]
-        == "modified_nested_value"
-    )
+    assert reloaded_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
     with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
         assert new_config["test_key"] == "modified_value"
-        assert (
-            new_config["test_nested_key_1"]["test_nested_key_2"]
-            == "modified_nested_value"
-        )
+        assert new_config["test_nested_key_1"]["test_nested_key_2"] == "modified_nested_value"
 
 
 def test_changed(opnsense_config):
@@ -272,9 +242,7 @@ def test_exit_without_saving(mock_object: MagicMock, sample_config_path):
 
     The expected behavior is that a RuntimeError is raised with the message "Config has changed. Cannot exit without saving."
     """
-    with pytest.raises(
-        RuntimeError, match="Config has changed. Cannot exit without saving."
-    ):
+    with pytest.raises(RuntimeError, match="Config has changed. Cannot exit without saving."):
         with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as config:
             config["test_key"] = "modified_value"
             # The RuntimeError should be raised upon exiting the context without saving
@@ -365,10 +333,7 @@ def test_get_module_setting(opnsense_config):
         opnsense_config.get_module_setting(module="system_settings", setting="domain")
         == "test.domain.someplace"
     )
-    assert (
-        opnsense_config.get_module_setting(module="interfaces", setting="if")
-        == "vtnet0"
-    )
+    assert opnsense_config.get_module_setting(module="interfaces", setting="if") == "vtnet0"
     assert not opnsense_config.save()
 
 
@@ -376,9 +341,7 @@ def test_get_module_setting(opnsense_config):
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense 23.1",
 )
-def test_set_module_setting(
-    mock_object: MagicMock, opnsense_config, sample_config_path
-):
+def test_set_module_setting(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test setting module settings in the config.
 
@@ -410,9 +373,7 @@ def test_set_module_setting(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense 23.1",
 )
-def test_del_module_setting(
-    mock_object: MagicMock, opnsense_config, sample_config_path
-):
+def test_del_module_setting(mock_object: MagicMock, opnsense_config, sample_config_path):
     """
     Test deleting module settings from the config.
 
@@ -436,9 +397,7 @@ def test_del_module_setting(
         assert new_config["system"]["domain"] is None
 
 
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
-)
+@patch("ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function")
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils.OPNsenseConfig._get_configure_functions"
 )
@@ -477,19 +436,11 @@ def test_apply_module_setting(
     test_php_requirements = [
         "/usr/local/etc/inc/config.inc",
         "/usr/local/etc/inc/util.inc",
-        "/usr/local/etc/inc/system.inc",
-        "/usr/local/etc/inc/interfaces.lib.inc",
-        "/usr/local/etc/inc/interfaces.inc",
-        "/usr/local/etc/inc/filter.inc",
     ]
 
     test_configure_functions = {
         "system_timezone_configure": {
             "name": "system_timezone_configure",
-            "configure_params": ["true"],
-        },
-        "system_resolver_configure": {
-            "name": "system_resolver_configure",
             "configure_params": ["true"],
         },
         "plugins_configure": {
@@ -509,11 +460,6 @@ def test_apply_module_setting(
         call(
             php_requirements=test_php_requirements,
             configure_function="system_timezone_configure",
-            configure_params=["true"],
-        ),
-        call(
-            php_requirements=test_php_requirements,
-            configure_function="system_resolver_configure",
             configure_params=["true"],
         ),
         call(
@@ -551,8 +497,6 @@ def test_version_not_found_in_version_map(
         OPNSenseConfigUsageError,
         match="Version OPNsense X.X.X not supported in module system_settings",
     ):
-        with OPNsenseConfig(
-            version_map=VERSION_MAP, path=sample_config_path
-        ) as new_config:
+        with OPNsenseConfig(version_map=VERSION_MAP, path=sample_config_path) as new_config:
             new_config.get_module_setting(module="system_settings", setting="hostname")
             # The RuntimeError should be raised upon accesing a version that not exists
