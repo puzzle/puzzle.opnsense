@@ -165,10 +165,9 @@ class OPNsenseConfig:
         if self.version_map.get(self.version):
             return self.version_map.get(self.version)
 
-        else:
-            raise OPNSenseConfigUsageError(
-                f"Version {self.version} not supported in module {module}"
-            )
+        raise OPNSenseConfigUsageError(
+            f"Version {self.version} not supported in module {module}"
+        )
 
     def _search_map(self, dictionary, key) -> Optional[str]:
         """
