@@ -241,8 +241,7 @@ class OPNsenseConfig:
             if setting in map_dict[module]:
                 return map_dict[module][setting]
             # If the setting is nested, search recursively
-            else:
-                return self._search_map(map_dict[module], setting)
+            return self._search_map(map_dict[module], setting)
 
         raise OPNSenseConfigUsageError(
             "Module specific xpath was not found"
