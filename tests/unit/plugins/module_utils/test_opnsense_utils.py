@@ -2,7 +2,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Tests for the plugins.module_utils.opnsense_utils module."""
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -42,11 +42,13 @@ def test_run_function(mock_subprocess_run: MagicMock):
 
     # Define the PHP requirements and the function with parameters to be tested
     php_requirements = ["/usr/local/etc/inc/config.inc", "/usr/local/etc/inc/util.inc"]
-    configure_function = 'plugins_configure'
-    configure_params = ['dns', 'true']
+    configure_function = "plugins_configure"
+    configure_params = ["dns", "true"]
 
     # Call run_function with the test parameters
-    result = opnsense_utils.run_function(php_requirements, configure_function, configure_params)
+    result = opnsense_utils.run_function(
+        php_requirements, configure_function, configure_params
+    )
 
     # Assert the result matches the mocked standard output
     assert result.decode() == mock_output.decode()
@@ -57,11 +59,9 @@ def test_run_function(mock_subprocess_run: MagicMock):
         "-r",
         "require '/usr/local/etc/inc/config.inc'; "
         "require '/usr/local/etc/inc/util.inc'; "
-        "plugins_configure(dns,true);"
+        "plugins_configure(dns,true);",
     ]
 
     mock_subprocess_run.assert_called_with(
-        expected_command,
-        stdout=subprocess.PIPE,
-        check=True
+        expected_command, stdout=subprocess.PIPE, check=True
     )

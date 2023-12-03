@@ -57,7 +57,8 @@ class UnsupportedVersionForModule(Exception):
 
 class UnsupportedModuleSettingError(Exception):
     """
-    Exception raised when an attempt is made to access an invalid or unsupported setting in a Module.
+    Exception raised when an attempt is made to access an invalid or
+    unsupported setting in a Module.
     """
 
 
@@ -65,9 +66,9 @@ class OPNsenseModuleConfig:
     """
     A class to handle OPNsense module configuration.
 
-    This class provides methods to load, modify, and save configurations specific to OPNsense modules.
-    It also includes functionality to apply settings and manage PHP requirements and configure functions
-    based on the OPNsense version and module name.
+    This class provides methods to load, modify, and save configurations specific
+    to OPNsense modules. It also includes functionality to apply settings and manage
+    PHP requirements and configure functions based on the OPNsense version and module name.
 
     Attributes:
         _config_xml_tree (Element): The XML tree of the configuration file.
@@ -100,7 +101,8 @@ class OPNsenseModuleConfig:
             version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
         except KeyError as ke:
             raise UnsupportedOPNsenseVersion(
-                f"OPNsense version '{self._opnsense_version}' not supported by puzzle.opnsense collection"
+                f"OPNsense version '{self._opnsense_version}' not supported "
+                "by puzzle.opnsense collection"
             ) from ke
 
         if self._module_name not in version_map:
@@ -216,7 +218,8 @@ class OPNsenseModuleConfig:
         if not isinstance(php_requirements, list):
             raise ModuleMisconfigurationError(
                 f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
-                f"not provided as a list in the VERSION_MAP using OPNsense version '{self._opnsense_version}'."
+                "not provided as a list in the VERSION_MAP using OPNsense version"
+                f"'{self._opnsense_version}'."
             )
 
         # return list
@@ -266,8 +269,10 @@ class OPNsenseModuleConfig:
         # ensure configure_functions are defined as a list
         if not isinstance(configure_functions, dict):
             raise ModuleMisconfigurationError(
-                f"Configure functions (configure_functions) for the module '{self._module_name}' are "
-                f"not provided as a list in the VERSION_MAP using OPNsense version '{self._opnsense_version}'."
+                "Configure functions (configure_functions) for the module "
+                f"'{self._module_name}' are "
+                "not provided as a list in the VERSION_MAP using OPNsense version "
+                f"'{self._opnsense_version}'."
             )
 
         # return list

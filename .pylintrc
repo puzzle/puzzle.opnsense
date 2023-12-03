@@ -1,0 +1,23 @@
+[MESSAGES CONTROL]
+
+disable=
+    import-error,
+    no-name-in-module,
+    wrong-import-position,
+
+[BASIC]
+
+good-names=
+    ex,
+    __metaclass__,
+    __metaclass__val,
+
+[TYPECHECK]
+
+ignored-modules=
+    _MovedItems,
+
+[IMPORTS]
+
+preferred-modules =
+    distutils.version:ansible.module_utils.compat.version,
