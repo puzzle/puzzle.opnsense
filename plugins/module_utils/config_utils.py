@@ -23,6 +23,21 @@ class OPNSenseConfigUsageError(Exception):
     """
 
 
+class MissingConfigDefinitionForModuleError(Exception):
+    """
+    Raised when a module misses a required config definition in the
+    plugins.module_utils.module_index.VERSION_MAP. Required configs must be
+    'php_requirements' and 'configure_functions'.
+    """
+
+
+class ModuleMisconfigurationError(Exception):
+    """
+    Raised when module configs are not in the expected format in the
+    plugins.module_utils.module_index.VERSION_MAP.
+    """
+
+
 class OPNsenseConfig:
     """
     A utility class for managing and interacting with the OPNsense configuration file
@@ -169,10 +184,7 @@ class OPNsenseConfig:
         if self.version_map.get(self.version):
             return self.version_map.get(self.version)
 
-        else:
-            raise OPNSenseConfigUsageError(
-                f"Version {self.version} not supported in module {module}"
-            )
+        raise OPNSenseConfigUsageError(f"Version {self.version} not supported in module {module}")
 
     def _search_map(self, dictionary, key) -> Optional[str]:
         """
@@ -194,14 +206,15 @@ class OPNsenseConfig:
         and the key `'if'`, the function will return `'interfaces/wan/if'`.
         """
 
-        if isinstance(dictionary, dict):
-            for k, v in dictionary.items():
-                if k == key:
-                    return v
-                else:
-                    result = self._search_map(v, key)
-                    if result is not None:
-                        return result
+        if not isinstance(dictionary, dict):
+            return None
+
+        for k, v in dictionary.items():
+            if k == key:
+                return v
+            result = self._search_map(v, key)
+            if result is not None:
+                return result
 
     def _get_xpath(self, module: str, setting: str) -> Union[str, dict]:
         """
@@ -249,79 +262,107 @@ class OPNsenseConfig:
 
         raise OPNSenseConfigUsageError("Module specific xpath was not found")
 
-    def _get_php_requirements(self, module: str, setting: str) -> list:
+    def _get_php_requirements(self, module: str) -> list:
         """
-        Retrieves a list of PHP requirements for a specific module and setting based on the
-        version-specific mapping.
+        Retrieves the PHP requirements for a given module from a version map.
 
-        This function looks up PHP requirements in the version-specific mapping for the given
-        module and setting. It returns the list associated with the setting if it's directly
-        under the module. If the setting is nested, it performs a recursive search.
+        This method extracts PHP requirements for the specified module
+        from a predefined map (VERSION_MAP). It ensures that these
+        requirements are defined and correctly formatted as a list. In cases
+        where requirements are missing or improperly formatted, it raises
+        specific exceptions.
 
         Parameters:
-        - module (str): The module's name for which PHP requirements are needed.
-        - setting (str): The specific setting within the module.
+        - module (str): The name of the module.
 
         Returns:
-        - Optional[list]: List of PHP requirements if found, or None if not found or unavailable.
+        - list: PHP requirements for the module.
+
+        Raises:
+        - MissingConfigDefinitionForModuleError: If no PHP requirements
+        are defined in the version map for the module.
+        - ModuleMisconfigurationError: If PHP requirements are not in list format.
+
+        The method enforces the presence and correct format of PHP
+        requirements for the specified OPNsense version.
 
         Example:
-        - Calling _get_php_requirements('network', 'extensions') might return a list of required
-          PHP extensions for the 'network' module, if 'extensions' is a setting under 'network'.
-
-        Note:
-        - The accuracy of the returned requirements depends on the completeness of `version_map`.
-          If a module or setting is missing in the map, the function returns None.
+            php_requirements = _get_php_requirements("some_module")
+            # Returns the list of PHP requirements for "some_module"
         """
 
-        map_dict = self._get_module_version_map(module=module)
+        map_dict: dict = self._get_module_version_map(module=module)
 
-        if module in map_dict and setting in map_dict[module]:
-            # If the setting is directly within the module, return it
-            return map_dict[module][setting]
-        elif module in map_dict:
-            # If the setting is nested, search recursively
-            return self._search_map(map_dict[module], setting)
+        php_requirements: Optional[list] = map_dict.get("php_requirements")
 
-        raise OPNSenseConfigUsageError("Module specific get_php_requirement were not found")
+        # enforce presence of php_requirements in the VERSION_MAP
+        if php_requirements is None:
+            raise MissingConfigDefinitionForModuleError(
+                f"Module {module} has no php_requirements defined in "
+                f"the plugins.module_utils.module_index.VERSION_MAP for given "
+                f"OPNsense version {self.version}."
+            )
 
-    def _get_configure_functions(self, module: str, setting: str) -> dict:
+        # ensure php_requirements are defined as a list
+        if not isinstance(php_requirements, list):
+            raise ModuleMisconfigurationError(
+                f"PHP requirements (php_requirements) for the module {module} are "
+                f"not provided as a list in the VERSION_MAP using OPNsense version {self.version}."
+            )
+
+        # return list
+        return php_requirements
+
+    def _get_configure_functions(self, module: str) -> dict:
         """
-        Retrieves configure functions for a specific module and setting from the version-specific
-        mapping.
+        Retrieves configure functions for a module from version-specific mapping.
 
-        This function checks the version-specific mapping dictionary for configure functions
-        related to a given module and setting. If the setting in the module contains a dictionary
-        of configure functions, it is returned.
+        This function checks a mapping dictionary for configure functions
+        associated with a specified module. It returns a dictionary of these
+        functions if available.
 
         Parameters:
-        - module (str): Module name for which configure functions are sought.
-        - setting (str): Specific setting within the module needing configure functions.
+        - module (str): Name of the module to retrieve configure functions for.
 
         Returns:
-        - Optional[dict]: Dictionary of configure functions if found; None if not found or if
-        the setting does not contain a dictionary.
+        - Optional[dict]: Dictionary of configure functions for the module, or
+        None if not found or improperly formatted.
+
+        Raises:
+        - MissingConfigDefinitionForModuleError: If no configure functions
+        are defined in the map for the module.
+        - ModuleMisconfigurationError: If configure functions are not formatted
+        as a dictionary.
 
         Example:
-        - _get_configure_functions('network', 'routing') might return a dict of functions for
-        routing settings in the 'network' module, if present.
+            functions = _get_configure_functions('network')
+            # Returns configure functions for the 'network' module
 
         Note:
-        - Function's effectiveness depends on the `version_map` being accurate and complete. The
-        presence of a module and setting in the map is crucial for function retrieval.
+            Functionality depends on accurate and complete version_map.
         """
 
-        map_dict = self._get_module_version_map(module=module)
+        map_dict: dict = self._get_module_version_map(module=module)
 
-        # Check if the provided module is in the map and the setting contains a dictionary of configure functions
-        if (
-            module in map_dict
-            and setting in map_dict[module]
-            and isinstance(map_dict[module][setting], dict)
-        ):
-            return map_dict[module][setting]
+        configure_functions: Optional[dict] = map_dict.get("configure_functions")
 
-        raise OPNSenseConfigUsageError("Module specific get_configure_functions were not found")
+        # enforce presence of configure_functions in the VERSION_MAP
+        if configure_functions is None:
+            raise MissingConfigDefinitionForModuleError(
+                f"Module {module} has no configure_functions defined in "
+                f"the plugins.module_utils.module_index.VERSION_MAP for given "
+                f"OPNsense version {self.version}."
+            )
+
+        # ensure configure_functions are defined as a list
+        if not isinstance(configure_functions, dict):
+            raise ModuleMisconfigurationError(
+                f"Configure functions (configure_functions) for the module {module} are "
+                f"not provided as a list in the VERSION_MAP using OPNsense version {self.version}."
+            )
+
+        # return list
+        return configure_functions
 
     def set_module_setting(self, value: str, module: str, setting: str) -> None:
         """
