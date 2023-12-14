@@ -3,7 +3,7 @@
 
 """Tests for the plugins.module_utils.xml_utils module."""
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -19,17 +19,14 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 # --- Dict to ElementTree --- #
 ###############################
 
-@pytest.mark.parametrize("input_data", [
-    1,
-    "foo",
-    None
-])
+
+@pytest.mark.parametrize("input_data", [1, "foo", None])
 def test_dict_to_etree__primitive_values(input_data: Optional[Union[int, str]]) -> None:
     """
     Test converting a primitive value to an ElementTree.Element.
 
-    Given a primitive input value, the function should create an ElementTree.Element with the given tag
-    and set the text content of the element to the input value.
+    Given a primitive input value, the function should create an ElementTree.Element
+    with the given tag and set the text content of the element to the input value.
 
     For example:
     - Input: tag: foo, dict: 1
@@ -43,17 +40,20 @@ def test_dict_to_etree__primitive_values(input_data: Optional[Union[int, str]]) 
     assert output_etree[0].text == input_data
 
 
-@pytest.mark.parametrize("input_data", [
-    {"foo": 1},
-    {"foo": "bar"},
-    {"foo": 1, "bar": None},
-])
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        {"foo": 1},
+        {"foo": "bar"},
+        {"foo": 1, "bar": None},
+    ],
+)
 def test_dict_to_etree__tags_on_simple_dicts(input_data: dict) -> None:
     """
     Test converting a simple dictionary to an ElementTree.Element.
 
-    Given a simple input dictionary, the function should create an ElementTree.Element with the given tag
-    and add child elements for each key-value pair in the dictionary.
+    Given a simple input dictionary, the function should create an ElementTree.Element with the
+    given tag and add child elements for each key-value pair in the dictionary.
 
     For example:
     - Input: tag: foo, dict: {"test": 1}
@@ -75,8 +75,8 @@ def test_dict_to_etree__dict_recursion() -> None:
     """
     Test converting a nested dictionary to an ElementTree.Element.
 
-    Given a nested dictionary, the function should create a hierarchical structure of ElementTree.Elements
-    with the corresponding tags and values.
+    Given a nested dictionary, the function should create a hierarchical structure of
+    ElementTree.Elements with the corresponding tags and values.
 
     For example:
     - Input: tag: foo, dict: {"bar": {"test": 1, "john": {"doe": 1}}}
@@ -114,16 +114,13 @@ def test_dict_to_etree__dict_recursion() -> None:
     assert children[0].text == 1
 
 
-@pytest.mark.parametrize("input_data", [
-    [1, 2, 3, 4],
-    ["a", "b", "c", "d"]
-])
+@pytest.mark.parametrize("input_data", [[1, 2, 3, 4], ["a", "b", "c", "d"]])
 def test_dict_to_etree__primitive_list(input_data: list) -> None:
     """
     Test converting a primitive list to multiple ElementTree.Elements.
 
-    Given a list of primitive values (int/str), the function should create multiple ElementTree.Elements,
-    each with the given tag and corresponding value.
+    Given a list of primitive values (int/str), the function should create multiple
+    ElementTree.Elements, each with the given tag and corresponding value.
 
     For example:
     - Input: tag: foo, dict: [1, 2, 3, 4]
@@ -147,8 +144,8 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
     """
     Test converting a list with dictionaries or sub-lists to multiple ElementTree.Elements.
 
-    Given a list containing dictionaries or sub-lists, the function should create multiple ElementTree.Elements,
-    each representing the corresponding dictionary or sub-list.
+    Given a list containing dictionaries or sub-lists, the function should create multiple
+    ElementTree.Elements, each representing the corresponding dictionary or sub-list.
 
     For example:
     - Input: tag: foo, dict: [{"bar": 1}, {"bar": 2}, {"bar": 3}]
@@ -174,10 +171,7 @@ def test_dict_to_etree__list_with_dicts_or_sub_lists() -> None:
     assert children[2].text == 3
 
 
-@pytest.mark.parametrize("input_data", [
-    {},
-    []
-])
+@pytest.mark.parametrize("input_data", [{}, []])
 def test_dict_to_etree__empty_input(input_data: Union[dict, list]) -> None:
     """
     Test that when an empty dictionary or an empty list is passed as input,
@@ -247,17 +241,18 @@ def etree_root(request: pytest.FixtureRequest) -> Element:
     return tree.getroot()
 
 
-@pytest.mark.parametrize("etree_root", [
-    "<test>1</test>",
-    "<test>some_string</test>",
-    "<test/>"
-], indirect=True)
+@pytest.mark.parametrize(
+    "etree_root",
+    ["<test>1</test>", "<test>some_string</test>", "<test/>"],
+    indirect=True,
+)
 def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
     """
     Test converting an ElementTree.Element containing a primitive value to a dictionary.
 
-    Given an ElementTree.Element with a single tag and a text content representing a primitive value,
-    the function should convert it into a dictionary with the tag as the key and the text content as the value.
+    Given an ElementTree.Element with a single tag and a text content representing a primitive
+    value, the function should convert it into a dictionary with the tag as the key and the
+    text content as the value.
 
     Example:
     - Input: <test>1</test>
@@ -269,10 +264,14 @@ def test_etree_to_dict__primitive_values(etree_root: Element) -> None:
     assert len(output_dict) == 1
 
 
-@pytest.mark.parametrize("etree_root", [
-    "<foo><bar>1</bar></foo>",
-    "<foo><bar>some_string</bar></foo>",
-], indirect=True)
+@pytest.mark.parametrize(
+    "etree_root",
+    [
+        "<foo><bar>1</bar></foo>",
+        "<foo><bar>some_string</bar></foo>",
+    ],
+    indirect=True,
+)
 def test_etree_to_dict__simple_children(etree_root: Element) -> None:
     """
     Test converting a simple ElementTree.Element with child elements to a dictionary.
@@ -295,17 +294,22 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
         assert child.tag in list(output_dict["foo"].keys())
 
 
-@pytest.mark.parametrize("etree_root", [
-    "<foo><bar>1</bar><bar>2</bar></foo>",
-    "<foo><bar>test</bar><bar>cat</bar></foo>",
-], indirect=True)
+@pytest.mark.parametrize(
+    "etree_root",
+    [
+        "<foo><bar>1</bar><bar>2</bar></foo>",
+        "<foo><bar>test</bar><bar>cat</bar></foo>",
+    ],
+    indirect=True,
+)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     """
-    Test converting an ElementTree.Element with multiple child elements of the same tag to a list in the dictionary.
+    Test converting an ElementTree.Element with multiple child elements of the same tag to
+    a list in the dictionary.
 
     Given an ElementTree.Element with a single tag and multiple child elements of the same tag,
-    the function should convert it into a dictionary with the tag as the key and a list of values representing
-    the child elements.
+    the function should convert it into a dictionary with the tag as the key and a list of values
+    representing the child elements.
 
     Example:
     - Input:
@@ -323,12 +327,18 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
-        assert any(list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"])))
+        assert any(
+            list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"]))
+        )
 
 
-@pytest.mark.parametrize("etree_root", [
-    "<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"
-], indirect=True)
+@pytest.mark.parametrize(
+    "etree_root",
+    [
+        "<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"
+    ],
+    indirect=True,
+)
 def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
     """
     Test converting an ElementTree.Element structure to a nested dictionary.

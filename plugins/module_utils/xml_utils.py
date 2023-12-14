@@ -3,7 +3,7 @@
 
 """Utilities for XML operations."""
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
@@ -15,7 +15,10 @@ __metaclass__ = type
 # --- Dict to ElementTree --- #
 ###############################
 
-def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> List[Element]:
+
+def dict_to_etree(
+    tag: str, data: Optional[Union[int, str, list, dict]]
+) -> Optional[List[Element]]:
     """
     Converts a Python dictionary to an ElementTree.Element structure.
 
@@ -117,7 +120,9 @@ def _process_list(tag: str, data: list) -> List[Element]:
     return new_elements
 
 
-def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> Optional[Element]:
+def _process_dict_list(
+    tag: str, input_dict: dict, root: Optional[Element]
+) -> Optional[Element]:
     """
     Processes a dictionary within a list, converting its key-value pairs to ElementTree.Element.
 
