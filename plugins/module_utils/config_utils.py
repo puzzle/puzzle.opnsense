@@ -27,8 +27,6 @@ class OPNSenseConfigUsageError(Exception):
     Exception raised for errors related to improper usage of the OPNSense module.
     """
 
-    pass
-
 
 class MissingConfigDefinitionForModuleError(Exception):
     """
@@ -37,8 +35,6 @@ class MissingConfigDefinitionForModuleError(Exception):
     'php_requirements' and 'configure_functions'.
     """
 
-    pass
-
 
 class ModuleMisconfigurationError(Exception):
     """
@@ -46,15 +42,11 @@ class ModuleMisconfigurationError(Exception):
     plugins.module_utils.module_index.VERSION_MAP.
     """
 
-    pass
-
 
 class UnsupportedOPNsenseVersion(Exception):
     """
     Exception raised when an OPNsense version is not supported by the collection.
     """
-
-    pass
 
 
 class UnsupportedVersionForModule(Exception):
@@ -62,15 +54,11 @@ class UnsupportedVersionForModule(Exception):
     Exception raised when no configuration map could be found for a given module and version.
     """
 
-    pass
-
 
 class UnsupportedModuleSettingError(Exception):
     """
     Exception raised when an attempt is made to access an invalid or unsupported setting in a Module.
     """
-
-    pass
 
 
 class OPNsenseModuleConfig:
@@ -324,7 +312,7 @@ class OPNsenseModuleConfig:
         cmd_output: list = []
 
         # run configure functions with all required php dependencies and store their output.
-        for key, value in configure_functions.items():
+        for value in configure_functions.values():
             cmd_output.append(
                 opnsense_utils.run_function(
                     php_requirements=php_requirements,
