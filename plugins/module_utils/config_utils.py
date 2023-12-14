@@ -184,7 +184,7 @@ class OPNsenseModuleConfig:
             != ElementTree.tostring(self._config_xml_tree).decode()
         )
 
-    def get_setting(self, setting_name: str) -> Element:
+    def get(self, setting_name: str) -> Element:
         """
         Retrieves a specific configuration setting for a setting name.
 
@@ -285,7 +285,7 @@ class OPNsenseModuleConfig:
         # return list
         return configure_functions
 
-    def apply_setting(self) -> List[str]:
+    def apply_settings(self) -> List[str]:
         """
         Retrieves and applies configuration-specific PHP requirements and configure functions for
         a given module.
@@ -335,7 +335,7 @@ class OPNsenseModuleConfig:
 
         return cmd_output
 
-    def set_module_setting(self, value: str, setting: str) -> None:
+    def set(self, value: str, setting: str) -> None:
         """
         Sets a specific configuration setting for a given module.
 
