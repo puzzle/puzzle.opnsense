@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-__metaclass__ = type
+__metaclass__val = type
 
 import os
 from tempfile import NamedTemporaryFile
@@ -122,9 +122,9 @@ def test_unsupported_opnsense_version(
     """
     with pytest.raises(
         UnsupportedOPNsenseVersion,
-        match=f"OPNsense version 'OPNsense X.X.X' not supported by puzzle.opnsense collection",
+        match="OPNsense version 'OPNsense X.X.X' not supported by puzzle.opnsense collection",
     ):
-        _ = OPNsenseModuleConfig(module_name="test_module", path=sample_config_path)
+        _val = OPNsenseModuleConfig(module_name="test_module", path=sample_config_path)
 
 
 def test_unsupported_module(sample_config_path):
@@ -140,7 +140,7 @@ def test_unsupported_module(sample_config_path):
         match=r"Module 'unsupported_module' not supported "
         "for OPNsense version 'OPNsense Test'.",
     ):
-        _ = OPNsenseModuleConfig(
+        _val = OPNsenseModuleConfig(
             module_name="unsupported_module", path=sample_config_path
         )
 
@@ -159,7 +159,7 @@ def test_unsupported_module_setting(sample_config_path):
             match="Setting 'unsupported' is not supported in module 'test_module' "
             "for OPNsense version 'OPNsense Test'",
         ):
-            _ = new_config.get("unsupported")
+            _val = new_config.get("unsupported")
 
 
 def test_php_requirements_must_be_present(sample_config_path):
@@ -176,10 +176,10 @@ def test_php_requirements_must_be_present(sample_config_path):
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_php_requirements' has no php_requirements defined in "
-            f"the plugins.module_utils.module_index.VERSION_MAP for given "
-            f"OPNsense version 'OPNsense Test'.",
+            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "OPNsense version 'OPNsense Test'.",
         ):
-            _ = new_config._get_php_requirements()
+            _val = new_config._get_php_requirements()
 
 
 def test_config_functions_must_be_present(sample_config_path):
@@ -196,10 +196,10 @@ def test_config_functions_must_be_present(sample_config_path):
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_configure_functions' has no configure_functions defined in "
-            f"the plugins.module_utils.module_index.VERSION_MAP for given "
-            f"OPNsense version 'OPNsense Test'.",
+            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "OPNsense version 'OPNsense Test'.",
         ):
-            _ = new_config._get_configure_functions()
+            _val = new_config._get_configure_functions()
 
 
 def test_php_requirements_must_be_list(sample_config_path):
@@ -218,7 +218,7 @@ def test_php_requirements_must_be_list(sample_config_path):
             match=r"PHP requirements \(php_requirements\) for the module 'invalid_php_requirements' are "
             "not provided as a list in the VERSION_MAP using OPNsense version 'OPNsense Test'.",
         ):
-            _ = new_config._get_php_requirements()
+            _val = new_config._get_php_requirements()
 
 
 def test_configure_functions_must_be_dict(sample_config_path):
@@ -237,7 +237,7 @@ def test_configure_functions_must_be_dict(sample_config_path):
             match=r"Configure functions \(configure_functions\) for the module 'invalid_configure_functions' are "
             "not provided as a list in the VERSION_MAP using OPNsense version 'OPNsense Test'.",
         ):
-            _ = new_config._get_configure_functions()
+            _val = new_config._get_configure_functions()
 
 
 def test_get_php_requirements(sample_config_path):
