@@ -159,7 +159,7 @@ def test_unsupported_module_setting(sample_config_path):
             match="Setting 'unsupported' is not supported in module 'test_module' "
             "for OPNsense version 'OPNsense Test'",
         ):
-            _ = new_config.get_setting("unsupported")
+            _ = new_config.get("unsupported")
 
 
 def test_php_requirements_must_be_present(sample_config_path):
@@ -287,7 +287,7 @@ def test_changed(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
-        new_config.set_module_setting(value="testtest", setting="hostname")
+        new_config.set(value="testtest", setting="hostname")
         assert new_config.changed
         new_config.save()
 
@@ -300,7 +300,7 @@ def test_get_setting(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
-        hostname_setting: Element = new_config.get_setting("hostname")
+        hostname_setting: Element = new_config.get("hostname")
         assert isinstance(hostname_setting, Element)
         assert "test_name" == hostname_setting.text
         new_config.save()
@@ -314,7 +314,7 @@ def test_save_on_changed(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
-        new_config.set_module_setting(value="testtest", setting="hostname")
+        new_config.set(value="testtest", setting="hostname")
         assert new_config.save()
 
 
@@ -338,7 +338,7 @@ def test_diff_on_change(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
-        new_config.set_module_setting(value="testtest", setting="hostname")
+        new_config.set(value="testtest", setting="hostname")
         diff = new_config.diff
 
         assert diff == {"hostname": "testtest"}
