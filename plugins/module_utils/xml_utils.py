@@ -23,15 +23,21 @@ def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> List
     :param data: The root element children structure data.
     :return: The generated list of ElementTree.Element.
     """
+
+    return_value = None
+
     if isinstance(data, (int, str, type(None))):
-        return [_create_element(tag, data)]
+        return_value = [_create_element(tag, data)]
 
     elif isinstance(data, dict):
-        return [_create_element_from_dict(tag, data)]
+        return_value = [_create_element_from_dict(tag, data)]
 
     elif isinstance(data, list):
         flattened_data = _flatten_list(data)
-        return _process_list(tag, flattened_data)
+        return_value = _process_list(tag, flattened_data)
+
+    if return_value is not None:
+        return return_value
 
     raise ValueError("Only values of type int, str, dict or list are supported.")
 
@@ -134,7 +140,15 @@ def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> O
 # --- ElementTree to Dict --- #
 ###############################
 
+
 def etree_to_dict(input_etree: Element) -> dict:
+    """
+    Converts an ElementTree.Element structure to a Python dictionary.
+
+    :param input_etree: The input ElementTree.Element.
+    :return: dict: The result dict.
+    """
+
     input_children: List[Element] = list(input_etree)
 
     # input element has no children, so it is a 'primitive' element
