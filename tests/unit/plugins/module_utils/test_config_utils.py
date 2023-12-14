@@ -2,6 +2,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Tests for the plugins.module_utils.config_utils module."""
 
+# This is probably intentional and required for the fixture
+# pylint: disable=redefined-outer-name
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__val = type

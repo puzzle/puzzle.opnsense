@@ -3,6 +3,9 @@
 
 """Tests for the plugins.module_utils.xml_utils module."""
 
+# This is probably intentional and required for the fixture
+# pylint: disable=redefined-outer-name
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
