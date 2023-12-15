@@ -1,319 +1,228 @@
 # Copyright: (c) 2023, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-"""Utilities for interactions with the OPNsense config file /conf/config.xml"""
+"""
+This module provides utilities for interactions with the OPNsense config file located at
+/conf/config.xml. It includes classes and methods to read, modify, and manage the configuration
+specific to different modules and OPNsense versions.
+"""
 
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Dict
 from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
-    xml_utils,
     version_utils,
     opnsense_utils,
+    module_index,
 )
 
 
 class OPNSenseConfigUsageError(Exception):
     """
-    Error Class to be raised in improper module usage
+    Exception raised for errors related to improper usage of the OPNSense module.
     """
 
 
 class MissingConfigDefinitionForModuleError(Exception):
     """
-    Raised when a module misses a required config definition in the
-    plugins.module_utils.module_index.VERSION_MAP. Required configs must be
+    Exception raised when a required config definition is missing for a module in the
+    plugins.module_utils.module_index.VERSION_MAP. Required configs must include
     'php_requirements' and 'configure_functions'.
     """
 
 
 class ModuleMisconfigurationError(Exception):
     """
-    Raised when module configs are not in the expected format in the
+    Exception raised when module configurations are not in the expected format as defined in the
     plugins.module_utils.module_index.VERSION_MAP.
     """
 
 
-class OPNsenseConfig:
+class UnsupportedOPNsenseVersion(Exception):
     """
-    A utility class for managing and interacting with the OPNsense configuration file
-    (/conf/config.xml). It provides methods for retrieving, modifying, and applying settings
-    specific to different modules based on version-specific requirements.
-
-    The class facilitates operations such as fetching PHP requirements, retrieving and setting
-    configuration values, and handling version-specific configurations. It uses a context manager
-    to ensure safe handling of the configuration file, allowing changes to be made within a managed
-    context.
-
-    Usage:
-       with OPNsenseConfig(version_map) as config:
-           # Retrieve a configuration value
-           value = config.get_module_setting('module', 'setting')
-
-           # Modify a configuration value
-           config.set_module_setting('value', 'module', 'setting')
-
-           # Delete a configuration value
-           config.del_module_setting('module', 'setting')
-
-           # Apply module-specific settings
-           outputs = config.apply_module_setting('module')
-
-           # Save changes to the configuration file
-           config.save()
-
-    Note:
-       - The context manager ensures that any changes made to the configuration are saved
-         before exiting the block. It also provides error handling to ensure that changes
-         are not lost.
-
-    Parameters:
-    - version_map (dict): A dictionary mapping module versions to their respective settings.
-    - path (str, optional): The file path to the OPNsense configuration file. Defaults to
-      "/conf/config.xml".
-
-    Methods like _get_php_requirements, _get_configure_functions, etc., offer more granular
-    control for advanced operations. They are primarily used internally but can be used
-    externally for custom configurations.
-
-    This class raises OPNSenseConfigUsageError for version compatibility issues or other
-    configuration-related errors.
+    Exception raised when an OPNsense version is not supported by the collection.
     """
 
+
+class UnsupportedVersionForModule(Exception):
+    """
+    Exception raised when no configuration map could be found for a given module and version.
+    """
+
+
+class UnsupportedModuleSettingError(Exception):
+    """
+    Exception raised when an attempt is made to access an invalid or unsupported setting in a Module.
+    """
+
+
+class OPNsenseModuleConfig:
+    """
+    A class to handle OPNsense module configuration.
+
+    This class provides methods to load, modify, and save configurations specific to OPNsense modules.
+    It also includes functionality to apply settings and manage PHP requirements and configure functions
+    based on the OPNsense version and module name.
+
+    Attributes:
+        _config_xml_tree (Element): The XML tree of the configuration file.
+        _config_path (str): The file path of the configuration.
+        _config_map (dict): The mapping of settings and their XPath in the XML tree.
+        _module_name (str): The name of the module.
+        _opnsense_version (str): The OPNsense version.
+    """
+
+    _config_xml_tree: Element
     _config_path: str
-    _config_dict: dict
+    _config_map: dict
+    _module_name: str
+    _opnsense_version: str
 
-    def __init__(self, version_map: dict = None, path: str = "/conf/config.xml"):
+    def __init__(self, module_name: str, path: str = "/conf/config.xml"):
         """
-        Initializes an instance of OPNsenseConfig.
+        Initializes the OPNsenseModuleConfig class.
 
-        :param path:  The path to the OPNsense config file (default: "/conf/config.xml").
-        :param version_map:  The version_map of the specific module.
+        Args:
+            module_name (str): The name of the module.
+            path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
+        self._module_name = module_name
         self._config_path = path
-        self._config_dict = self._parse_config_from_file()
-        self.version_map = version_map
+        self._config_xml_tree = self._load_config()
+        self._opnsense_version = version_utils.get_opnsense_version()
 
-        self.version = version_utils.get_opnsense_version()
+        try:
+            version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
+        except KeyError as ke:
+            raise UnsupportedOPNsenseVersion(
+                f"OPNsense version '{self._opnsense_version}' not supported by puzzle.opnsense collection"
+            ) from ke
 
-    def __enter__(self) -> "OPNsenseConfig":
+        if self._module_name not in version_map:
+            raise UnsupportedVersionForModule(
+                f"Module '{self._module_name}' not supported "
+                f"for OPNsense version '{self._opnsense_version}'."
+            )
+
+        self._config_map = version_map[self._module_name]
+
+    def _load_config(self) -> Element:
+        """
+        Loads the config.xml file and returns its root element.
+
+        Returns:
+            Element: The root element of the config.xml file.
+        """
+        return ElementTree.parse(self._config_path).getroot()
+
+    def __enter__(self) -> "OPNsenseModuleConfig":
+        """
+        Enters the context manager for the OPNsenseModuleConfig class.
+
+        Returns:
+            OPNsenseModuleConfig: The instance of OPNsenseModuleConfig.
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
-        Exits the context manager and checks if the config has changed and not saved.
-        :raises RuntimeError: If changes are present which have not been saved.
-        :return:
+        Exits the context manager for OPNsenseModuleConfig.
+
+        Checks if the configuration has changed and not been saved, raising a RuntimeError if so.
+
+        Args:
+            exc_type: The exception type.
+            exc_val: The exception value.
+            exc_tb: The traceback.
+
+        Raises:
+            RuntimeError: If there are unsaved changes in the configuration.
         """
         if exc_type:
             raise exc_type(f"Exception occurred: {exc_val}")
         if self.changed:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
-    def __getitem__(self, key: Any) -> Any:
-        return self._config_dict[key]
-
-    def __setitem__(self, key: Any, value: Any) -> None:
-        self._config_dict[key] = value
-
-    def __delitem__(self, key: Any) -> None:
-        del self._config_dict[key]
-
-    def __contains__(self, key: Any) -> bool:
-        return key in self._config_dict
-
-    def _parse_config_from_file(self) -> dict:
-        _config_root: ElementTree = ElementTree.parse(self._config_path).getroot()
-        return xml_utils.etree_to_dict(_config_root)["opnsense"] or {}
-
     def save(self) -> bool:
         """
-        Saves the config dictionary to the config file if changes have been made.
+        Saves the config to the file if changes have been made.
 
-        :return: True if changes were saved, False if no changes were detected.
+        Returns:
+        - bool: True if changes were saved, False if no changes were detected.
         """
         if self.changed:
-            new_config_root = xml_utils.dict_to_etree("opnsense", self._config_dict)[0]
-            new_tree = ElementTree.ElementTree(new_config_root)
-            new_tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-            self._config_dict = self._parse_config_from_file()
+            tree: ElementTree.ElementTree = ElementTree.ElementTree(
+                self._config_xml_tree
+            )
+            tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+            self._config_xml_tree = self._load_config()
             return True
         return False
 
     @property
     def changed(self) -> bool:
-        """
-        Enters the context manager.
+        """Checks if changes have been made to the config."""
+        return (
+            ElementTree.tostring(self._load_config()).decode()
+            != ElementTree.tostring(self._config_xml_tree).decode()
+        )
 
-        :return: True if changes have been made to the config, False otherwise.
+    def get(self, setting_name: str) -> Element:
         """
-        orig_dict = self._parse_config_from_file()
-        return orig_dict != self._config_dict
-
-    def _get_module_version_map(self, module: str) -> dict:
-        """
-        Retrieves the version-specific mapping for a specified module.
-
-        This function accesses the `version_map` attribute to fetch the mapping for the current
-        version. If the mapping for the specified version exists, it returns the mapping;
-        otherwise, it raises an OPNSenseConfigUsageError.
+        Retrieves a specific configuration setting for a setting name.
 
         Parameters:
-        - module (str): The name of the module for which the version-specific mapping is required.
+        - setting_name (str): The name of the setting to retrieve.
 
         Returns:
-        - dict: A dictionary containing the version-specific mapping for the given module.
-
-        Raises:
-        - OPNSenseConfigUsageError: If the current version is not supported for the given module,
-          indicated by the absence of the version key in the `version_map`.
-
-        Example:
-        - Calling _get_module_version_map('network') for an instance with version '1.0' might
-          return the mapping for the 'network' module if version '1.0' is present in `version_map`.
-
-        Note:
-        - This function is critical for ensuring that the configuration aligns with the specific
-          version requirements of a module.
+        - Element: The retrieved setting element.
         """
-
-        if self.version_map.get(self.version):
-            return self.version_map.get(self.version)
-
-        raise OPNSenseConfigUsageError(f"Version {self.version} not supported in module {module}")
-
-    def _search_map(self, dictionary, key) -> Optional[str]:
-        """
-        Recursively search for a key in a nested dictionary.
-
-        This function traverses through a nested dictionary structure to find the value associated
-        with the specified key. It searches through all levels of nested dictionaries until it finds
-        the key or exhausts all possibilities.
-
-        Parameters:
-        - dictionary (dict): The dictionary to search. This can be a multi-level nested dictionary.
-        - key (str): The key to search for in the dictionary.
-
-        Returns:
-        - The value associated with the found key, or None if the key is not found in the dict.
-
-        Example:
-        - Given the dictionary `{"interfaces": {"wan": {"if": 'interfaces/wan/if'}}}`
-        and the key `'if'`, the function will return `'interfaces/wan/if'`.
-        """
-
-        if not isinstance(dictionary, dict):
-            return None
-
-        for k, v in dictionary.items():
-            if k == key:
-                return v
-            result = self._search_map(v, key)
-            if result is not None:
-                return result
-
-    def _get_xpath(self, module: str, setting: str) -> Union[str, dict]:
-        """
-        Retrieves the XPath for a given module and setting based on the version-specific mapping.
-
-        This function looks up the XPath in a version-specific mapping dictionary using the provided
-        module and setting names. If the setting is directly within the module, it returns it;
-        otherwise, it performs a recursive search if the setting is nested within the module.
-
-        Parameters:
-        - module (str): The name of the module for which the XPath is sought.
-        - setting (str): The specific setting within the module whose XPath is needed.
-
-        Returns:
-        - Union[str, dict, None]: The XPath as a string or dict if found, or None if the module
-        or setting cannot be found or is not available.
-
-        Raises:
-        - OPNSenseConfigUsageError: If the version-specific `version_map` is not set during the
-        initialization of the instance.
-
-        Example:
-        - Calling _get_xpath('network', 'interface') might return 'network/interface' or a
-        dictionary of nested settings if 'interface' is a nested setting within 'network'.
-
-        Note:
-        - The function emphasizes the importance of a properly initialized `version_map`.The absence
-        of the module in the map or the setting within the module leads to a return value of None.
-        """
-
-        if not self.version_map:
-            raise OPNSenseConfigUsageError(
-                "Module specific version_map was not set during initalization"
+        if setting_name not in self._config_map:
+            raise UnsupportedModuleSettingError(
+                f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
+                f"for OPNsense version '{self._opnsense_version}'"
             )
+        return self._config_xml_tree.find(self._config_map[setting_name])
 
-        map_dict = self._get_module_version_map(module=module)
-
-        # Check if the provided module is in the map
-        if module in map_dict and setting in map_dict[module]:
-            # If the setting is directly within the module, return it
-            return map_dict[module][setting]
-        elif module in map_dict:
-            # If the setting is nested, search recursively
-            return self._search_map(map_dict[module], setting)
-
-        raise OPNSenseConfigUsageError("Module specific xpath was not found")
-
-    def _get_php_requirements(self, module: str) -> list:
+    def _get_php_requirements(self) -> list:
         """
         Retrieves the PHP requirements for a given module from a version map.
-
-        This method extracts PHP requirements for the specified module
-        from a predefined map (VERSION_MAP). It ensures that these
-        requirements are defined and correctly formatted as a list. In cases
-        where requirements are missing or improperly formatted, it raises
-        specific exceptions.
-
-        Parameters:
-        - module (str): The name of the module.
 
         Returns:
         - list: PHP requirements for the module.
 
         Raises:
         - MissingConfigDefinitionForModuleError: If no PHP requirements
-        are defined in the version map for the module.
+          are defined in the version map for the module.
         - ModuleMisconfigurationError: If PHP requirements are not in list format.
-
-        The method enforces the presence and correct format of PHP
-        requirements for the specified OPNsense version.
-
-        Example:
-            php_requirements = _get_php_requirements("some_module")
-            # Returns the list of PHP requirements for "some_module"
         """
 
-        map_dict: dict = self._get_module_version_map(module=module)
-
-        php_requirements: Optional[list] = map_dict.get("php_requirements")
+        php_requirements: Optional[list] = self._config_map.get("php_requirements")
 
         # enforce presence of php_requirements in the VERSION_MAP
         if php_requirements is None:
             raise MissingConfigDefinitionForModuleError(
-                f"Module {module} has no php_requirements defined in "
+                f"Module '{self._module_name}' has no php_requirements defined in "
                 f"the plugins.module_utils.module_index.VERSION_MAP for given "
-                f"OPNsense version {self.version}."
+                f"OPNsense version '{self._opnsense_version}'."
             )
 
         # ensure php_requirements are defined as a list
         if not isinstance(php_requirements, list):
             raise ModuleMisconfigurationError(
-                f"PHP requirements (php_requirements) for the module {module} are "
-                f"not provided as a list in the VERSION_MAP using OPNsense version {self.version}."
+                f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
+                f"not provided as a list in the VERSION_MAP using OPNsense version '{self._opnsense_version}'."
             )
 
         # return list
         return php_requirements
 
-    def _get_configure_functions(self, module: str) -> dict:
+    def _get_configure_functions(self) -> dict:
         """
         Retrieves configure functions for a module from version-specific mapping.
 
@@ -342,153 +251,29 @@ class OPNsenseConfig:
             Functionality depends on accurate and complete version_map.
         """
 
-        map_dict: dict = self._get_module_version_map(module=module)
-
-        configure_functions: Optional[dict] = map_dict.get("configure_functions")
+        configure_functions: Optional[dict] = self._config_map.get(
+            "configure_functions"
+        )
 
         # enforce presence of configure_functions in the VERSION_MAP
         if configure_functions is None:
             raise MissingConfigDefinitionForModuleError(
-                f"Module {module} has no configure_functions defined in "
+                f"Module '{self._module_name}' has no configure_functions defined in "
                 f"the plugins.module_utils.module_index.VERSION_MAP for given "
-                f"OPNsense version {self.version}."
+                f"OPNsense version '{self._opnsense_version}'."
             )
 
         # ensure configure_functions are defined as a list
         if not isinstance(configure_functions, dict):
             raise ModuleMisconfigurationError(
-                f"Configure functions (configure_functions) for the module {module} are "
-                f"not provided as a list in the VERSION_MAP using OPNsense version {self.version}."
+                f"Configure functions (configure_functions) for the module '{self._module_name}' are "
+                f"not provided as a list in the VERSION_MAP using OPNsense version '{self._opnsense_version}'."
             )
 
         # return list
         return configure_functions
 
-    def set_module_setting(self, value: str, module: str, setting: str) -> None:
-        """
-        Sets a specific configuration setting for a given module.
-
-        This function sets a value in the configuration for a specified module and setting. It
-        first retrieves the XPath using _get_xpath, then updates the value at the specified
-        setting in a copy of the _config_dict.
-
-        Parameters:
-        - value (str): The value to set for the specific setting.
-        - module (str): The module where the setting resides.
-        - setting (str): The specific setting within the module to update.
-
-        Steps:
-        - Retrieve XPath for the module and setting.
-        - Create a copy of _config_dict.
-        - Traverse the XPath, updating nested dictionaries as needed.
-        - Set the value at the final key in the XPath.
-
-        Example:
-        - Calling set_module_setting('192.168.1.1', 'network', 'gateway') will set the
-          'gateway' setting under the 'network' module to '192.168.1.1'.
-
-        Note:
-        - This function directly modifies the configuration and should be used with caution.
-        """
-
-        # get xpath from key_mapping
-        xpath = self._get_xpath(module=module, setting=setting)
-
-        # create a copy of the _config_dict
-        _config_dict = self._config_dict.copy()
-
-        # iterate over xpath value to get specific key
-        keys = xpath.split("/")
-
-        for key in keys[:-1]:
-            _config_dict = _config_dict.setdefault(key, {})
-
-        # Update the final value
-        _config_dict[keys[-1]] = value
-
-    def del_module_setting(self, module: str, setting: str) -> None:
-        """
-        Deletes a specific configuration setting for a given module.
-
-        This function deletes a setting in the configuration for a specified module. It retrieves
-        the XPath for the setting using _get_xpath, then traverses the XPath in a copy of the
-        _config_dict to set the specified setting's value to None.
-
-        Parameters:
-        - module (str): The module where the setting resides.
-        - setting (str): The specific setting within the module to delete.
-
-        Steps:
-        - Retrieve XPath for the module and setting.
-        - Create a copy of _config_dict.
-        - Traverse the XPath, updating nested dictionaries as needed.
-        - Set the value at the final key in the XPath to None.
-
-        Example:
-        - Calling del_module_setting('network', 'gateway') will delete the 'gateway' setting
-          under the 'network' module.
-
-        Note:
-        - This function directly modifies the configuration, effectively deleting the setting.
-          Use with caution.
-        """
-
-        # get xpath from key_mapping
-        xpath = self._get_xpath(module=module, setting=setting)
-
-        # create a copy of the _config_dict
-        _config_dict = self._config_dict.copy()
-
-        # iterate over xpath value to get specific key
-        keys = xpath.split("/")
-
-        for key in keys[:-1]:
-            _config_dict = _config_dict.setdefault(key, {})
-
-        # Update the final value
-        _config_dict[keys[-1]] = None
-
-    def get_module_setting(self, module: str, setting: str) -> str:
-        """
-        Retrieves a specific configuration setting for a given module.
-
-        This function fetches a setting from the configuration for a specified module. It first
-        obtains the XPath for the setting using _get_xpath, and then traverses this path in a copy
-        of the _config_dict to find the desired setting's value.
-
-        Parameters:
-        - module (str): The module where the setting resides.
-        - setting (str): The specific setting within the module to retrieve.
-
-        Steps:
-        - Retrieve XPath for the module and setting.
-        - Create a copy of _config_dict.
-        - Traverse the XPath to find the specific key.
-        - Return the value associated with the key.
-
-        Example:
-        - Calling get_module_setting('network', 'gateway') will return the value of the 'gateway'
-          setting under the 'network' module.
-
-        Note:
-        - This function navigates through configuration, returning the value of the specified
-          setting. Ensure the setting path exists to avoid key errors.
-        """
-
-        # get xpath from key_mapping
-        xpath = self._get_xpath(module=module, setting=setting)
-
-        # create a copy of the _config_dict
-        _config_dict = self._config_dict.copy()
-
-        # iterate over xpath value to get specific key
-        for key in xpath.split("/"):
-            _config_dict = _config_dict[key]
-
-        # return key
-        return _config_dict
-
-    def apply_module_setting(self, module: str) -> List[str]:
+    def apply_settings(self) -> List[str]:
         """
         Retrieves and applies configuration-specific PHP requirements and configure functions for
         a given module.
@@ -518,17 +303,16 @@ class OPNsenseConfig:
           each module, as per the version-specific configuration.
         """
 
-        # get version and module specific php_requirements
-        php_requirements = self._get_php_requirements(module=module, setting="php_requirements")
+        # get module specific php_requirements
+        php_requirements: list = self._get_php_requirements()
 
-        # get version and module specific configure_functions
-        configure_functions = self._get_configure_functions(
-            module=module, setting="configure_functions"
-        )
+        # get module specific configure_functions
+        configure_functions: dict = self._get_configure_functions()
 
-        cmd_output = []
+        cmd_output: list = []
 
-        for key, value in configure_functions.items():
+        # run configure functions with all required php dependencies and store their output.
+        for value in configure_functions.values():
             cmd_output.append(
                 opnsense_utils.run_function(
                     php_requirements=php_requirements,
@@ -538,3 +322,76 @@ class OPNsenseConfig:
             )
 
         return cmd_output
+
+    def set(self, value: str, setting: str) -> None:
+        """
+        Sets a specific configuration setting for a given module.
+
+        This function sets a value in the configuration for a specified module and setting. It
+        first retrieves the XPath using _get_xpath, then updates the value at the specified
+        setting in a copy of the _config_dict.
+
+        Parameters:
+        - value (str): The value to set for the specific setting.
+        - module (str): The module where the setting resides.
+        - setting (str): The specific setting within the module to update.
+
+        Steps:
+        - Retrieve XPath for the module and setting.
+        - Create a copy of _config_dict.
+        - Traverse the XPath, updating nested dictionaries as needed.
+        - Set the value at the final key in the XPath.
+
+        Example:
+        - Calling set_module_setting('192.168.1.1', 'network', 'gateway') will set the
+          'gateway' setting under the 'network' module to '192.168.1.1'.
+
+        Note:
+        - This function directly modifies the configuration and should be used with caution.
+        """
+
+        # get xpath from key_mapping
+        xpath = self._config_map.get(setting)
+
+        # create a copy of the _config_dict
+        _setting: Element = self._config_xml_tree.find(xpath)
+
+        if _setting.text in [None, "", " "]:
+            raise NotImplementedError("Currently only text settings supported")
+
+        _setting.text = value
+
+    @property
+    def diff(self) -> Optional[Dict[str, str]]:
+        """
+        Compares the in-memory configuration with the configuration on the file path
+        and returns a dictionary of differences.
+
+        Returns:
+        - Optional[Dict[str, str]]: A dictionary containing the differences between
+          the in-memory configuration and the file-based configuration.
+
+        Example:
+        - diff might return {'setting1': 'new_value', 'setting2': 'changed_value'}.
+        """
+        file_config_tree = ElementTree.parse(self._config_path)
+        file_config = file_config_tree.getroot()
+
+        # Create a dictionary to store the differences
+        config_diff = {}
+
+        for setting_name, xpath in self._config_map.items():
+            if setting_name in ["php_requirements", "configure_functions"]:
+                continue
+
+            # Find the setting in the file-based configuration
+            file_setting = file_config.find(xpath)
+
+            # Find the setting in the in-memory configuration
+            in_memory_setting = self._config_xml_tree.find(xpath)
+
+            # Compare the values
+            if in_memory_setting.text != file_setting.text:
+                config_diff[setting_name] = in_memory_setting.text
+
+        return config_diff

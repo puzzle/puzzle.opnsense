@@ -75,35 +75,110 @@ The official Ansible Documentation (`Collection Structure
 <https://docs.ansible.com/ansible/latest/dev_guide/developing_collections_structure.html#collection-structure>`__)
 provides further reference regarding collection structure guidelines.
 
-Using the OPNsense config XML in plugins
+Using the OPNsense Module Config XML in Plugins
 ----------------------------------------
-The `OPNsenseConfig` utility module provides a convenient way to interact with
-the OPNsense config file `/conf/config.xml` in Ansible plugins. It offers a
-context manager that simplifies accessing, modifying, and managing configuration
-values.
 
-When working with Ansible plugins that require reading or updating configuration
-settings in the OPNsense config file, the `OPNsenseConfig` utility can be used
-to streamline the process. It abstracts away the complexities of parsing and
-manipulating XML, allowing developers to focus on the specific configuration
-logic.
+The ``OPNsenseModuleConfig`` utility module provides a convenient and efficient way to interact with the OPNsense configuration file located at ``/conf/config.xml`` within Ansible plugins. This utility is designed to offer a context manager that significantly simplifies the process of accessing, modifying, and managing configuration values in a structured and error-resistant manner.
+
+It encapsulates the complexities associated with parsing and manipulating XML data, thereby allowing developers to concentrate on implementing task specific configuration logic.
+
+Example
+-------
+
+The following is an illustrative example of utilizing the ``OPNsenseModuleConfig`` utility within an Ansible plugin:
+
+.. code-block:: python
+
+    from ansible_collections.puzzle.opnsense.plugins.module_utils import OPNsenseModuleConfig
+
+    # Example usage within a plugin or module
+    with OPNsenseModuleConfig(module_name='desired_module') as config:
+        # Access a configuration value
+        value = config.get_setting('setting_name')
+
+        # Modify a configuration value
+        config.set_module_setting(value='new_setting_value', setting='setting_name')
+
+        # Apply changes and execute any necessary configure functions
+        config.apply_settings()
+
+        # Save changes to the configuration file
+        config.save()
+
+In this example:
+
+- The ``with`` statement is used to instantiate ``OPNsenseModuleConfig`` with a specific module name.
+- The ``get_setting`` method fetches a specific configuration value based on the setting name.
+- The ``set_module_setting`` method updates a given setting with a new value.
+- The ``apply_setting`` method applies the new settings and runs any required configure functions.
+- The ``save`` method saves all changes back to the OPNsense config file.
+
+This utility thus streamlines the interaction with the OPNsense configuration file, making it more manageable and less error-prone for developers working with Ansible plugins.
+
+
+Version Mapping in OPNsense Configuration
+-----------------------------------------
+
+The ``VERSION_MAP`` is a crucial component in the OPNsense configuration utility module. It serves as a key-value mapping that aligns different OPNsense versions with their corresponding configuration settings, PHP requirements, and configure functions. This map ensures compatibility and accurate configuration across various versions of OPNsense.
+
+Structure of VERSION_MAP
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Top-Level Keys: Each top-level key represents a specific version of OPNsense, such as "OPNsense 22.7 (amd64/OpenSSL)".
+
+- Module Configuration: The value associated with each OPNsense version key is a dictionary. This dictionary maps module names to their specific configuration settings.
+
+- Configuration Details: For each module, the configuration includes:
+
+  - **Setting Mappings**: Key-value pairs where the key represents a configuration setting (e.g., 'hostname') and the value is its corresponding XPath in the OPNsense configuration file.
+
+  - **PHP Requirements**: A list of file paths necessary for the execution of PHP scripts related to the module.
+
+  - **Configure Functions**: A dictionary of functions with details such as function name and parameters, necessary for module configuration.
+
+Identifying PHP Requirements and Configure Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To identify the `php_requirements` and `configure_functions` for a specific module, one should refer to the OPNsense core GitHub repository. Within the repository, locate the PHP file corresponding to the module of interest (e.g., `core/src/www/system_general.php`). Examining this file will provide insights into the required PHP scripts and configurable functions for that module.
+
+Purpose
+~~~~~~~
+
+``VERSION_MAP`` plays a critical role in ensuring that the OPNsense configuration utility can adapt to different versions of OPNsense. By providing version-specific paths and requirements, it allows the utility to read and modify configurations accurately, regardless of the OPNsense version in use.
 
 Example
 ~~~~~~~
 
-Here's an example of how to use the `OPNsenseConfig` utility:
-
 .. code-block:: python
 
-    from ansible_collections.puzzle.opnsense.plugins.module_utils import OPNsenseConfig
+    VERSION_MAP = {
+        "OPNsense 22.7 (amd64/OpenSSL)": {
+            "system_settings_general": {
+                "hostname": "system/hostname",
+                "domain": "system/domain",
+                ...
+                "php_requirements": [
+                    "/usr/local/etc/inc/config.inc",
+                    ...
+                ],
+                "configure_functions": {
+                    "system_hostname_configure": {
+                        "name": "system_hostname_configure",
+                        ...
+                    },
+                    ...
+                },
+            }
+        },
+        "OPNsense 23.1": {
+            ...
+        },
+    }
 
-    ...
+In this example, the configuration for "OPNsense 22.7 (amd64/OpenSSL)" is outlined, detailing settings, PHP requirements, and configure functions specific to the 'system_settings_general' module.
 
-    with OPNsenseConfig() as config:
-        value = config["key"]  # Access a configuration value
-        config["key"] = new_value  # Modify a configuration value
-        del config["key"]  # Delete a configuration value
-        config.save()  # Save changes
+This detailed and version-specific mapping ensures the utility module operates correctly across different OPNsense releases, contributing significantly to the robustness and reliability of the configuration management process.
+
 
 Using Vagrant
 =============
