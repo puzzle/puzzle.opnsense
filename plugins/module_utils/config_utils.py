@@ -55,7 +55,6 @@ class UnsupportedVersionForModule(Exception):
     """
 
 
-
 class UnsupportedModuleSettingError(Exception):
     """
     Exception raised when an attempt is made to access an invalid or unsupported setting in a Module.
