@@ -58,7 +58,6 @@ class UnsupportedVersionForModule(Exception):
     Exception raised when no configuration map could be found for a given module and version.
     """
 
-    pass
 
 
 class UnsupportedModuleSettingError(Exception):
