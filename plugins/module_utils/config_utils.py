@@ -28,7 +28,6 @@ class OPNSenseConfigUsageError(Exception):
     """
 
 
-
 class MissingConfigDefinitionForModuleError(Exception):
     """
     Exception raised when a required config definition is missing for a module in the
