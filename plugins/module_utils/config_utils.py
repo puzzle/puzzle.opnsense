@@ -44,7 +44,6 @@ class ModuleMisconfigurationError(Exception):
     plugins.module_utils.module_index.VERSION_MAP.
     """
 
-    pass
 
 
 class UnsupportedOPNsenseVersion(Exception):
