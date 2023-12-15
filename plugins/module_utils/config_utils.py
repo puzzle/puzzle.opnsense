@@ -51,7 +51,6 @@ class UnsupportedOPNsenseVersion(Exception):
     Exception raised when an OPNsense version is not supported by the collection.
     """
 
-    pass
 
 
 class UnsupportedVersionForModule(Exception):
