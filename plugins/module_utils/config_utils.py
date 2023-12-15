@@ -324,7 +324,7 @@ class OPNsenseModuleConfig:
         cmd_output: list = []
 
         # run configure functions with all required php dependencies and store their output.
-        for key, value in configure_functions.items():
+        for value in configure_functions.values():
             cmd_output.append(
                 opnsense_utils.run_function(
                     php_requirements=php_requirements,
