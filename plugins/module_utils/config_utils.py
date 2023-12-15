@@ -49,7 +49,6 @@ class UnsupportedOPNsenseVersion(Exception):
     """
 
 
-
 class UnsupportedVersionForModule(Exception):
     """
     Exception raised when no configuration map could be found for a given module and version.
