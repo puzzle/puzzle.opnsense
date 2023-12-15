@@ -61,7 +61,6 @@ class UnsupportedModuleSettingError(Exception):
     """
 
 
-
 class OPNsenseModuleConfig:
     """
     A class to handle OPNsense module configuration.
