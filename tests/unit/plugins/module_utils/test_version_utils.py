@@ -12,7 +12,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import version_uti
 
 
 @patch("subprocess.check_output", return_value=" OPNsense 23.1 ")
-def test_version_utils(mock_object: MagicMock):
+def test_version_utils(_: MagicMock):
     """
     Test the retrieval of the OPNsense version using the version_utils module.
 

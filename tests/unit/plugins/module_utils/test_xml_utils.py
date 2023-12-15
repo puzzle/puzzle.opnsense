@@ -324,15 +324,7 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     - Expected Output: {"foo": [{ "bar" : 1 }, {"bar": 2 }, {"bar" :3 }]}
     """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
-
-    assert isinstance(output_dict["foo"], list)
-    assert len(output_dict["foo"]) == len(list(etree_root))
-
-    input_children: List[Element] = list(etree_root)
-    for child in input_children:
-        assert any(
-            list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"]))
-        )
+    assert output_dict == {"foo": [{"bar": 1}, {"bar": 2}, {"bar": 3}]}
 
 
 @pytest.mark.parametrize(
