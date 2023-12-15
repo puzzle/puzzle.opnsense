@@ -36,7 +36,6 @@ class MissingConfigDefinitionForModuleError(Exception):
     """
 
 
-
 class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
