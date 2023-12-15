@@ -36,7 +36,6 @@ class MissingConfigDefinitionForModuleError(Exception):
     'php_requirements' and 'configure_functions'.
     """
 
-    pass
 
 
 class ModuleMisconfigurationError(Exception):
