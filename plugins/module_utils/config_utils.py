@@ -27,7 +27,6 @@ class OPNSenseConfigUsageError(Exception):
     Exception raised for errors related to improper usage of the OPNSense module.
     """
 
-    pass
 
 
 class MissingConfigDefinitionForModuleError(Exception):
