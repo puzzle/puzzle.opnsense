@@ -8,6 +8,8 @@ authors:
   - Lukas Grimm (github.com/ombre8)
   - Fabio Bertagna (github.com/dongiovanni83)
   - Philipp Matti (github.com/acteru)
+  - Reto Kupferschmid (github.com/rekup)
+  - Kilian Soltermann (github.com/killuuuhh)
 description: OPNsense collection for Ansible
 license_file: LICENSE
 tags:
