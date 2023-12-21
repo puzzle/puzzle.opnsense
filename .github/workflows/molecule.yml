@@ -23,4 +23,3 @@ jobs:
         run: pip3 install yamllint ansible-lint ansible "molecule[lint,docker]"
       - name: Run molecule
         run: molecule test -s get_xml_tag
-
