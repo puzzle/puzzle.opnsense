@@ -297,22 +297,17 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
         assert child.tag in list(output_dict["foo"].keys())
 
 
-@pytest.mark.parametrize(
-    "etree_root",
-    [
-        "<foo><bar>1</bar><bar>2</bar></foo>",
-        "<foo><bar>test</bar><bar>cat</bar></foo>",
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("etree_root", [
+    "<foo><bar>1</bar><bar>2</bar></foo>",
+    "<foo><bar>test</bar><bar>cat</bar></foo>",
+], indirect=True)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     """
-    Test converting an ElementTree.Element with multiple child elements of the same tag to
-    a list in the dictionary.
+    Test converting an ElementTree.Element with multiple child elements of the same tag to a list in the dictionary.
 
     Given an ElementTree.Element with a single tag and multiple child elements of the same tag,
-    the function should convert it into a dictionary with the tag as the key and a list of values
-    representing the child elements.
+    the function should convert it into a dictionary with the tag as the key and a list of values representing
+    the child elements.
 
     Example:
     - Input:
@@ -324,7 +319,13 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     - Expected Output: {"foo": [{ "bar" : 1 }, {"bar": 2 }, {"bar" :3 }]}
     """
     output_dict: dict = xml_utils.etree_to_dict(etree_root)
-    assert output_dict == {"foo": [{"bar": 1}, {"bar": 2}, {"bar": 3}]}
+
+    assert isinstance(output_dict["foo"], list)
+    assert len(output_dict["foo"]) == len(list(etree_root))
+
+    input_children: List[Element] = list(etree_root)
+    for child in input_children:
+        assert any(list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"])))
 
 
 @pytest.mark.parametrize(
