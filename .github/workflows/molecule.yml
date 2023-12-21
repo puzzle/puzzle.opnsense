@@ -24,4 +24,4 @@ jobs:
       - run: pipenv install
 
       - name: Run molecule
-        run: molecule test -s get_xml_tag
+        run: pipenv run molecule test -s get_xml_tag
