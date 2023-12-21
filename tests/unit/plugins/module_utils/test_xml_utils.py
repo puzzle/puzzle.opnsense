@@ -326,7 +326,7 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
-        assert any(list(filter(lambda i: child.tag in list(i.keys()), output_dict["foo"])))
+        assert any(list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"])))
 
 
 @pytest.mark.parametrize(
