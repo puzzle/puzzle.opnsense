@@ -92,7 +92,7 @@ def sample_config_path(request):
     - str: The path to the temporary file.
     """
     with patch(
-        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", # pylint: disable=line-too-long
+        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",  # pylint: disable=line-too-long
         return_value="OPNsense Test",
     ), patch(
         "ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP",
@@ -218,11 +218,11 @@ def test_php_requirements_must_be_list(sample_config_path):
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
-            match= (
+            match=(
                 r"PHP requirements \(php_requirements\) for the module 'invalid_php_requirements' "
                 r"are not provided as a list in the VERSION_MAP using OPNsense version"
                 r"'OPNsense Test'."
-            )
+            ),
         ):
             _val = new_config._get_php_requirements()
 
@@ -240,12 +240,12 @@ def test_configure_functions_must_be_dict(sample_config_path):
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
-            match= (
+            match=(
                 r"Configure functions \(configure_functions\) for the module "
                 r"'invalid_configure_functions' are "
                 r"not provided as a list in the VERSION_MAP using OPNsense version "
                 r"'OPNsense Test'."
-            )
+            ),
         ):
             _val = new_config._get_configure_functions()
 

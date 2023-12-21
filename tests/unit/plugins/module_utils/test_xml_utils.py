@@ -297,10 +297,14 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
         assert child.tag in list(output_dict["foo"].keys())
 
 
-@pytest.mark.parametrize("etree_root", [
-    "<foo><bar>1</bar><bar>2</bar></foo>",
-    "<foo><bar>test</bar><bar>cat</bar></foo>",
-], indirect=True)
+@pytest.mark.parametrize(
+    "etree_root",
+    [
+        "<foo><bar>1</bar><bar>2</bar></foo>",
+        "<foo><bar>test</bar><bar>cat</bar></foo>",
+    ],
+    indirect=True,
+)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     """
     Test converting an ElementTree.Element with multiple child elements of the same
@@ -326,7 +330,9 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
-        assert any(list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"])))
+        assert any(
+            list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"]))
+        )
 
 
 @pytest.mark.parametrize(
