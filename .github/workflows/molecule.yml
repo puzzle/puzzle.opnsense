@@ -14,10 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Python, pipenv and Pipfile packages
-        uses: palewire/install-python-pipenv-pipfile@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pipenv'
+          cache-dependency-path: |
+            server/app/Pipfile.lock
+            __test__/app/Pipfile.lock
+
+      - name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+
+      - run: pipenv install
 
       - name: Run molecule
         run: molecule test -s get_xml_tag
