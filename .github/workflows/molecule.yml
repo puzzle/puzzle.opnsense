@@ -11,15 +11,13 @@ jobs:
     name: Molecule
     runs-on: self-hosted
     steps:
-      - name: Check out the codebase
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Install Python, pipenv and Pipfile packages
+        uses: palewire/install-python-pipenv-pipfile@v3
         with:
-          python-version: '3.12.0'
+          python-version: '3.10'
 
-      - name: Install dependencies.
-        run: pip3 install yamllint ansible-lint ansible "molecule[lint,docker]"
       - name: Run molecule
         run: molecule test -s get_xml_tag
