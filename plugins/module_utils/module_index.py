@@ -25,7 +25,7 @@ For example, the 'system_settings_general' module for "OPNsense 22.7 (amd64/Open
   detail includes the function name and any parameters required to execute the function.
 
 This map is essential for dynamically configuring modules based on the OPNsense version and
-providesa  centralized definition for various configurations across different OPNsense versions.
+provides a centralized definition for various configurations across different OPNsense versions.
 """
 
 VERSION_MAP = {
