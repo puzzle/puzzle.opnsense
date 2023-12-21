@@ -303,11 +303,12 @@ def test_etree_to_dict__simple_children(etree_root: Element) -> None:
 ], indirect=True)
 def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
     """
-    Test converting an ElementTree.Element with multiple child elements of the same tag to a list in the dictionary.
+    Test converting an ElementTree.Element with multiple child elements of the same
+    tag to a list in the dictionary.
 
     Given an ElementTree.Element with a single tag and multiple child elements of the same tag,
-    the function should convert it into a dictionary with the tag as the key and a list of values representing
-    the child elements.
+    the function should convert it into a dictionary with the tag as the key and a list of values
+    representing the child elements.
 
     Example:
     - Input:

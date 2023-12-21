@@ -10,6 +10,7 @@ disable=
 good-names=
     ex,
     __metaclass__,
+    __metaclass__val,
 
 [TYPECHECK]
 

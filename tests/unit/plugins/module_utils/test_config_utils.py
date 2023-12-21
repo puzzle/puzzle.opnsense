@@ -2,6 +2,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """Tests for the plugins.module_utils.config_utils module."""
 
+# This is probably intentional and required for the fixture
+# pylint: disable=redefined-outer-name,unused-argument,protected-access
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__val = type
@@ -89,7 +92,7 @@ def sample_config_path(request):
     - str: The path to the temporary file.
     """
     with patch(
-        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version", # pylint: disable=line-too-long
         return_value="OPNsense Test",
     ), patch(
         "ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP",
@@ -215,8 +218,11 @@ def test_php_requirements_must_be_list(sample_config_path):
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
-            match=r"PHP requirements \(php_requirements\) for the module 'invalid_php_requirements' are "
-            "not provided as a list in the VERSION_MAP using OPNsense version 'OPNsense Test'.",
+            match= (
+                r"PHP requirements \(php_requirements\) for the module 'invalid_php_requirements' "
+                r"are not provided as a list in the VERSION_MAP using OPNsense version"
+                r"'OPNsense Test'."
+            )
         ):
             _val = new_config._get_php_requirements()
 
@@ -234,8 +240,12 @@ def test_configure_functions_must_be_dict(sample_config_path):
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
-            match=r"Configure functions \(configure_functions\) for the module 'invalid_configure_functions' are "
-            "not provided as a list in the VERSION_MAP using OPNsense version 'OPNsense Test'.",
+            match= (
+                r"Configure functions \(configure_functions\) for the module "
+                r"'invalid_configure_functions' are "
+                r"not provided as a list in the VERSION_MAP using OPNsense version "
+                r"'OPNsense Test'."
+            )
         ):
             _val = new_config._get_configure_functions()
 
@@ -250,7 +260,6 @@ def test_get_php_requirements(sample_config_path):
     with OPNsenseModuleConfig(
         module_name="test_module", path=sample_config_path
     ) as new_config:
-
         requirements: List[str] = new_config._get_php_requirements()
 
         assert (
@@ -269,7 +278,6 @@ def test_get_configure_functions(sample_config_path):
     with OPNsenseModuleConfig(
         module_name="test_module", path=sample_config_path
     ) as new_config:
-
         requirements: Dict = new_config._get_configure_functions()
 
         assert (
