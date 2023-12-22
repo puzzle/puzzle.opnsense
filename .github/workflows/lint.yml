@@ -1,0 +1,35 @@
+name: Lint
+
+on: [pull_request]
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number || github.sha
+    }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: Run linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          pip install pipenv
+          pipenv sync
+
+      - name: Run pylint
+        run: pipenv run pylint tests plugins
+
+      - name: Run black
+        run: pipenv run python -m black --check --diff plugins tests

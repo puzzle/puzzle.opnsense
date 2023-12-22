@@ -8,19 +8,24 @@ a specific version of OPNsense, and the value is another dictionary that outline
 for that version.
 
 Structure of VERSION_MAP:
-- The top-level keys are strings representing OPNsense versions (e.g., "OPNsense 22.7 (amd64/OpenSSL)").
-- Each value under a version key is a nested dictionary that maps module names to their specific configurations.
-- Each module's configuration includes keys for settings (with XPath values), PHP requirements, and configure functions.
+- The top-level keys are strings representing OPNsense versions
+  (e.g., "OPNsense 22.7 (amd64/OpenSSL)").
+- Each value under a version key is a nested dictionary that maps module names to
+  their specific configurations.
+- Each module's configuration includes keys for settings (with XPath values),
+  PHP requirements, and configure functions.
 
 For example, the 'system_settings_general' module for "OPNsense 22.7 (amd64/OpenSSL)" includes:
-- Setting mappings: These are key-value pairs where the key is a friendly name for a setting (e.g., 'hostname'),
-  and the value is the XPath in the OPNsense configuration file to access this setting (e.g., 'system/hostname').
-- PHP requirements: A list of file paths required for executing the configure functions when applying changes.
-- Configure functions: A dictionary mapping function names to their details. Each function detail includes
-  the function name and any parameters required to execute the function.
+- Setting mappings: These are key-value pairs where the key is a friendly name for a setting
+  (e.g., 'hostname'), and the value is the XPath in the OPNsense configuration file to access
+  this setting (e.g., 'system/hostname').
+- PHP requirements: A list of file paths required for executing the configure functions when
+  applying changes.
+- Configure functions: A dictionary mapping function names to their details. Each function
+  detail includes the function name and any parameters required to execute the function.
 
-This map is essential for dynamically configuring modules based on the OPNsense version and provides
-a centralized definition for various configurations across different OPNsense versions.
+This map is essential for dynamically configuring modules based on the OPNsense version and
+provides a centralized definition for various configurations across different OPNsense versions.
 """
 
 VERSION_MAP = {

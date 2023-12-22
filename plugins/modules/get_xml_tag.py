@@ -7,7 +7,7 @@
 """Example module: Show minimal functionality of OPNsenseConfig class"""
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 author:
 - Philipp Matti (@acteru)
@@ -21,9 +21,9 @@ options:
     - String to search for tag in xml.
     type: str
     required: true
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Print the opnsense xml
   puzzle.opnsense.get_xml_tag:
     tag: "sysctl"
@@ -32,9 +32,9 @@ EXAMPLES = r'''
 - name: Print return value
   ansible.builtin.debug:
     msg: "{{ xmlconfig }}"
-'''
+"""
 
-RETURN = r''' # '''
+RETURN = r""" # """
 
 
 from ansible.module_utils.basic import AnsibleModule
@@ -52,17 +52,14 @@ def main():
         "tag": {"type": "str", "required": True},
     }
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
     # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block
     result = {
-        'changed': False,
-        'invocation': module.params,
-        'msg': '',
+        "changed": False,
+        "invocation": module.params,
+        "msg": "",
     }
 
     # check-mode handler
@@ -71,11 +68,11 @@ def main():
 
     with config_utils.OPNsenseConfig() as config_mgr:
         # Get xml via key
-        result['msg'] = config_mgr[str(module.params["tag"])]
+        result["msg"] = config_mgr[str(module.params["tag"])]
 
     # Return results
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
