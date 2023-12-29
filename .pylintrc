@@ -4,6 +4,7 @@ disable=
     import-error,
     no-name-in-module,
     wrong-import-position,
+    too-many-branches,
 
 [BASIC]
 
