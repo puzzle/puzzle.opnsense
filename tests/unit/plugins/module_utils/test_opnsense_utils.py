@@ -74,5 +74,5 @@ def test_run_function(mock_subprocess_run: MagicMock):
     ]
 
     mock_subprocess_run.assert_called_with(
-        expected_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        expected_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
     )

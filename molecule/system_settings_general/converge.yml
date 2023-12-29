@@ -1,0 +1,41 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Set hostname
+      puzzle.opnsense.system_settings_general:
+        hostname: opnsense01
+
+    - name: Converge - Set domain
+      puzzle.opnsense.system_settings_general:
+        domain: example.org
+
+    - name: Converge - Set timezone
+      puzzle.opnsense.system_settings_general:
+        timezone: Europe/Zurich
+
+    - name: Get hostname
+      ansible.builtin.command: hostname
+      register: hostname_value
+      changed_when: false
+
+    - name: Get current tz
+      ansible.builtin.stat:
+        path: /etc/localtime
+      register: current_tz_stat
+      changed_when: false
+
+    - name: Get desired tz
+      ansible.builtin.stat:
+        path: /usr/share/zoneinfo/Europe/Zurich
+      register: desired_tz_stat
+      changed_when: false
+
+    - name: Compare hostname
+      ansible.builtin.assert:
+        that: hostname_value.stdout == "opnsense01.example.org"
+
+    - name: Compare tz
+      ansible.builtin.assert:
+        that: desired_tz_stat.stat.checksum == current_tz_stat.stat.checksum
