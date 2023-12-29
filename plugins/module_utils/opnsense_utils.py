@@ -36,18 +36,23 @@ def run_function(
 
     # assemble php command
     php_cmd = f"{requirements_string} {configure_function}({params_string});"
-
+    cmd_result = {"stdout": "", "stderr": "", "returncode": 2}
     # run command
-    cmd_result = subprocess.run(
-        [
-            "php",
-            "-r",
-            php_cmd,
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,  # raise exception if program fails
-    )
+    try:
+        cmd_result = subprocess.run(
+            [
+                "php",
+                "-r",
+                php_cmd,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,  # raise exception if program fails
+        )
+    # handle subprocess process error in module using stderr
+    except subprocess.CalledProcessError:
+        pass
+
     return {
         "stdout": cmd_result.stdout.decode().strip(),
         "stdout_lines": cmd_result.stdout.decode().strip().splitlines(),
