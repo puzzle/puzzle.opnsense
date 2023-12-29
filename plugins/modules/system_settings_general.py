@@ -158,6 +158,7 @@ def main():
     result = {
         "changed": False,
         "invocation": module.params,
+        "diff": None,
     }
 
     hostname_param = module.params.get("hostname")

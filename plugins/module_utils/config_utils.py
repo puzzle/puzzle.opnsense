@@ -368,36 +368,32 @@ class OPNsenseModuleConfig:
         _setting.text = value
 
     @property
-    def diff(self) -> Optional[Dict[str, str]]:
+    def diff(self) -> [Dict[dict, dict]]:
         """
         Compares the in-memory configuration with the configuration on the file path
         and returns a dictionary of differences.
 
         Returns:
-        - Optional[Dict[str, str]]: A dictionary containing the differences between
-          the in-memory configuration and the file-based configuration.
+        - Dict[dict, dict]: A dictionary containing the before and
+          after values (the in-memory configuration and the file-based configuration).
 
         Example:
-        - diff might return {'setting1': 'new_value', 'setting2': 'changed_value'}.
+        - diff might return {'before': {"foo": "bar"}, 'after': {"foo": "baz"}}.
         """
         file_config_tree = ElementTree.parse(self._config_path)
         file_config = file_config_tree.getroot()
 
         # Create a dictionary to store the differences
-        config_diff = {}
+        config_diff_before = {}
+        config_diff_after = {}
 
         for setting_name, xpath in self._config_map.items():
             if setting_name in ["php_requirements", "configure_functions"]:
                 continue
 
             # Find the setting in the file-based configuration
-            file_setting = file_config.find(xpath)
-
+            config_diff_before.update({xpath: file_config.find(xpath).text})
             # Find the setting in the in-memory configuration
-            in_memory_setting = self._config_xml_tree.find(xpath)
+            config_diff_after.update({xpath: self._config_xml_tree.find(xpath).text})
 
-            # Compare the values
-            if in_memory_setting.text != file_setting.text:
-                config_diff[setting_name] = in_memory_setting.text
-
-        return config_diff
+        return {"before": config_diff_before, "after": config_diff_after}
