@@ -194,6 +194,12 @@ def main():
         if config.changed and not module.check_mode:
             config.save()
             result["opnsense_configure_output"] = config.apply_settings()
+            for cmd_result in result["opnsense_configure_output"]:
+                if cmd_result["rc"] != 0:
+                    module.fail_json(
+                        msg="Apply of the OPNsense settings failed",
+                        details=cmd_result,
+                    )
 
     # Return results
     module.exit_json(**result)
