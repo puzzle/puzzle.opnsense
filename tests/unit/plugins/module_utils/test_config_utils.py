@@ -349,7 +349,14 @@ def test_diff_on_change(sample_config_path):
         new_config.set(value="testtest", setting="hostname")
         diff = new_config.diff
 
-        assert diff == {"hostname": "testtest"}
+        assert diff == {
+            "before": {
+                "system/hostname": "test_name",
+            },
+            "after": {
+                "system/hostname": "testtest",
+            },
+        }
         new_config.save()
 
 
@@ -363,4 +370,4 @@ def test_diff_on_no_change(sample_config_path):
     """
     with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
         diff = new_config.diff
-        assert diff == {}
+        assert diff["before"] == diff["after"]
