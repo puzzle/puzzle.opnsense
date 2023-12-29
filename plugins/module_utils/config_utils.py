@@ -318,13 +318,13 @@ class OPNsenseModuleConfig:
 
         # run configure functions with all required php dependencies and store their output.
         for value in configure_functions.values():
-            cmd_output.append(
-                opnsense_utils.run_function(
-                    php_requirements=php_requirements,
-                    configure_function=value["name"],
-                    configure_params=value["configure_params"],
-                )
+            meta_dict = {"function": value["name"], "params": value["configure_params"]}
+            result_dict = opnsense_utils.run_function(
+                php_requirements=php_requirements,
+                configure_function=value["name"],
+                configure_params=value["configure_params"],
             )
+            cmd_output.append({**meta_dict, **result_dict})
 
         return cmd_output
 

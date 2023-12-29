@@ -37,8 +37,19 @@ def test_run_function(mock_subprocess_run: MagicMock):
     """
 
     # Mock the subprocess.run to return a predefined output
-    mock_output = b"Function executed successfully"
-    mock_subprocess_run.return_value.stdout = mock_output
+    mock_subprocess_run.return_value.stdout = (
+        b"Function executed successfully\nnext line"
+    )
+    mock_subprocess_run.return_value.stderr = b"Function failed\nnext line"
+    mock_subprocess_run.return_value.returncode = 0
+
+    expected_result = {
+        "stdout": "Function executed successfully\nnext line",
+        "stdout_lines": ["Function executed successfully", "next line"],
+        "stderr": "Function failed\nnext line",
+        "stderr_lines": ["Function failed", "next line"],
+        "rc": 0,
+    }
 
     # Define the PHP requirements and the function with parameters to be tested
     php_requirements = ["/usr/local/etc/inc/config.inc", "/usr/local/etc/inc/util.inc"]
@@ -50,8 +61,8 @@ def test_run_function(mock_subprocess_run: MagicMock):
         php_requirements, configure_function, configure_params
     )
 
-    # Assert the result matches the mocked standard output
-    assert result.decode() == mock_output.decode()
+    # Assert the result matches the mocked subprocess result
+    assert result == expected_result
 
     # Assert the subprocess.run was called with the expected command
     expected_command = [
@@ -63,5 +74,5 @@ def test_run_function(mock_subprocess_run: MagicMock):
     ]
 
     mock_subprocess_run.assert_called_with(
-        expected_command, stdout=subprocess.PIPE, check=True
+        expected_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
     )
