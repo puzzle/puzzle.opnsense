@@ -115,6 +115,23 @@ VERSION_MAP = {
                 ],
             },
         },
+        "firewall_rules": {
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -202,6 +219,23 @@ VERSION_MAP = {
                 ],
             },
         },
+        "firewall_rules": {
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
     },
     "23.7": {
         "system_settings_general": {
@@ -263,6 +297,23 @@ VERSION_MAP = {
                 "system_settings_logging": {
                     "name": "system_syslog_start",
                     "configure_params": ["true"],
+                }
+            },
+        },
+        "firewall_rules": {
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
                 },
             },
         },
