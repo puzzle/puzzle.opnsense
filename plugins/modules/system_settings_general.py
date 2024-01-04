@@ -165,7 +165,7 @@ def main():
     domain_param = module.params.get("domain")
     timezone_param = module.params.get("timezone")
 
-    with OPNsenseModuleConfig(module_name="system_settings_general") as config:
+    with OPNsenseModuleConfig(module_name="system_settings_general", check_mode=module.check_mode) as config:
         if hostname_param:
             if not is_hostname(hostname_param):
                 module.fail_json(msg="Invalid hostname parameter specified")

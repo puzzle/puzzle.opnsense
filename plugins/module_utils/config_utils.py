@@ -76,6 +76,7 @@ class OPNsenseModuleConfig:
         _config_map (dict): The mapping of settings and their XPath in the XML tree.
         _module_name (str): The name of the module.
         _opnsense_version (str): The OPNsense version.
+        _check_mode (bool): If the module is run in check_mode or not
     """
 
     _config_xml_tree: Element
@@ -83,19 +84,22 @@ class OPNsenseModuleConfig:
     _config_map: dict
     _module_name: str
     _opnsense_version: str
+    _check_mode: bool
 
-    def __init__(self, module_name: str, path: str = "/conf/config.xml"):
+    def __init__(self, module_name: str, check_mode: bool, path: str = "/conf/config.xml"):
         """
         Initializes the OPNsenseModuleConfig class.
 
         Args:
             module_name (str): The name of the module.
+            check_mode (bool): Check mode
             path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
         self._module_name = module_name
         self._config_path = path
         self._config_xml_tree = self._load_config()
         self._opnsense_version = version_utils.get_opnsense_version()
+        self._check_mode = check_mode
 
         try:
             version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
@@ -147,7 +151,7 @@ class OPNsenseModuleConfig:
         """
         if exc_type:
             raise exc_type(f"Exception occurred: {exc_val}")
-        if self.changed:
+        if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
     def save(self) -> bool:
