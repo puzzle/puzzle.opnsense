@@ -127,7 +127,9 @@ def test_unsupported_opnsense_version(
         UnsupportedOPNsenseVersion,
         match="OPNsense version 'OPNsense X.X.X' not supported by puzzle.opnsense collection",
     ):
-        _val = OPNsenseModuleConfig(module_name="test_module", path=sample_config_path)
+        _val = OPNsenseModuleConfig(
+            module_name="test_module", check_mode=False, path=sample_config_path
+        )
 
 
 def test_unsupported_module(sample_config_path):
@@ -144,7 +146,7 @@ def test_unsupported_module(sample_config_path):
         "for OPNsense version 'OPNsense Test'.",
     ):
         _val = OPNsenseModuleConfig(
-            module_name="unsupported_module", path=sample_config_path
+            module_name="unsupported_module", check_mode=False, path=sample_config_path
         )
 
 
@@ -156,7 +158,9 @@ def test_unsupported_module_setting(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         with pytest.raises(
             UnsupportedModuleSettingError,
             match="Setting 'unsupported' is not supported in module 'test_module' "
@@ -174,7 +178,9 @@ def test_php_requirements_must_be_present(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="missing_php_requirements", path=sample_config_path
+        module_name="missing_php_requirements",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
@@ -194,7 +200,9 @@ def test_config_functions_must_be_present(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="missing_configure_functions", path=sample_config_path
+        module_name="missing_configure_functions",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
@@ -214,7 +222,9 @@ def test_php_requirements_must_be_list(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="invalid_php_requirements", path=sample_config_path
+        module_name="invalid_php_requirements",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -236,7 +246,9 @@ def test_configure_functions_must_be_dict(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="invalid_configure_functions", path=sample_config_path
+        module_name="invalid_configure_functions",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -258,7 +270,7 @@ def test_get_php_requirements(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="test_module", path=sample_config_path
+        module_name="test_module", check_mode=False, path=sample_config_path
     ) as new_config:
         requirements: List[str] = new_config._get_php_requirements()
 
@@ -276,7 +288,7 @@ def test_get_configure_functions(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="test_module", path=sample_config_path
+        module_name="test_module", check_mode=False, path=sample_config_path
     ) as new_config:
         requirements: Dict = new_config._get_configure_functions()
 
@@ -294,7 +306,9 @@ def test_changed(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         assert new_config.changed
         new_config.save()
@@ -307,7 +321,9 @@ def test_get_setting(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         hostname_setting: Element = new_config.get("hostname")
         assert isinstance(hostname_setting, Element)
         assert "test_name" == hostname_setting.text
@@ -321,7 +337,9 @@ def test_save_on_changed(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         assert new_config.save()
 
@@ -333,7 +351,9 @@ def test_save_on_not_changed(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         assert not new_config.save()
 
 
@@ -345,7 +365,9 @@ def test_diff_on_change(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         diff = new_config.diff
 
@@ -368,6 +390,38 @@ def test_diff_on_no_change(sample_config_path):
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
-    with OPNsenseModuleConfig("test_module", path=sample_config_path) as new_config:
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=False, path=sample_config_path
+    ) as new_config:
         diff = new_config.diff
         assert diff["before"] == diff["after"]
+
+
+def test_exit_on_changed_not_in_checkmode(sample_config_path):
+    """
+    Test that a RuntimeError is raised when configuration changes are not saved.
+    """
+    with pytest.raises(
+        RuntimeError, match="Config has changed. Cannot exit without saving."
+    ):
+        with OPNsenseModuleConfig(
+            "test_module", check_mode=False, path=sample_config_path
+        ) as new_config:
+            new_config.set(value="testtest", setting="hostname")
+            # The RuntimeError should be raised here, when exiting the context manager
+
+
+def test_exit_on_changed_in_checkmode(sample_config_path):
+    """
+    Verifies that the OPNsenseModuleConfig context manager exits without error
+    in check mode even after changes are made. The test confirms that
+    RuntimeError is not raised when the 'check_mode' is set to True, even
+    if changes are applied to the configuration. This is because in check mode,
+    changes should not be saved, and thus, the process should exit cleanly
+    without raising a RuntimeError about unsaved changes.
+    """
+
+    with OPNsenseModuleConfig(
+        "test_module", check_mode=True, path=sample_config_path
+    ) as new_config:
+        new_config.set(value="testtest", setting="hostname")
