@@ -112,7 +112,9 @@ def sample_config_path(request):
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense X.X.X",
 )
-def test_unsupported_opnsense_version(mocked_version_util: MagicMock, sample_config_path):
+def test_unsupported_opnsense_version(
+    mocked_version_util: MagicMock, sample_config_path
+):
     """
     Test case to verify that an UnsupportedOPNsenseVersion exception is raised
     when attempting to initialize OPNsenseModuleConfig with an unsupported OPNsense version.
@@ -140,7 +142,8 @@ def test_unsupported_module(sample_config_path):
     """
     with pytest.raises(
         UnsupportedVersionForModule,
-        match=r"Module 'unsupported_module' not supported " "for OPNsense version 'OPNsense Test'.",
+        match=r"Module 'unsupported_module' not supported "
+        "for OPNsense version 'OPNsense Test'.",
     ):
         _val = OPNsenseModuleConfig(
             module_name="unsupported_module", check_mode=False, path=sample_config_path
@@ -175,7 +178,9 @@ def test_php_requirements_must_be_present(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="missing_php_requirements", check_mode=False, path=sample_config_path
+        module_name="missing_php_requirements",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
@@ -195,7 +200,9 @@ def test_config_functions_must_be_present(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="missing_configure_functions", check_mode=False, path=sample_config_path
+        module_name="missing_configure_functions",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
@@ -215,7 +222,9 @@ def test_php_requirements_must_be_list(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="invalid_php_requirements", check_mode=False, path=sample_config_path
+        module_name="invalid_php_requirements",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -237,7 +246,9 @@ def test_configure_functions_must_be_dict(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="invalid_configure_functions", check_mode=False, path=sample_config_path
+        module_name="invalid_configure_functions",
+        check_mode=False,
+        path=sample_config_path,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -263,7 +274,10 @@ def test_get_php_requirements(sample_config_path):
     ) as new_config:
         requirements: List[str] = new_config._get_php_requirements()
 
-        assert requirements == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["php_requirements"]
+        assert (
+            requirements
+            == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["php_requirements"]
+        )
 
 
 def test_get_configure_functions(sample_config_path):
@@ -279,7 +293,8 @@ def test_get_configure_functions(sample_config_path):
         requirements: Dict = new_config._get_configure_functions()
 
         assert (
-            requirements == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["configure_functions"]
+            requirements
+            == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["configure_functions"]
         )
 
 
@@ -386,7 +401,9 @@ def test_exit_on_changed_not_in_checkmode(sample_config_path):
     """
     Test that a RuntimeError is raised when configuration changes are not saved.
     """
-    with pytest.raises(RuntimeError, match="Config has changed. Cannot exit without saving."):
+    with pytest.raises(
+        RuntimeError, match="Config has changed. Cannot exit without saving."
+    ):
         with OPNsenseModuleConfig(
             "test_module", check_mode=False, path=sample_config_path
         ) as new_config:

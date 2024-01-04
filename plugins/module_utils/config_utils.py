@@ -86,7 +86,9 @@ class OPNsenseModuleConfig:
     _opnsense_version: str
     _check_mode: bool
 
-    def __init__(self, module_name: str, check_mode: bool, path: str = "/conf/config.xml"):
+    def __init__(
+        self, module_name: str, check_mode: bool, path: str = "/conf/config.xml"
+    ):
         """
         Initializes the OPNsenseModuleConfig class.
 
