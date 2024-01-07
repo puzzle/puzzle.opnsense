@@ -15,7 +15,7 @@ from typing import Union, Optional, List
 from xml.etree.ElementTree import Element
 
 import pytest
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
+from plugins.module_utils import xml_utils
 
 
 ###############################
@@ -384,3 +384,46 @@ def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
         assert child_dict["bob"] is not None
         assert "cat" in list(child_dict.keys())
         assert child_dict["cat"] is not None
+
+
+def test_elements_equal_without_children():
+    e1 = Element("test")
+    e1.text = "test text"
+    e2 = Element("test")
+    e2.text = "test text"
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_without_children_whitespace_matches():
+    e1 = Element("test")
+    e1.text = None
+    e2 = Element("test")
+    e2.text = "            "
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_without_children_none_and_1():
+    e1 = Element("test")
+    e1.text = "1"
+    e2 = Element("test")
+    e2.text = None
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_with_children():
+    e1 = Element("test")
+    e1c1 = Element("child_1")
+    e1c1.text = "some_text"
+    e1c2 = Element("child_2")
+    e1c2.text = "some_text_as_well"
+    e1.extend([e1c1, e1c2])
+    e2 = Element("test")
+    e2c1 = Element("child_1")
+    e2c1.text = "some_text     \n"
+    e2c2 = Element("child_2")
+    e2c2.text = "\n   some_text     \n"
+    e2.extend([e2c1, e2c2])
+    assert xml_utils.elements_equal(e1, e2)
