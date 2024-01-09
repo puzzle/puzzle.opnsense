@@ -9,6 +9,13 @@
 
 __metaclass__ = type
 
+from plugins.module_utils import firewall_rules_utils
+from plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleSet,
+    FirewallRule,
+    FirewallRuleProtocol,
+)
+
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
 DOCUMENTATION = r'''
@@ -282,3 +289,97 @@ opnsense_configure_output:
           - Writing trust files...done.
 '''
 # fmt: on
+from ansible.module_utils.basic import AnsibleModule
+from plugins.module_utils.firewall_rules_utils import FirewallRuleProtocol
+
+
+def main():
+    module_args = {
+        "action": {
+            "type": "str",
+            "required": True,
+            "choices": ["pass", "block", "reject"],
+            "default": "pass",
+        },
+        "disabled": {"type": "bool", "required": False, "default": False},
+        "quick": {"type": "bool", "required": False, "default": True},
+        "interface": {"type": "str", "required": True},
+        "direction": {
+            "type": "str",
+            "required": False,
+            "default": "in",
+            "choices": ["in", "out"],
+        },
+        "ipprotocol": {
+            "type": "str",
+            "required": False,
+            "default" : "inet",
+            "choices": [ "inet", "inet6", "inet46" ]
+
+        },
+        "protocol": {
+            "type": "str",
+            "required": False,
+            "default": "any",
+            "choices": FirewallRuleProtocol.as_list(),
+        },
+        "source_invert": {"type": "bool", "required": False, "default": False},
+        "source_ip": {"type": "str", "required": False, "default": "any"},
+        "source_port": {"type": "str", "required": False, "default": "any"},
+        "target_invert": {"type": "bool", "required": False, "default": False},
+        "target_ip": {"type": "str", "required": False, "default": "any"},
+        "target_port": {"type": "str", "required": False, "default": "any"},
+        "log": {"type": "bool", "required": False, "default": False},
+        "category": {"type": "str", "required": False},
+        "description": {"type": "str", "required": False},
+        "state": {
+            "type": "str",
+            "required": False,
+            "default": "present",
+            "choices": ["present", "absent"],
+        },
+    }
+
+    module: AnsibleModule = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
+    # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block
+    result = {
+        "changed": False,
+        "invocation": module.params,
+        "diff": None,
+    }
+
+    ansible_rule: FirewallRule = FirewallRule(...)  # TODO
+
+    ansible_rule_state: str = module.params.get("state")
+
+    with FirewallRuleSet() as rule_set:
+        if ansible_rule_state == "present":
+            rule_set.add_or_update(ansible_rule)
+        elif ansible_rule_state == "absent":
+            rule_set.delete(ansible_rule)
+        else:
+            raise ValueError("TEMP")  # TODO
+
+        if rule_set.changed:
+            result["diff"] = rule_set.diff
+            result["changed"] = True
+            rule_set.save()
+            result["opnsense_configure_output"] = rule_set.apply_settings()
+            for cmd_result in result["opnsense_configure_output"]:
+                if cmd_result["rc"] != 0:
+                    module.fail_json(
+                        msg="Apply of the OPNsense settings failed",
+                        details=cmd_result,
+                    )
+
+    # Return results
+    module.exit_json(**result)
+
+
+if __name__ == "__main__":
+    main()
