@@ -78,6 +78,7 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+            "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
@@ -144,6 +145,7 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+            "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
@@ -210,6 +212,7 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+            "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
