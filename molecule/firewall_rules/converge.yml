@@ -1,0 +1,12 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Create simple test rule
+      puzzle.opnsense.firewall_rules:
+        interface: "lan"
+        description: "New Test Rule"
+        action: pass
+        target_port: 100
+        state: present

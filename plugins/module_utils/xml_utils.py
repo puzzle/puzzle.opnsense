@@ -42,7 +42,7 @@ def dict_to_etree(
     if return_value is not None:
         return return_value
 
-    raise ValueError("Only values of type int, str, dict or list are supported.")
+    raise ValueError(f"You provided an unsupported data type {type(data)}. Only values of type int, str, dict or list are supported.")
 
 
 def _create_element(tag: str, data: Optional[Union[int, str]]) -> Element:

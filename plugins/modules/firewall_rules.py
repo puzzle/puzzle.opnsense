@@ -9,12 +9,7 @@
 
 __metaclass__ = type
 
-from plugins.module_utils import firewall_rules_utils
-from plugins.module_utils.firewall_rules_utils import (
-    FirewallRuleSet,
-    FirewallRule,
-    FirewallRuleProtocol,
-)
+from typing import Optional
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
@@ -40,6 +35,12 @@ options:
         required: false
         default: false
         type: bool
+    ipprotocol:
+        description: IP version
+        required: false
+        default: inet
+        choices: [ inet, inet6, inet46]
+        type: str
     quick:
         description: If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken. When a rule does not have quick enabled, the last matching rule wins.
         required: false
@@ -197,32 +198,26 @@ options:
     source_invert:
         description: Use this option to invert the sense of the match.
         required: false
-        default: false
         type: bool
     source_ip:
         description: CIDR notation of the source IP of the rule. Can either be a single host or a network.
         required: false
-        default: any
         type: str
     source_port:
         description: Source port, being a number from 0 to 65535 or 'any'.
         required: false
-        default: any
         type: str    
     target_invert:
         description: Use this option to invert the sense of the match.
         required: false
-        default: false
         type: bool
     target_ip:
         description: CIDR notation of the target IP of the rule. Can either be a single host or a network.
         required: false
-        default: any
         type: str
     target_port:
         description: Target port, being a number from 0 to 65535 or 'any'.
         required: false
-        default: any
         type: str
     log:
         description: Log packets that are handled by this rule. Hint: the firewall has limited local log space. Don't turn on logging for everything. If you want to do a lot of logging, consider using a remote syslog server.
@@ -290,51 +285,54 @@ opnsense_configure_output:
 '''
 # fmt: on
 from ansible.module_utils.basic import AnsibleModule
-from plugins.module_utils.firewall_rules_utils import FirewallRuleProtocol
+from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleProtocol,
+)
+from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleSet,
+    FirewallRule,
+    FirewallRuleProtocol,
+)
+
+
+ANSIBLE_MANAGED: str = '[ ANSIBLE ]'
 
 
 def main():
     module_args = {
         "action": {
             "type": "str",
-            "required": True,
             "choices": ["pass", "block", "reject"],
             "default": "pass",
         },
-        "disabled": {"type": "bool", "required": False, "default": False},
-        "quick": {"type": "bool", "required": False, "default": True},
+        "disabled": {"type": "bool", "default": False},
+        "quick": {"type": "bool", "default": False},
         "interface": {"type": "str", "required": True},
         "direction": {
             "type": "str",
             "required": False,
-            "default": "in",
             "choices": ["in", "out"],
         },
         "ipprotocol": {
             "type": "str",
-            "required": False,
-            "default" : "inet",
-            "choices": [ "inet", "inet6", "inet46" ]
-
+            "default": "inet",
+            "choices": ["inet", "inet6", "inet46"],
         },
         "protocol": {
             "type": "str",
-            "required": False,
-            "default": "any",
             "choices": FirewallRuleProtocol.as_list(),
         },
-        "source_invert": {"type": "bool", "required": False, "default": False},
-        "source_ip": {"type": "str", "required": False, "default": "any"},
-        "source_port": {"type": "str", "required": False, "default": "any"},
-        "target_invert": {"type": "bool", "required": False, "default": False},
-        "target_ip": {"type": "str", "required": False, "default": "any"},
-        "target_port": {"type": "str", "required": False, "default": "any"},
-        "log": {"type": "bool", "required": False, "default": False},
+        "source_invert": {"type": "bool", "required": False},
+        "source_ip": {"type": "str"},
+        "source_port": {"type": "str"},
+        "target_invert": {"type": "bool", "required": False},
+        "target_ip": {"type": "str"},
+        "target_port": {"type": "str"},
+        "log": {"type": "bool", "default": False},
         "category": {"type": "str", "required": False},
         "description": {"type": "str", "required": False},
         "state": {
             "type": "str",
-            "required": False,
             "default": "present",
             "choices": ["present", "absent"],
         },
@@ -352,8 +350,17 @@ def main():
         "invocation": module.params,
         "diff": None,
     }
+    # make description ansible-managed
+    description: Optional[str] = module.params['description']
 
-    ansible_rule: FirewallRule = FirewallRule(...)  # TODO
+    if description and ANSIBLE_MANAGED not in description:
+        description = f'{ANSIBLE_MANAGED} - {description}'
+    else:
+        description = ANSIBLE_MANAGED
+
+    module.params["description"] = description
+
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(module.params)
 
     ansible_rule_state: str = module.params.get("state")
 
@@ -362,12 +369,12 @@ def main():
             rule_set.add_or_update(ansible_rule)
         elif ansible_rule_state == "absent":
             rule_set.delete(ansible_rule)
-        else:
-            raise ValueError("TEMP")  # TODO
 
         if rule_set.changed:
             result["diff"] = rule_set.diff
             result["changed"] = True
+
+        if rule_set.changed and not module.check_mode:
             rule_set.save()
             result["opnsense_configure_output"] = rule_set.apply_settings()
             for cmd_result in result["opnsense_configure_output"]:
@@ -376,8 +383,6 @@ def main():
                         msg="Apply of the OPNsense settings failed",
                         details=cmd_result,
                     )
-
-    # Return results
     module.exit_json(**result)
 
 

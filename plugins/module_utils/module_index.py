@@ -80,6 +80,8 @@ VERSION_MAP = {
         "firewall_rules": {
             "rules": "filter",
             "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
@@ -147,6 +149,8 @@ VERSION_MAP = {
         "firewall_rules": {
             "rules": "filter",
             "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc", # required for the service_log utility
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
@@ -214,6 +218,8 @@ VERSION_MAP = {
         "firewall_rules": {
             "rules": "filter",
             "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",

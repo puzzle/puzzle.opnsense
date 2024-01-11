@@ -161,6 +161,7 @@ class OPNsenseModuleConfig:
         """
         if exc_type:
             raise exc_type(f"Exception occurred: {exc_val}")
+
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 

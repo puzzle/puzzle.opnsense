@@ -3,18 +3,25 @@
 import os
 import re
 from tempfile import NamedTemporaryFile
+from typing import Optional
 from unittest.mock import patch, MagicMock
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 import pytest
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
     elements_equal,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleSet,
     FirewallRule,
+    FirewallRuleAction,
+    FirewallRuleProtocol,
+    IPProtocol,
+    FirewallRuleStateType,
+    FirewallRuleDirection,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -77,6 +84,21 @@ TEST_XML: str = """<?xml version="1.0"?>
                     <port>443</port>
                 </destination>
             </rule>
+            <rule>
+                <type>pass</type>
+                <interface>opt2</interface>
+                <ipprotocol>inet</ipprotocol>
+                <statetype>keep state</statetype>
+                <descr>allow vagrant management</descr>
+                <direction>in</direction>
+                <quick>1</quick>
+                <source>
+                    <any>1</any>
+                </source>
+                <destination>
+                    <any>1</any>
+                </destination>
+            </rule>
         </filter>
     </opnsense>
     """
@@ -92,7 +114,7 @@ def sample_config_path(request):
     - str: The path to the temporary file.
     """
     with patch(
-        "plugins.module_utils.version_utils.get_opnsense_version",  # pylint: disable=line-too-long
+        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",  # pylint: disable=line-too-long
         return_value="OPNsense Test",
     ), patch.dict(VERSION_MAP, TEST_VERSION_MAP, clear=True):
         # Create a temporary file with a name based on the test function
@@ -105,6 +127,120 @@ def sample_config_path(request):
     os.unlink(temp_file.name)
 
 
+def test_firewall_rule_from_xml():
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+
+    test_etree_rule: Element = list(list(test_etree_opnsense)[0])[0]
+    test_rule: FirewallRule = FirewallRule.from_xml(test_etree_rule)
+
+    assert test_rule.uuid == "9c7ecb2c-49f3-4750-bc67-d5b666541999"
+    assert test_rule.type == FirewallRuleAction.PASS
+    assert test_rule.interface == "wan"
+    assert test_rule.ipprotocol == IPProtocol.IPv4
+    assert test_rule.statetype == FirewallRuleStateType.KEEP_STATE
+    assert test_rule.descr == "Allow SSH access"
+    assert test_rule.protocol == FirewallRuleProtocol.TCP
+    assert test_rule.source_port is None
+    assert test_rule.source_address is None
+    assert test_rule.source_network is None
+    assert not test_rule.source_not
+    assert test_rule.source_any
+    assert test_rule.destination_port == "22"
+    assert test_rule.destination_address is None
+    assert test_rule.destination_network is None
+    assert not test_rule.destination_not
+    assert test_rule.destination_any
+    assert test_rule.direction is None
+    assert not test_rule.disabled
+    assert not test_rule.log
+    assert test_rule.category is None
+    assert not test_rule.quick
+
+
+def test_firewall_rule_from_xml_any_1():
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+
+    test_etree_rule: Element = list(list(test_etree_opnsense)[0])[2]
+    test_rule: FirewallRule = FirewallRule.from_xml(test_etree_rule)
+
+    assert test_rule.uuid is None
+    assert test_rule.type == FirewallRuleAction.PASS
+    assert test_rule.interface == "opt2"
+    assert test_rule.ipprotocol == IPProtocol.IPv4
+    assert test_rule.statetype == FirewallRuleStateType.KEEP_STATE
+    assert test_rule.descr == "allow vagrant management"
+    assert test_rule.protocol is None
+    assert test_rule.source_port is None
+    assert test_rule.source_address is None
+    assert test_rule.source_network is None
+    assert not test_rule.source_not
+    assert test_rule.source_any
+    assert test_rule.destination_port is None
+    assert test_rule.destination_address is None
+    assert test_rule.destination_network is None
+    assert not test_rule.destination_not
+    assert test_rule.destination_any
+    assert test_rule.direction is FirewallRuleDirection.IN
+    assert not test_rule.disabled
+    assert not test_rule.log
+    assert test_rule.category is None
+    assert test_rule.quick
+
+
+def test_firewall_rule_to_etree():
+    test_rule: FirewallRule = FirewallRule(
+        interface="wan",
+        uuid="9c7ecb2c-49f3-4750-bc67-d5b666541999",
+        type=FirewallRuleAction.PASS,
+        descr="Allow SSH access",
+        ipprotocol=IPProtocol.IPv4,
+        protocol=FirewallRuleProtocol.TCP,
+        source_any=True,
+        destination_port="22",
+        destination_any=True,
+        statetype=FirewallRuleStateType.KEEP_STATE,
+    )
+
+    test_element = test_rule.to_etree()
+
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_rule: Element = list(list(orig_etree)[0])[0]
+
+    assert xml_utils.elements_equal(test_element, orig_rule)
+
+
+def test_firewall_rule_from_ansible_module_params_simple():
+    test_params: dict = {
+        "action": "pass",
+        "interface": "wan",
+        "ipprotocol": "inet",
+        "description": "Allow SSH access",
+        "protocol": "tcp",
+        "source_ip": "any",
+        "target_ip": "any",
+        "target_port": "22",
+        "disabled": False,
+    }
+
+    new_rule: FirewallRule = FirewallRule.from_ansible_module_params(test_params)
+
+    assert new_rule.type == FirewallRuleAction.PASS
+    assert new_rule.interface == "wan"
+    assert new_rule.ipprotocol == IPProtocol.IPv4
+    assert new_rule.descr == "Allow SSH access"
+    assert new_rule.protocol == FirewallRuleProtocol.TCP
+    assert new_rule.source_any
+    assert new_rule.source_address is None
+    assert new_rule.source_port is None
+    assert not new_rule.source_not
+    assert new_rule.source_network is None
+    assert new_rule.destination_any
+    assert new_rule.destination_address is None
+    assert new_rule.destination_port == "22"
+    assert not new_rule.destination_not
+    assert new_rule.destination_network is None
+
+
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
@@ -114,7 +250,7 @@ def test_rule_set_load_simple_rules(
     mocked_version_utils: MagicMock, sample_config_path
 ):
     with FirewallRuleSet(sample_config_path) as rule_set:
-        assert len(rule_set._rules) == 2
+        assert len(rule_set._rules) == 3
         rule_set.save()
 
 
@@ -145,12 +281,15 @@ def test_rule_set_write_rules_back(mocked_version_utils: MagicMock, sample_confi
         )
         rule_set.save()
 
+
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_change_rule_description(
+    mocked_version_utils: MagicMock, sample_config_path
+):
 
     with FirewallRuleSet(sample_config_path) as rule_set:
 
@@ -167,3 +306,115 @@ def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sampl
         assert ssh_rule.descr == "TEST TEST"
 
         new_rule_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_not_changed_after_save(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+        assert not rule_set.changed
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_not_changed_after_duplicate_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+
+        rule_set.add_or_update(new_test_rule)
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as same_rule_set:
+
+        same_rule_set.add_or_update(new_test_rule)
+
+        assert not same_rule_set.changed
+        same_rule_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_fw_rule_from_ansible_is_same_as_default(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+
+    mock_ansible_module_params: dict = {
+        "action": "pass",
+        "category": None,
+        "description": "New Test Rule",
+        "direction": None,
+        "disabled": False,
+        "interface": "wan",
+        "ipprotocol": "inet",
+        "log": False,
+        "protocol": None,
+        "quick": False,
+        "source_invert": None,
+        "source_ip": None,
+        "source_port": None,
+        "state": "present",
+        "target_invert": None,
+        "target_ip": None,
+        "target_port": None,
+    }
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(mock_ansible_module_params)
+
+
+
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    assert ansible_rule == new_test_rule
