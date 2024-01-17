@@ -294,7 +294,6 @@ class FirewallRule:
                 )  # source_not = None
                 logging.info(f"{direction}_{key} : {current_val}")
                 if current_val is not None:
-
                     if rule_dict.get(direction) is None:
                         rule_dict[direction] = {}
 
@@ -374,9 +373,7 @@ class FirewallRule:
             "disabled": disabled,
         }
 
-        rule_dict = {
-            key: value for key, value in rule_dict.items() if value is not None
-        }
+        rule_dict = {key: value for key, value in rule_dict.items() if value is not None}
 
         return cls(**rule_dict)
 
@@ -391,6 +388,7 @@ class FirewallRule:
         #     address: 192.168.1.1/24,
         #     not: 1
         # }
+
         for direction in ["source", "destination"]:
             if direction not in rule_dict:
                 continue
@@ -400,17 +398,12 @@ class FirewallRule:
                     if key not in rule_dict[direction]:
                         rule_dict[f"{direction}_{key}"] = False
                         continue
-                    if (
-                        rule_dict[direction][key] is None
-                        or rule_dict[direction][key] == "1"
-                    ):
+                    if rule_dict[direction][key] is None or rule_dict[direction][key] == "1":
                         rule_dict[f"{direction}_{key}"] = True
                     else:
                         rule_dict[f"{direction}_{key}"] = False
                 else:
-                    rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(
-                        key, None
-                    )
+                    rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key, None)
 
             del rule_dict[direction]
 
@@ -440,9 +433,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         return self._load_rules() != self._rules
 
     def add_or_update(self, rule: FirewallRule) -> None:
-        existing_rule: Optional[FirewallRule] = next(
-            (r for r in self._rules if r == rule), None
-        )
+        existing_rule: Optional[FirewallRule] = next((r for r in self._rules if r == rule), None)
         if existing_rule:
             existing_rule.__dict__.update(rule.__dict__)
         else:
@@ -453,22 +444,10 @@ class FirewallRuleSet(OPNsenseModuleConfig):
 
     def find(self, **kwargs) -> Optional[FirewallRule]:
         for rule in self._rules:
-            match = all(
-                getattr(rule, key, None) == value for key, value in kwargs.items()
-            )
+            match = all(getattr(rule, key, None) == value for key, value in kwargs.items())
             if match:
                 return rule
         return None
-
-    def findall(self, **kwargs) -> List[FirewallRule]:
-        matching_rules = []
-        for rule in self._rules:
-            match = all(
-                getattr(rule, key, None) == value for key, value in kwargs.items()
-            )
-            if match:
-                matching_rules.append(rule)
-        return matching_rules
 
     def save(self) -> bool:
         if not self.changed:
