@@ -258,6 +258,122 @@ class FirewallRule:
 
     # TODO ChangeLog
 
+    def __post_init__(self):
+        # Manually define the fields and their expected types
+        enum_fields = {
+            "type": FirewallRuleAction,
+            "ipprotocol": IPProtocol,
+            "protocol": FirewallRuleProtocol,
+            "statetype": FirewallRuleStateType,
+            "direction": FirewallRuleDirection,
+        }
+
+        for field_name, field_type in enum_fields.items():
+            value = getattr(self, field_name)
+
+            # Check if the value is a string and the field_type is a subclass of ListEnum
+            if isinstance(value, str) and issubclass(field_type, ListEnum):
+                # Convert string to ListEnum
+                setattr(self, field_name, field_type.from_string(value))
+
+    def to_etree(self) -> Element:
+        rule_dict: dict = asdict(self)
+        del rule_dict["uuid"]
+
+        # Here data from the dataclass in this form eg.:
+        # { "source_any": "1" }
+        # into the required xml data structure:
+        # <source><any/></source>
+        for direction in ["source", "destination"]:
+            for key in ["address", "network", "port", "any", "not"]:
+                current_val: Optional[Any] = rule_dict.get(
+                    f"{direction}_{key}"
+                )  # source_not = None
+                logging.info(f"{direction}_{key} : {current_val}")
+                if current_val is not None:
+                    if rule_dict.get(direction) is None:
+                        rule_dict[direction] = {}
+
+                    # s/d_network
+                    if isinstance(current_val, bool):
+                        if current_val:
+                            # if current boolean value is 'True' it suffices
+                            # to write an empty tag into the xml:
+                            # e.g. {"any": True } == <any/>
+                            # no need for <any>1</any>
+
+                            rule_dict[direction][key] = None
+                    else:
+                        # every other option should be written into the
+                        # corresponding structure e.g:
+                        # { "source_port": 22 } == <source><port>22</port></source>
+                        rule_dict[direction][key] = current_val
+                del rule_dict[f"{direction}_{key}"]
+        for rule_key, rule_val in rule_dict.copy().items():  # rule_val = "{"not":None}"
+            if rule_val is None or rule_val is False:
+                # remove unnecessary fields
+                del rule_dict[rule_key]
+                continue
+            if issubclass(type(rule_val), ListEnum):
+                rule_dict[rule_key] = rule_val.value
+            elif isinstance(rule_val, bool):
+                # assume it rule_val is True because of first check in the for loop
+                rule_dict[rule_key] = "1"
+
+        # {"source":{"not":None}}
+        element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
+
+        if self.uuid:
+            element.attrib["uuid"] = self.uuid
+
+        return element
+
+    @classmethod
+    def from_ansible_module_params(cls, params: dict) -> "FirewallRule":
+        interface = params.get("interface")
+        action = params.get("action")
+        description = params.get("description")
+        quick = params.get("quick")
+        ipprotocol = params.get("ipprotocol")
+        direction = params.get("direction")
+        protocol = params.get("protocol")
+        source_invert = params.get("source_invert")
+        source_ip = params.get("source_ip")
+        source_any = source_ip is None or source_ip == "any"
+        source_port = params.get("source_port")
+        destination_invert = params.get("target_invert")
+        destination_ip = params.get("target_ip")
+        destination_port = params.get("target_port")
+        destination_any = destination_ip is None or destination_ip == "any"
+        log = params.get("log")
+        category = params.get("category")
+        disabled = params.get("disabled")
+
+        rule_dict = {
+            "interface": interface,
+            "type": action,
+            "descr": description,
+            "quick": quick,
+            "ipprotocol": ipprotocol,
+            "direction": direction,
+            "protocol": protocol,
+            "source_not": source_invert,
+            "source_address": source_ip if source_ip != "any" else None,
+            "source_any": source_any,
+            "source_port": source_port,
+            "destination_not": destination_invert,
+            "destination_address": destination_ip if destination_ip != "any" else None,
+            "destination_any": destination_any,
+            "destination_port": destination_port,
+            "log": log,
+            "category": category,
+            "disabled": disabled,
+        }
+
+        rule_dict = {key: value for key, value in rule_dict.items() if value is not None}
+
+        return cls(**rule_dict)
+
     @staticmethod
     def from_xml(element: Element) -> "FirewallRule":
         rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
@@ -274,11 +390,15 @@ class FirewallRule:
             for key in ["address", "network", "port", "any", "not"]:
                 if key in ["any", "not"]:
                     # 'any' and 'not' must be a boolean value, therefore None is treated as False
-                    rule_dict[f"{direction}_{key}"] = (
-                        key in rule_dict[direction] and rule_dict[direction][key] != 0
-                    )
+                    if key not in rule_dict[direction]:
+                        rule_dict[f"{direction}_{key}"] = False
+                        continue
+                    if rule_dict[direction][key] is None or rule_dict[direction][key] == "1":
+                        rule_dict[f"{direction}_{key}"] = True
+                    else:
+                        rule_dict[f"{direction}_{key}"] = False
                 else:
-                    rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key)
+                    rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key, None)
 
             del rule_dict[direction]
 
@@ -334,7 +454,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         return self._load_rules() != self._rules
 
     def add_or_update(self, rule: FirewallRule) -> None:
-        existing_rule: Optional[FirewallRule] = next((r for r in self._rules if r.uuid == rule.uuid), None)
+        existing_rule: Optional[FirewallRule] = next((r for r in self._rules if r == rule), None)
         if existing_rule:
             existing_rule.__dict__.update(rule.__dict__)
         else:
@@ -345,22 +465,10 @@ class FirewallRuleSet(OPNsenseModuleConfig):
 
     def find(self, **kwargs) -> Optional[FirewallRule]:
         for rule in self._rules:
-            match = all(
-                getattr(rule, key, None) == value for key, value in kwargs.items()
-            )
+            match = all(getattr(rule, key, None) == value for key, value in kwargs.items())
             if match:
                 return rule
         return None
-
-    def findall(self, **kwargs) -> List[FirewallRule]:
-        matching_rules = []
-        for rule in self._rules:
-            match = all(
-                getattr(rule, key, None) == value for key, value in kwargs.items()
-            )
-            if match:
-                matching_rules.append(rule)
-        return matching_rules
 
     def save(self) -> bool:
         filter_element: Element = self._config_xml_tree.find(self._config_map["rules"])
