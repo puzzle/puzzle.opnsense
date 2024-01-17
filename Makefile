@@ -1,6 +1,6 @@
 # requires this collection to be in a directory following this path convention:
 # some_dir/ansible_collections/puzzle/opnsense
-COLLECTION_PATH=$(realpath ../../../):~/.ansible/collections:/usr/share/ansible/collections
+
 
 build-doc:
 	rm -rf dest && mkdir --mode 0700 dest && \
