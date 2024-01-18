@@ -145,15 +145,16 @@ def test_rule_set_write_rules_back(mocked_version_utils: MagicMock, sample_confi
         )
         rule_set.save()
 
+
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sample_config_path):
-
+def test_rule_set_change_rule_description(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     with FirewallRuleSet(sample_config_path) as rule_set:
-
         ssh_rule: FirewallRule = rule_set.find(descr="Allow SSH access")
         ssh_rule.descr = "TEST TEST"
 
@@ -167,3 +168,107 @@ def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sampl
         assert ssh_rule.descr == "TEST TEST"
 
         new_rule_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_not_changed_after_save(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+        assert not rule_set.changed
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_not_changed_after_duplicate_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as same_rule_set:
+        same_rule_set.add_or_update(new_test_rule)
+
+        assert not same_rule_set.changed
+        same_rule_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_fw_rule_from_ansible_is_same_as_default(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    mock_ansible_module_params: dict = {
+        "action": "pass",
+        "category": None,
+        "description": "New Test Rule",
+        "direction": None,
+        "disabled": False,
+        "interface": "wan",
+        "ipprotocol": "inet",
+        "log": False,
+        "protocol": None,
+        "quick": False,
+        "source_invert": None,
+        "source_ip": None,
+        "source_port": None,
+        "state": "present",
+        "target_invert": None,
+        "target_ip": None,
+        "target_port": None,
+    }
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(
+        mock_ansible_module_params
+    )
+
+    new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
+
+    assert ansible_rule == new_test_rule

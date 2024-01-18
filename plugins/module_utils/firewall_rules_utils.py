@@ -376,16 +376,39 @@ class FirewallRule:
 
     @staticmethod
     def from_xml(element: Element) -> "FirewallRule":
-        # raise Exception(list(map(lambda elem: print(f"{elem.tag}: {elem.text}"), element)))
-        rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
+        """
+        Converts an XML element into a FirewallRule object.
 
-        # we start with a dictionary from XML looking like this for example:
-        # source : {
-        #     any: 1,
-        #     port: 22,
-        #     address: 192.168.1.1/24,
-        #     not: 1
-        # }
+        This static method transforms an XML element, expected to have 'rule' as its root, into a
+        FirewallRule object. It handles elements such as 'source', 'destination', and their
+        sub-elements like 'address', 'network', 'port', 'any', and 'not'.
+
+        The method processes each direction ('source' or 'destination') and relevant keys.
+        'any' and 'not' are converted to booleans, while other values are assigned as is.
+        Elements not present are skipped. The 'uuid' attribute is also extracted from the XML.
+
+        Changelog elements ('updated', 'created') are currently ignored.
+
+        Parameters:
+        element (Element): XML element with 'rule' as root.
+
+        Returns:
+        FirewallRule: Instance populated with data from the XML element.
+
+        Example XML structure:
+        ```xml
+        <rule uuid="12345">
+            <source>
+                <any>1</any>
+                <port>22</port>
+                <address>192.168.1.1/24</address>
+                <not>1</not>
+            </source>
+            <!-- ... other elements ... -->
+        </rule>
+        """
+
+        rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
 
         for direction in ["source", "destination"]:
             for key in ["address", "network", "port", "any", "not"]:
