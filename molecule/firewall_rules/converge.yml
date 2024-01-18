@@ -1,0 +1,77 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Create simple test rule
+      puzzle.opnsense.firewall_rules:
+        interface: "lan"
+        description: "New Test Rule"
+        action: pass
+        target_port: 100
+        state: present
+
+      # Test basic functionality with different actions
+    - name: Test pass action
+      puzzle.opnsense.firewall_rules:
+        interface: 'lan'
+        action: 'pass'
+        description: "New Test pass Rule"
+
+    - name: Test block action
+      puzzle.opnsense.firewall_rules:
+        interface: 'lan'
+        action: 'block'
+        description: "New Test block Rule"
+
+    # Combination test with action, disabled, and ipprotocol
+    - name: Test reject action with disabled and ipprotocol
+      puzzle.opnsense.firewall_rules:
+        interface: 'lan'
+        action: 'reject'
+        disabled: True
+        ipprotocol: 'inet6'
+        description: "New Test reject and disabled Rule"
+
+    # Extended attribute test
+    #- name: Test with various extended attributes
+    #  puzzle.opnsense.firewall_rules:
+    #    interface: 'LAN'
+    #    action: 'pass'
+    #    quick: true
+    #    direction: 'in'
+    #    protocol: 'tcp'
+    #    source_ip: '192.168.0.1'
+    #    source_port: '80'
+    #    target_ip: '192.168.1.1'
+    #    target_port: '443'
+    #    log: true
+    #    category: 'TestCategory'
+    #    description: 'Test rule'
+
+    # Invalid configuration test
+    - name: Test with invalid IP
+      puzzle.opnsense.firewall_rules:
+        interface: 'LAN'
+        action: 'pass'
+        source_ip: 'invalid_ip'
+      ignore_errors: yes
+
+    # Idempotency test
+    - name: Apply rule twice and check for idempotency
+      puzzle.opnsense.firewall_rules:
+        interface: 'LAN'
+        action: 'pass'
+        source_ip: '192.168.0.0/16'
+      register: first_apply
+    - name: Re-apply same rule
+      puzzle.opnsense.firewall_rules:
+        interface: 'LAN'
+        action: 'pass'
+        source_ip: '192.168.0.0/16'
+      register: second_apply
+    - name: Assert no change on second apply
+      assert:
+        that:
+          - not second_apply.changed
+

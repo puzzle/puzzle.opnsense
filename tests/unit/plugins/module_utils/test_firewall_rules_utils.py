@@ -3,6 +3,7 @@
 import os
 import re
 from tempfile import NamedTemporaryFile
+from typing import Optional
 from unittest.mock import patch, MagicMock
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
@@ -77,6 +78,37 @@ TEST_XML: str = """<?xml version="1.0"?>
                     <port>443</port>
                 </destination>
             </rule>
+            <rule>
+                <type>pass</type>
+                <interface>opt2</interface>
+                <ipprotocol>inet</ipprotocol>
+                <statetype>keep state</statetype>
+                <descr>allow vagrant management</descr>
+                <direction>in</direction>
+                <quick>1</quick>
+                <source>
+                    <any>1</any>
+                </source>
+                <destination>
+                    <any>1</any>
+                </destination>
+            </rule>
+            <rule>
+                <type>pass</type>
+                <interface>lan</interface>
+                <ipprotocol>inet6</ipprotocol>
+                <statetype>keep state</statetype>
+                <descr>"reject and disabled Rule"</descr>
+                <direction>in</direction>
+                <quick>1</quick>
+                <disabled>1</disabled>
+                <source>
+                    <any>1</any>
+                </source>
+                <destination>
+                    <any>1</any>
+                </destination>
+            </rule>
         </filter>
     </opnsense>
     """
@@ -114,7 +146,7 @@ def test_rule_set_load_simple_rules(
     mocked_version_utils: MagicMock, sample_config_path
 ):
     with FirewallRuleSet(sample_config_path) as rule_set:
-        assert len(rule_set._rules) == 2
+        assert len(rule_set._rules) == 4
         rule_set.save()
 
 
@@ -290,3 +322,31 @@ def test_rule_set_create_new_simple_rule_with_unsupported_action(
         )
 
     assert "NOT_AVAILBLE_FIREWALLRULEACTION" in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(
+        interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, disabled=True
+    )
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+        assert new_rule.disabled == 1

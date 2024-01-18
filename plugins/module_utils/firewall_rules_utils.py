@@ -482,6 +482,10 @@ class FirewallRule:
 
             del rule_dict[direction]
 
+        # Handle 'disabled' element
+        rule_dict["disabled"] = rule_dict.get("disabled", "0") == "1"
+
+        # Handle 'uuid' element
         rule_dict["uuid"] = element.attrib.get("uuid")
 
         return FirewallRule(**rule_dict)
