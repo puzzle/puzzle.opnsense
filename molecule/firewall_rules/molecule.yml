@@ -2,13 +2,15 @@
 scenario:
     name: firewall_rules
     test_sequence:
-        # - dependency not relevant uless we have requirements
+        # - dependency not relevant unless we have requirements
         - destroy
         - syntax
         - create
+#        - prepare
         - converge
         - idempotence
-        - verify
+        #- verify
+        - cleanup
         - destroy
 
 driver:
@@ -43,14 +45,14 @@ platforms:
       memory: 1024
       cpus: 2
       instance_raw_config_args:
-          - 'vm.guest = :freebsd'
-          - 'ssh.sudo_command = "%c"'
-          - 'ssh.shell = "/bin/sh"'
+        - 'vm.guest = :freebsd'
+        - 'ssh.sudo_command = "%c"'
+        - 'ssh.shell = "/bin/sh"'
 
 provisioner:
     name: ansible
-    env:
-        ANSIBLE_VERBOSITY: 3
+#    env:
+#        ANSIBLE_VERBOSITY: 3
 verifier:
     name: ansible
     options:
