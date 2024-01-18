@@ -199,12 +199,15 @@ class FirewallRuleProtocol(ListEnum):
 
 
 class IPProtocol(ListEnum):
+    """Represents the IPProtocol."""
+
     IPv4 = "inet"
     IPv6 = "inet6"
     IPv4_IPv6 = "inet46"
 
 
-class StateType(ListEnum):
+class FirewallRuleStateType(ListEnum):
+    """Represents the FirewallRuleStateType."""  # TODO not yet in the ansible parameters
     NONE = "none"
     KEEP_STATE = "keep state"
     SLOPPY_STATE = "sloppy state"
@@ -277,6 +280,39 @@ class FirewallRule:
                 setattr(self, field_name, field_type.from_string(value))
 
     def to_etree(self) -> Element:
+        """
+        Converts the current FirewallRule object to an XML Element.
+
+        This method takes the attributes of the FirewallRule object, represented as a dictionary,
+        and constructs an XML Element structure. The method primarily focuses on converting
+        attributes related to 'source' and 'destination' into nested XML tags.
+
+        Attributes in the format "source_any", "destination_port", etc., are transformed into
+        corresponding XML structures like `<source><any/></source>`. Boolean attributes are
+        particularly handled to create empty tags if True (e.g., `<any/>`) or are omitted if False.
+        Non-boolean attributes are converted into standard XML tags with values.
+
+        The 'uuid' attribute of the object, if present, is added as an attribute to the XML element.
+        Other unnecessary fields are removed during the conversion process.
+
+        Returns:
+        Element: An XML Element representing the FirewallRule object.
+
+        Example:
+        Given a FirewallRule object with attributes like {"source_any": "1", "source_port": 22},
+        the output will be an XML element structured as:
+        ```xml
+        <rule>
+            <source>
+                <any/>
+                <port>22</port>
+            </source>
+        </rule>
+        ```
+
+        Note: The method assumes the presence of a utility function `dict_to_etree` for
+        converting dictionaries to XML elements.
+        """
         rule_dict: dict = asdict(self)
         del rule_dict["uuid"]
 
@@ -289,7 +325,6 @@ class FirewallRule:
                 current_val: Optional[Any] = rule_dict.get(
                     f"{direction}_{key}"
                 )  # source_not = None
-                logging.info(f"{direction}_{key} : {current_val}")
                 if current_val is not None:
                     if rule_dict.get(direction) is None:
                         rule_dict[direction] = {}
