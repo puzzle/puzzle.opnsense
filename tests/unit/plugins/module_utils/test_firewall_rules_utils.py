@@ -272,3 +272,21 @@ def test_fw_rule_from_ansible_is_same_as_default(
     new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
 
     assert ansible_rule == new_test_rule
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_rule_with_unsupported_action(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    with pytest.raises(ValueError) as excinfo:
+        new_test_rule = FirewallRule(
+            interface="wan",
+            descr="New Test Rule",
+            type="NOT_AVAILBLE_FIREWALLRULEACTION",  # Intentionally invalid type
+        )
+
+    assert "NOT_AVAILBLE_FIREWALLRULEACTION" in str(excinfo.value)
