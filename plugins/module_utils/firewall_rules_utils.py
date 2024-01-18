@@ -376,6 +376,7 @@ class FirewallRule:
 
     @staticmethod
     def from_xml(element: Element) -> "FirewallRule":
+        # raise Exception(list(map(lambda elem: print(f"{elem.tag}: {elem.text}"), element)))
         rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
 
         # we start with a dictionary from XML looking like this for example:
