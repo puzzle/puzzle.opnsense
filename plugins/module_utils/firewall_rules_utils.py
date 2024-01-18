@@ -240,7 +240,7 @@ class FirewallRule:
     uuid: Optional[str] = None
     type: FirewallRuleAction = FirewallRuleAction.PASS
     descr: Optional[str] = None
-    quick: bool = False
+    quick: bool = True  # If the quick tag is not present, the tag is interpreted as true
     ipprotocol: IPProtocol = IPProtocol.IPv4
     direction: Optional[FirewallRuleDirection] = None
     protocol: FirewallRuleProtocol = FirewallRuleProtocol.ANY
@@ -333,11 +333,18 @@ class FirewallRule:
                         rule_dict[direction][key] = current_val
                 del rule_dict[f"{direction}_{key}"]
         for rule_key, rule_val in rule_dict.copy().items():
-            if rule_val is None or rule_val is False:
+            if (rule_val is None or rule_val is False) and rule_key != "quick":
                 del rule_dict[rule_key]
                 continue
             if issubclass(type(rule_val), ListEnum):
                 rule_dict[rule_key] = rule_val.value
+
+            elif rule_key == "quick":
+                if rule_val is True:
+                    del rule_dict["quick"]
+                else:
+                    rule_dict[rule_key] = "0"
+
             elif isinstance(rule_val, bool):
                 rule_dict[rule_key] = "1"
 
@@ -484,6 +491,9 @@ class FirewallRule:
 
         # Handle 'disabled' element
         rule_dict["disabled"] = rule_dict.get("disabled", "0") == "1"
+
+        # Handle 'quick' element
+        rule_dict["quick"] = rule_dict.get("quick", "1") == "1"
 
         # Handle 'uuid' element
         rule_dict["uuid"] = element.attrib.get("uuid")
