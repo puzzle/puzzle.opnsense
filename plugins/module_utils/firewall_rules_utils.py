@@ -1,6 +1,6 @@
 #  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import List, Optional, Any
 from xml.etree.ElementTree import Element
@@ -348,8 +348,44 @@ class FirewallRule:
 
         return element
 
+    # pylint: disable=too-many-locals
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "FirewallRule":
+        """
+        Creates a FirewallRule object from Ansible module parameters.
+
+        This class method constructs a FirewallRule object using parameters typically
+        provided by an Ansible module. It extracts relevant information such as interface,
+        action, description, and various source and destination attributes from the
+        provided `params` dictionary.
+
+        The method handles special cases such as the interpretation of 'any' values for
+        source and destination IPs and the exclusion of null values in the final dictionary
+        used to create the FirewallRule object.
+
+        Parameters:
+        params (dict): A dictionary containing Ansible module parameters. Expected keys include
+        'interface', 'action', 'description', 'quick', 'ipprotocol', 'direction', 'protocol',
+        'source_invert', 'source_ip', 'source_port', 'destination_invert', 'destination_ip',
+        'destination_port', 'log', 'category', and 'disabled'.
+
+        Returns:
+        FirewallRule: An instance of FirewallRule initialized with the provided parameters.
+
+        Example:
+        ```python
+        params = {
+            "interface": "eth0",
+            "action": "block",
+            "source_ip": "any",
+            "destination_ip": "192.168.1.1",
+            "destination_port": 22,
+            # ... other parameters ...
+        }
+        rule = FirewallRule.from_ansible_module_params(params)
+        ```
+        """
+
         interface = params.get("interface")
         action = params.get("action")
         description = params.get("description")

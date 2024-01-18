@@ -9,12 +9,6 @@
 
 __metaclass__ = type
 
-from plugins.module_utils import firewall_rules_utils
-from plugins.module_utils.firewall_rules_utils import (
-    FirewallRuleSet,
-    FirewallRule,
-    FirewallRuleProtocol,
-)
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
@@ -36,12 +30,13 @@ options:
         default: pass
         type: str
     disabled:
-        description: Set this option to disable this rule without removing it from the list. 
+        description: Set this option to disable this rule without removing it from the list.
         required: false
         default: false
         type: bool
     quick:
-        description: If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken. When a rule does not have quick enabled, the last matching rule wins.
+        description: If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken.
+        When a rule does not have quick enabled, the last matching rule wins.
         required: false
         default: true
         type: bool
@@ -50,7 +45,10 @@ options:
         required: true
         type: str
     direction:
-        description: Direction of the traffic. Traffic IN is coming into the firewall interface, while traffic OUT is going out of the firewall interface. In visual terms: [Source] -> IN -> [Firewall] -> OUT -> [Destination]. The default policy is to filter inbound traffic, which means the policy applies to the interface on which the traffic is originally received by the firewall from the source. This is more efficient from a traffic processing perspective. In most cases, the default policy will be the most appropriate.
+        description: Direction of the traffic. Traffic IN is coming into the firewall interface, while traffic OUT is going out of the firewall interface.
+        In visual terms: [Source] -> IN -> [Firewall] -> OUT -> [Destination]. The default policy is to filter inbound traffic,
+        which means the policy applies to the interface on which the traffic is originally received by the firewall from the source.
+        This is more efficient from a traffic processing perspective. In most cases, the default policy will be the most appropriate.
         choices: [in, out]
         required: false
         default: in
@@ -207,8 +205,7 @@ options:
     source_port:
         description: Source port, being a number from 0 to 65535 or 'any'.
         required: false
-        default: any
-        type: str    
+        type: str
     target_invert:
         description: Use this option to invert the sense of the match.
         required: false
@@ -225,7 +222,8 @@ options:
         default: any
         type: str
     log:
-        description: Log packets that are handled by this rule. Hint: the firewall has limited local log space. Don't turn on logging for everything. If you want to do a lot of logging, consider using a remote syslog server.
+        description: Log packets that are handled by this rule. Hint: the firewall has limited local log space.
+        Don't turn on logging for everything. If you want to do a lot of logging, consider using a remote syslog server.
         required: false
         default: false
         type: bool
@@ -289,8 +287,17 @@ opnsense_configure_output:
           - Writing trust files...done.
 '''
 # fmt: on
+from typing import Optional
+
 from ansible.module_utils.basic import AnsibleModule
-from plugins.module_utils.firewall_rules_utils import FirewallRuleProtocol
+from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleSet,
+    FirewallRule,
+    FirewallRuleProtocol,
+)
+
+
+ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 
 def main():
@@ -352,6 +359,13 @@ def main():
         "invocation": module.params,
         "diff": None,
     }
+    # make description ansible-managed
+    description: Optional[str] = module.params["description"]
+
+    if description and ANSIBLE_MANAGED not in description:
+        description = f"{ANSIBLE_MANAGED} - {description}"
+    else:
+        description = ANSIBLE_MANAGED
 
     ansible_rule: FirewallRule = FirewallRule(...)  # TODO
 
