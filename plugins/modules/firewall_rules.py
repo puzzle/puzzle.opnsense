@@ -249,15 +249,15 @@ author:
 
 EXAMPLES = r"""
 - name: Block SSH in LAN Network
-  puzzleitc.opnsense.firewall_rules:
-    interface: 'LAN'
+  puzzle.opnsense.firewall_rules:
+    interface: lan
     target_port: 22
-    action: 'block'
+    action: block
 
 - name: Allow all access from RFC1918 networks to this host
-  puzzleitc.opnsense.firewall_rules:
-    interface: 'eth0'
-    action: 'pass'
+  puzzle.opnsense.firewall_rules:
+    interface: lan
+    action: pass
     source_ip: 192.168.0.0/16
 """
 
