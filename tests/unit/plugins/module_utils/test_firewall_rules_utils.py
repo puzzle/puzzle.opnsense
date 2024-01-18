@@ -91,7 +91,6 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <statetype>keep state</statetype>
                 <descr>allow vagrant management</descr>
                 <direction>in</direction>
-                <quick>1</quick>
                 <source>
                     <any>1</any>
                 </source>
@@ -106,7 +105,6 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <statetype>keep state</statetype>
                 <descr>"reject and disabled Rule"</descr>
                 <direction>in</direction>
-                <quick>1</quick>
                 <disabled>1</disabled>
                 <source>
                     <any>1</any>
@@ -170,7 +168,7 @@ def test_firewall_rule_from_xml():
     assert not test_rule.disabled
     assert not test_rule.log
     assert test_rule.category is None
-    assert not test_rule.quick
+    assert test_rule.quick
 
 
 def test_firewall_rule_from_xml_any_1():
@@ -396,7 +394,7 @@ def test_fw_rule_from_ansible_is_same_as_default(
         "ipprotocol": "inet",
         "log": False,
         "protocol": None,
-        "quick": False,
+        "quick": True,
         "source_invert": None,
         "source_ip": None,
         "source_port": None,
@@ -456,3 +454,59 @@ def test_rule_set_create_new_simple_disabled_rule(
         assert new_rule.interface == "wan"
         assert new_rule.descr == "New Test Rule"
         assert new_rule.disabled == 1
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_quick_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(
+        interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, quick=False
+    )
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+        assert new_rule.quick == 0
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_quick_enabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(
+        interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, quick=True
+    )
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+        assert new_rule.quick
