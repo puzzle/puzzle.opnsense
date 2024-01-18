@@ -284,7 +284,7 @@ class FirewallRule:
                 setattr(self, field_name, field_type.from_string(value))
 
     def to_etree(self) -> Element:
-         """
+        """
         Converts the current FirewallRule object to an XML Element.
 
         This method takes the attributes of the FirewallRule object, represented as a dictionary,
