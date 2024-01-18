@@ -516,6 +516,26 @@ class FirewallRule:
 
 
 class FirewallRuleSet(OPNsenseModuleConfig):
+    """
+    Manages a set of firewall rules in an OPNsense configuration.
+
+    This class provides functionality to load, add, update, delete, and find firewall
+    rules. It also checks for changes and saves the updated ruleset to the
+    configuration file. The rules are represented as a list of `FirewallRule` objects.
+
+    Attributes:
+        _rules (List[FirewallRule]): List of firewall rules loaded from the configuration.
+
+    Methods:
+        __init__(self, path): Initializes the class with a given configuration file path.
+        _load_rules(self): Loads firewall rules from the configuration file.
+        changed(self): Returns True if the current rules differ from the loaded ones.
+        add_or_update(self, rule): Adds a new rule or updates an existing one.
+        delete(self, rule): Removes a specified rule from the ruleset.
+        find(self, **kwargs): Finds a rule matching given criteria.
+        save(self): Saves changes to the configuration file if there are any modifications.
+    """
+
     _rules: List[FirewallRule]
 
     def __init__(self, path: str = "/conf/config.xml"):
@@ -531,9 +551,34 @@ class FirewallRuleSet(OPNsenseModuleConfig):
 
     @property
     def changed(self) -> bool:
+        """
+        Checks if the current set of firewall rules has changed compared to the loaded configuration.
+
+        This property compares the current set of `FirewallRule` objects in `_rules` with the set
+        loaded from the configuration file. It returns True if there are differences, indicating
+        that changes have been made to the ruleset which are not yet saved to the configuration file.
+
+        Returns:
+            bool: True if the ruleset has changed, False otherwise.
+        """
         return self._load_rules() != self._rules
 
     def add_or_update(self, rule: FirewallRule) -> None:
+        """
+        Adds a new firewall rule to the ruleset or updates an existing one.
+
+        This method checks if the provided `rule` already exists in the ruleset. If it does,
+        the existing rule is updated with the properties of the provided `rule`. If it does not exist,
+        the new rule is appended to the ruleset. The comparison to check if a rule exists is based on
+        the equality condition defined in the `FirewallRule` class.
+
+        Parameters:
+            rule (FirewallRule): The firewall rule to be added or updated in the ruleset.
+
+        Returns:
+            None: This method does not return anything.
+        """
+
         existing_rule: Optional[FirewallRule] = next((r for r in self._rules if r == rule), None)
         if existing_rule:
             existing_rule.__dict__.update(rule.__dict__)
@@ -541,9 +586,39 @@ class FirewallRuleSet(OPNsenseModuleConfig):
             self._rules.append(rule)
 
     def delete(self, rule: FirewallRule) -> None:
+        """
+        Removes a specified firewall rule from the ruleset.
+
+        This method iterates through the current set of firewall rules and removes the rule
+        that matches the provided `rule` parameter. The comparison for removal is based on
+        the inequality of the `FirewallRule` objects. If the rule is not found, no action is taken.
+
+        Parameters:
+            rule (FirewallRule): The firewall rule to be removed from the ruleset.
+
+        Returns:
+            None: This method does not return anything.
+        """
+
         self._rules = [r for r in self._rules if r != rule]
 
     def find(self, **kwargs) -> Optional[FirewallRule]:
+        """
+        Searches for a firewall rule that matches the given criteria.
+
+        This method iterates through the ruleset and returns the first `FirewallRule` object
+        that matches all the provided keyword arguments. The comparison is made by checking
+        if each attribute of the rule (specified as a keyword argument) equals the corresponding
+        value in `kwargs`. If no matching rule is found, the method returns None.
+
+        Keyword Arguments:
+            kwargs: Arbitrary keyword arguments used for searching. Each keyword argument
+                    should correspond to an attribute of the `FirewallRule` class.
+
+        Returns:
+            Optional[FirewallRule]: The first matching `FirewallRule` object, or None if no match is found.
+        """
+
         for rule in self._rules:
             match = all(getattr(rule, key, None) == value for key, value in kwargs.items())
             if match:
@@ -551,6 +626,25 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         return None
 
     def save(self) -> bool:
+        """
+        Saves the current set of firewall rules to the configuration file.
+
+        This method first checks if there have been any changes to the ruleset using the `changed`
+        property. If there are no changes, it returns False. Otherwise, it updates the configuration
+        XML tree with the current set of rules and writes the updated configuration to the file.
+        It then reloads the configuration from the file to ensure synchronization.
+
+        The saving process involves removing the existing rules from the configuration XML tree,
+        clearing the filter element, and then extending it with the updated set of rules
+        converted to XML elements.
+
+        Returns:
+            bool: True if changes were saved, False if there were no changes to save.
+        """
+
+        if not self.changed:
+            return False
+
         filter_element: Element = self._config_xml_tree.find(self._config_map["rules"])
 
         self._config_xml_tree.remove(filter_element)
