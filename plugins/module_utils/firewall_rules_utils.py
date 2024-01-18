@@ -316,10 +316,6 @@ class FirewallRule:
         rule_dict: dict = asdict(self)
         del rule_dict["uuid"]
 
-        # Here data from the dataclass in this form eg.:
-        # { "source_any": "1" }
-        # into the required xml data structure:
-        # <source><any/></source>
         for direction in ["source", "destination"]:
             for key in ["address", "network", "port", "any", "not"]:
                 current_val: Optional[Any] = rule_dict.get(
@@ -332,30 +328,19 @@ class FirewallRule:
                     # s/d_network
                     if isinstance(current_val, bool):
                         if current_val:
-                            # if current boolean value is 'True' it suffices
-                            # to write an empty tag into the xml:
-                            # e.g. {"any": True } == <any/>
-                            # no need for <any>1</any>
-
                             rule_dict[direction][key] = None
                     else:
-                        # every other option should be written into the
-                        # corresponding structure e.g:
-                        # { "source_port": 22 } == <source><port>22</port></source>
                         rule_dict[direction][key] = current_val
                 del rule_dict[f"{direction}_{key}"]
-        for rule_key, rule_val in rule_dict.copy().items():  # rule_val = "{"not":None}"
+        for rule_key, rule_val in rule_dict.copy().items():
             if rule_val is None or rule_val is False:
-                # remove unnecessary fields
                 del rule_dict[rule_key]
                 continue
             if issubclass(type(rule_val), ListEnum):
                 rule_dict[rule_key] = rule_val.value
             elif isinstance(rule_val, bool):
-                # assume it rule_val is True because of first check in the for loop
                 rule_dict[rule_key] = "1"
 
-        # {"source":{"not":None}}
         element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
 
         if self.uuid:
