@@ -31,7 +31,7 @@ options:
         default: pass
         type: str
     disabled:
-        description: Set this option to disable this rule without removing it from the list. 
+        description: Set this option to disable this rule without removing it from the list.
         required: false
         default: false
         type: bool
@@ -42,7 +42,8 @@ options:
         choices: [ inet, inet6, inet46]
         type: str
     quick:
-        description: If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken. When a rule does not have quick enabled, the last matching rule wins.
+        description: If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken.
+        When a rule does not have quick enabled, the last matching rule wins.
         required: false
         default: true
         type: bool
@@ -51,7 +52,10 @@ options:
         required: true
         type: str
     direction:
-        description: Direction of the traffic. Traffic IN is coming into the firewall interface, while traffic OUT is going out of the firewall interface. In visual terms: [Source] -> IN -> [Firewall] -> OUT -> [Destination]. The default policy is to filter inbound traffic, which means the policy applies to the interface on which the traffic is originally received by the firewall from the source. This is more efficient from a traffic processing perspective. In most cases, the default policy will be the most appropriate.
+        description: Direction of the traffic. Traffic IN is coming into the firewall interface, while traffic OUT is going out of the firewall interface.
+        In visual terms: [Source] -> IN -> [Firewall] -> OUT -> [Destination]. The default policy is to filter inbound traffic,
+        which means the policy applies to the interface on which the traffic is originally received by the firewall from the source.
+        This is more efficient from a traffic processing perspective. In most cases, the default policy will be the most appropriate.
         choices: [in, out]
         required: false
         default: in
@@ -206,7 +210,7 @@ options:
     source_port:
         description: Source port, being a number from 0 to 65535 or 'any'.
         required: false
-        type: str    
+        type: str
     target_invert:
         description: Use this option to invert the sense of the match.
         required: false
@@ -220,7 +224,8 @@ options:
         required: false
         type: str
     log:
-        description: Log packets that are handled by this rule. Hint: the firewall has limited local log space. Don't turn on logging for everything. If you want to do a lot of logging, consider using a remote syslog server.
+        description: Log packets that are handled by this rule. Hint: the firewall has limited local log space.
+        Don't turn on logging for everything. If you want to do a lot of logging, consider using a remote syslog server.
         required: false
         default: false
         type: bool
@@ -295,7 +300,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_uti
 )
 
 
-ANSIBLE_MANAGED: str = '[ ANSIBLE ]'
+ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 
 def main():
@@ -351,10 +356,10 @@ def main():
         "diff": None,
     }
     # make description ansible-managed
-    description: Optional[str] = module.params['description']
+    description: Optional[str] = module.params["description"]
 
     if description and ANSIBLE_MANAGED not in description:
-        description = f'{ANSIBLE_MANAGED} - {description}'
+        description = f"{ANSIBLE_MANAGED} - {description}"
     else:
         description = ANSIBLE_MANAGED
 
