@@ -495,6 +495,9 @@ class FirewallRule:
         # Handle 'quick' element
         rule_dict["quick"] = rule_dict.get("quick", "1") == "1"
 
+        # Handle 'log' element
+        rule_dict["log"] = rule_dict.get("log", "0") == "1"
+
         # Handle 'uuid' element
         rule_dict["uuid"] = element.attrib.get("uuid")
 

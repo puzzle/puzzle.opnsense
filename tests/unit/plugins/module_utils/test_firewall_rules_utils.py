@@ -518,3 +518,60 @@ def test_rule_set_create_new_simple_quick_enabled_rule(
         assert new_rule.interface == "wan"
         assert new_rule.descr == "New Test Rule"
         assert new_rule.quick
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_log_enabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(
+        interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, log=True
+    )
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+        assert new_rule.log
+        assert new_rule.log == 1
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_rule_set_create_new_simple_log_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    new_test_rule = FirewallRule(
+        interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, log=False
+    )
+
+    with FirewallRuleSet(sample_config_path) as rule_set:
+        rule_set.add_or_update(new_test_rule)
+
+        assert rule_set.changed
+
+        rule_set.save()
+
+    with FirewallRuleSet(sample_config_path) as new_rule_set:
+        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+
+        assert new_rule is not None
+        assert new_rule.interface == "wan"
+        assert new_rule.descr == "New Test Rule"
+        assert not new_rule.log
