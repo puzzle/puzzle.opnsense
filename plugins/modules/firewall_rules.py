@@ -284,24 +284,20 @@ opnsense_configure_output:
     returned: always
     type: list
     sample:
-      - function: system_timezone_configure
-        params:
-          - 'true'
+      - function: "system_cron_configure"
+        params: []
         rc: 0
-        stderr: ''
+        stderr: ""
         stderr_lines: []
-        stdout: 'Setting timezone: Europe/Zurich'
-        stdout_lines:
-          - 'Setting timezone: Europe/Zurich'
-      - function: system_trust_configure
-        params:
-          - 'true'
+        stdout: ""
+        stdout_lines: []
+      - function: "filter_configure"
+        params: []
         rc: 0
-        stderr: ''
+        stderr: ""
         stderr_lines: []
-        stdout: Writing trust files...done.
-        stdout_lines:
-          - Writing trust files...done.
+        stdout: ""
+        stdout_lines: []
 '''
 # fmt: on
 from typing import Optional
