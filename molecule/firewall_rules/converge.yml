@@ -1154,4 +1154,3 @@
       assert:
         that:
           - not second_apply.changed
-
