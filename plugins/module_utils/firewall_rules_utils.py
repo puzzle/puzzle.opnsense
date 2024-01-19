@@ -1,5 +1,6 @@
 #  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import List, Optional, Any

@@ -76,7 +76,7 @@ The official Ansible Documentation (`Collection Structure
 provides further reference regarding collection structure guidelines.
 
 Using the OPNsense Module Config XML in Plugins
-----------------------------------------
+-----------------------------------------------
 
 The ``OPNsenseModuleConfig`` utility module provides a convenient and efficient way to interact with the OPNsense configuration file located at ``/conf/config.xml`` within Ansible plugins. This utility is designed to offer a context manager that significantly simplifies the process of accessing, modifying, and managing configuration values in a structured and error-resistant manner.
 
@@ -380,21 +380,23 @@ steps as a review guideline:
 
 1. Clone the Fork or add it as a new remote:
 
-   .. code-block::
-    git remote add NEW_REMOTE_NAME REMOTE_URL
-    git checkout NEW_REMOTE_NAME/BRANCH_NAME
+   .. code-block:: bash
 
-   For example checking out the branch ``feature/review-guide`` of the fork
-   ``dongiovanni83/puzzle.opnsense`` you would use this workflow:
+      git remote add NEW_REMOTE_NAME REMOTE_URL
+      git checkout NEW_REMOTE_NAME/BRANCH_NAME
 
-   .. code-block::
-    git remote add dongiovanni83 git@github.com:dongiovanni83/puzzle.opnsense.git
-    git checkout dongiovanni83/feature/review-guide
+   For example, checking out the branch ``feature/review-guide`` of the fork
+   ``dongiovanni83/puzzle.opnsense``, you would use this workflow:
+
+   .. code-block:: bash
+
+      git remote add dongiovanni83 git@github.com:dongiovanni83/puzzle.opnsense.git
+      git checkout dongiovanni83/feature/review-guide
 
 
 2. If documentation has been added, build the site and check it locally:
 
-   .. code-block::
+   .. code-block:: bash
 
     make build-doc
 
@@ -403,7 +405,7 @@ steps as a review guideline:
 
 3. Run all tests locally:
 
-   .. code-block::
+   .. code-block:: bash
 
     make test
 
