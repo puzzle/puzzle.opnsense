@@ -319,7 +319,7 @@ def main():
             "default": "pass",
         },
         "disabled": {"type": "bool", "default": False},
-        "quick": {"type": "bool", "default": False},
+        "quick": {"type": "bool", "default": True},
         "interface": {"type": "str", "required": True},
         "direction": {
             "type": "str",
