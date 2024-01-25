@@ -327,6 +327,8 @@ def main():
         },
         "disabled": {"type": "bool", "required": False, "default": False},
         "quick": {"type": "bool", "required": False, "default": True},
+        "disabled": {"type": "bool", "default": False},
+        "quick": {"type": "bool", "default": True},
         "interface": {"type": "str", "required": True},
         "direction": {
             "type": "str",

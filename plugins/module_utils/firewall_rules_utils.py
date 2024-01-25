@@ -347,6 +347,8 @@ class FirewallRule:
                     rule_dict[rule_key] = "0"
 
             elif isinstance(rule_val, bool):
+                if "quick" in rule_key:
+                    raise Exception(rule_val)
                 rule_dict[rule_key] = "1"
 
         element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
@@ -494,13 +496,18 @@ class FirewallRule:
         rule_dict["disabled"] = rule_dict.get("disabled", "0") == "1"
 
         # Handle 'quick' element
-        rule_dict["quick"] = rule_dict.get("quick", "1") == "1"
+        if "quick" in rule_dict:
+            rule_dict["quick"] = 0
 
         # Handle 'log' element
         rule_dict["log"] = rule_dict.get("log", "0") == "1"
 
         # Handle 'uuid' element
         rule_dict["uuid"] = element.attrib.get("uuid")
+
+        # TODO ignore changelog for now
+        rule_dict.pop("updated", None)
+        rule_dict.pop("created", None)
 
         return FirewallRule(**rule_dict)
 
