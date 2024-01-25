@@ -181,9 +181,7 @@ class OPNsenseModuleConfig:
         """
 
         if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(
-                self._config_xml_tree
-            )
+            tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
             tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
             self._config_xml_tree = self._load_config()
             return True
