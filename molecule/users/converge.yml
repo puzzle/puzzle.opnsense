@@ -7,62 +7,120 @@
       ansible.builtin.debug:
         msg: "test"
 
-      # Test basic functionality with different Users
-    - name: "Test User: Test User Creation"
+      # Test User minimum requirements
+    - name: "Test User 1: Test minimum requirements User Creation"
       puzzle.opnsense.users:
-        password: "test123test123"
-        scope: "user"
-        username: "test_user_1"
-        description: "Test User 1"
-        shell: "/bin/sh"
-        uid: "2000"
+        username: test_user_1
+        password: test_password_1
 
-      # Test basic functionality with different Users
-    - name: "Test User 2: Test User Creation"
+      # Test User minimum requirements disabled
+    - name: "Test User 2: Test disabled User Creation"
       puzzle.opnsense.users:
-        password: "test123test123test123"
-        scope: "user"
-        username: "test_user_2"
-        description: "Test User 2"
-        shell: "/bin/sh"
+        username: test_user_2
+        password: test_password_2
+        disabled: True
 
-    - name: "Test User 3: Test User Creation"
+    # Test User with Full Name
+    - name: "Test User 3: Test User Creation with Full Name"
       puzzle.opnsense.users:
-        password: "password3"
-        scope: "user"
-        username: "test_user_3"
-        description: "Test User 3"
-        shell: "/bin/sh"
+        username: test_user_3
+        password: test_password_3
+        full_name: Test User 3
 
-    - name: "Test User 4: Test User Creation"
+    # Test User with E-Mail
+    - name: "Test User 4: Test User Creation with E-Mail"
       puzzle.opnsense.users:
-        password: "password4"
-        scope: "user"
-        username: "test_user_4"
-        description: "Test User 4"
-        shell: "/bin/bash"
+        username: test_user_4
+        password: test_password_4
+        email: test_user_4@test.ch
 
-    - name: "Test User 5: Test User Creation"
+    # Test User with Comment
+    - name: "Test User 5: Test User Creation with Comment"
       puzzle.opnsense.users:
-        password: "password5"
-        scope: "user"
-        username: "test_user_5"
-        description: "Test User 5"
-        shell: "/bin/zsh"
+        username: test_user_5
+        password: test_password_5
+        comment: Test User 5 Comment
 
-    - name: "Test User 6: Test User Creation"
+    # Test User with Preferred landing page
+    - name: "Test User 6: Test User Creation with Preferred landing page"
       puzzle.opnsense.users:
-        password: "password6"
-        scope: "user"
-        username: "test_user_6"
-        description: "Test User 6"
-        shell: "/bin/csh"
+        username: test_user_6
+        password: test_password_6
+        landing_page: /ui/ipsec/sessions
+
+    # Test User with nologin shell
+    - name: "Test User 7: Test User Creation with nologin shell"
+      puzzle.opnsense.users:
+        username: test_user_7
+        password: test_password_7
+        shell: /sbin/nologin
+
+    # Test User with csh shell
+    - name: "Test User 8: Test User Creation with csh shell"
+      puzzle.opnsense.users:
+        username: test_user_8
+        password: test_password_8
+        shell: /bin/csh
+
+    # Test User with sh shell
+    - name: "Test User 9: Test User Creation with sh shell"
+      puzzle.opnsense.users:
+        username: test_user_9
+        password: test_password_9
+        shell: /bin/sh
+
+    # Test User with tcsh shell
+    - name: "Test User 10: Test User Creation with tcsh shell"
+      puzzle.opnsense.users:
+        username: test_user_10
+        password: test_password_10
+        shell: /bin/tcsh
 
 
 
 
-
-
-
-
-
+    #  # Test User with shell and email
+    #- name: "Test User 3: Test User Creation"
+    #  puzzle.opnsense.users:
+    #    password: "password3"
+    #    scope: "user"
+    #    username: "test_user_3"
+    #    description: "Test User 3"
+    #    shell: "/bin/sh"
+    #    email: test@puzzle.ch
+#
+    #  # Test User with shell and comment
+    #- name: "Test User 4: Test User Creation"
+    #  puzzle.opnsense.users:
+    #    password: "password4"
+    #    scope: "user"
+    #    username: "test_user_4"
+    #    description: "Test User 4"
+    #    shell: "/bin/bash"
+    #    comment: "Test User 4"
+#
+    #- name: "Test User 5: Test User Creation"
+    #  puzzle.opnsense.users:
+    #    password: "password5"
+    #    scope: "user"
+    #    username: "test_user_5"
+    #    description: "Test User 5"
+    #    shell: "/bin/zsh"
+#
+    #- name: "Test User 6: Test User Creation"
+    #  puzzle.opnsense.users:
+    #    password: "password6"
+    #    scope: "user"
+    #    username: "test_user_6"
+    #    description: "Test User 6"
+    #    shell: "/bin/csh"
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#

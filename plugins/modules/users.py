@@ -59,10 +59,13 @@ def main():
             "required": True,
         },
         "password": {"type": "str", "required": True},
-        "scope": {"type": "str", "required": False},
-        "description": {"type": "str", "required": False},
         "disabled": {"type": "bool", "default": False},
-        "shell": {"type": "str", "default": False},
+        "full_name": {"type": "str", "required": False},
+        "email": {"type": "str", "required": False},
+        "comment": {"type": "str", "required": False},
+        "landing_page": {"type": "str", "required": False},
+        "shell": {"type": "str", "required": False},
+        "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {
             "type": "str",
@@ -84,14 +87,14 @@ def main():
         "diff": None,
     }
     # make description ansible-managed
-    description: Optional[str] = module.params["description"]
+    description: Optional[str] = module.params["full_name"]
 
     if description and ANSIBLE_MANAGED not in description:
         description = f"{ANSIBLE_MANAGED} - {description}"
     else:
         description = ANSIBLE_MANAGED
 
-    module.params["description"] = description
+    module.params["full_name"] = description
 
     ansible_user: User = User.from_ansible_module_params(module.params)
 

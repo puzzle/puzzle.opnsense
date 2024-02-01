@@ -24,17 +24,60 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 )
 
 
+class ListEnum(Enum):
+    """Enum class with some handy utility functions."""
+
+    @classmethod
+    def as_list(cls) -> List[str]:
+        """
+        Return a list
+        Returns
+        -------
+
+        """
+        return [entry.value for entry in cls]
+
+    @classmethod
+    def from_string(cls, value: str) -> "ListEnum":
+        """
+        Returns Enum value, from a given String.
+        If no enum value can be mapped to the input string,
+        ValueError is raised.
+        Parameters
+        ----------
+        value: `str`
+            String to be mapped to enum value
+
+        Returns
+        -------
+        Enum value
+        """
+        for _key, _value in cls.__members__.items():
+            if value in (_key, _value.value):
+                return _value
+        raise ValueError(f"'{cls.__name__}' enum not found for '{value}'")
+
+
+class UserLoginShell(ListEnum):
+    """Represents the user login shell."""
+
+    NOLOGIN = "/sbin/nologin"
+    CSH = "/bin/csh"
+    SH = "/bin/sh"
+    TCSH = "/bin/tcsh"
+
+
 @dataclass
 class User:
     """Used to represent an User."""
 
     name: str
     password: str
-    scope: str
+    scope: Optional[str] = "User"
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
     otp_seed: Optional[str] = None
-    shell: Optional[str] = None
+    shell: Optional[UserLoginShell] = None
     uid: Optional[str] = None
     disabled: bool = False
     full_name: Optional[str] = None
@@ -58,6 +101,20 @@ class User:
 
         return True
 
+    def __post_init__(self):
+        # Manually define the fields and their expected types
+        enum_fields = {
+            "shell": UserLoginShell,
+        }
+
+        for field_name, field_type in enum_fields.items():
+            value = getattr(self, field_name)
+
+            # Check if the value is a string and the field_type is a subclass of ListEnum
+            if isinstance(value, str) and issubclass(field_type, ListEnum):
+                # Convert string to ListEnum
+                setattr(self, field_name, field_type.from_string(value))
+
     def to_etree(self) -> Element:
         """ """
 
@@ -72,9 +129,15 @@ class User:
             ]:
                 continue
 
+            if issubclass(type(user_val), ListEnum):
+                user_dict[user_key] = user_val.value
+
             elif user_val is None or user_val is False:
                 del user_dict[user_key]
                 continue
+
+            elif isinstance(user_val, bool):
+                user_dict[user_key] = "1"
 
         element: Element = xml_utils.dict_to_etree("user", user_dict)[0]
 
@@ -133,7 +196,6 @@ class User:
             password = cls._set_password(password)
 
         uid = params.get("uid")
-        description = params.get("description")
         scope = params.get("scope")
         ipsecpsk = params.get("ipsecpsk")
         otp_seed = params.get("otp_seed")
@@ -151,7 +213,7 @@ class User:
             "disabled": disabled,
             "name": username,
             "password": password,
-            "descr": description,
+            "descr": full_name,
             "scope": scope,
             "ipsecpsk": ipsecpsk,
             "otp_seed": otp_seed,
@@ -176,6 +238,9 @@ class User:
         """ """
 
         user_dict: dict = xml_utils.etree_to_dict(element)["user"]
+
+        # Handle 'disabled' element
+        user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
 
         return User(**user_dict)
 
