@@ -1,0 +1,68 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: "test"
+      ansible.builtin.debug:
+        msg: "test"
+
+      # Test basic functionality with different Users
+    - name: "Test User: Test User Creation"
+      puzzle.opnsense.users:
+        password: "test123test123"
+        scope: "user"
+        username: "test_user_1"
+        description: "Test User 1"
+        shell: "/bin/sh"
+        uid: "2000"
+
+      # Test basic functionality with different Users
+    - name: "Test User 2: Test User Creation"
+      puzzle.opnsense.users:
+        password: "test123test123test123"
+        scope: "user"
+        username: "test_user_2"
+        description: "Test User 2"
+        shell: "/bin/sh"
+
+    - name: "Test User 3: Test User Creation"
+      puzzle.opnsense.users:
+        password: "password3"
+        scope: "user"
+        username: "test_user_3"
+        description: "Test User 3"
+        shell: "/bin/sh"
+
+    - name: "Test User 4: Test User Creation"
+      puzzle.opnsense.users:
+        password: "password4"
+        scope: "user"
+        username: "test_user_4"
+        description: "Test User 4"
+        shell: "/bin/bash"
+
+    - name: "Test User 5: Test User Creation"
+      puzzle.opnsense.users:
+        password: "password5"
+        scope: "user"
+        username: "test_user_5"
+        description: "Test User 5"
+        shell: "/bin/zsh"
+
+    - name: "Test User 6: Test User Creation"
+      puzzle.opnsense.users:
+        password: "password6"
+        scope: "user"
+        username: "test_user_6"
+        description: "Test User 6"
+        shell: "/bin/csh"
+
+
+
+
+
+
+
+
+
