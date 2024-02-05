@@ -1,7 +1,7 @@
 #  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, asdict, fields, field
 from enum import Enum
 from typing import List, Optional
 
@@ -20,6 +20,12 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import etree_to_dict
+
+
+class OPNSenseGroupNotFoundError(Exception):
+    """
+    Exception raised when an OPNsense group is not found.
+    """
 
 
 class ListEnum(Enum):
@@ -74,7 +80,7 @@ class Group:
     scope: Optional[str] = None
     priv: Optional[str] = None
     gid: Optional[str] = None
-    member: Optional[list[str]] = None
+    member: List[str] = field(default_factory=list)
 
     @staticmethod
     def from_xml(element: Element) -> "Group":
@@ -92,25 +98,6 @@ class Group:
 
         group_dict: dict = asdict(self)
 
-        # for user_key, user_val in user_dict.copy().items():
-        #    if user_val is None and user_key in [
-        #        "expires",
-        #        "authorizedkeys",
-        #        "ipsecpsk",
-        #        "otp_seed",
-        #    ]:
-        #        continue
-        #
-        #    if issubclass(type(user_val), ListEnum):
-        #        user_dict[user_key] = user_val.value
-        #
-        #    elif user_val is None or user_val is False:
-        #        del user_dict[user_key]
-        #        continue
-        #
-        #    elif isinstance(user_val, bool):
-        #        user_dict[user_key] = "1"
-
         element: Element = xml_utils.dict_to_etree("group", group_dict)[0]
 
         return element
@@ -120,7 +107,7 @@ class Group:
         This function checks, if a user is already in the group
         """
 
-        if user.uid in self.member:
+        if self.member and user.uid in self.member:
             return True
 
         return False
@@ -129,6 +116,9 @@ class Group:
         """
         This function adds a user to a group
         """
+
+        if not isinstance(self.member, list):
+            self.member = [self.member] if self.member else []
 
         self.member.append(user.uid)
 
@@ -154,7 +144,7 @@ class User:
     authorizedkeys: Optional[str] = None
     cert: Optional[str] = None  # TODO is in another xml path
     api_keys_item_api_key: Optional[str] = None
-    groupname: Optional[str] = None
+    groupname: Optional[list[str]] = None
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, User):
@@ -361,15 +351,23 @@ class UserSet(OPNsenseModuleConfig):
         - user: The user to be added or updated in groups.
         - existing_user: The existing user object, if the user already exists.
         """
+
         target_user = existing_user if existing_user else user
         group_names = user.groupname if isinstance(user.groupname, list) else [user.groupname]
 
         for group_name in group_names:
+            group_found = False
             for index, existing_group in enumerate(self._groups):
                 if existing_group.name == group_name:
+                    group_found = True
                     if not existing_group.check_if_user_in_group(target_user):
                         existing_group.add_user(target_user)
                         self._groups[index] = existing_group
+                    break  # Stop searching once the group is found
+
+            if not group_found:
+                # Group was not found, raise an exception
+                raise OPNSenseGroupNotFoundError(f"Group '{group_name}' not found on Instance")
 
     def add_or_update(self, user: User) -> None:
         """
