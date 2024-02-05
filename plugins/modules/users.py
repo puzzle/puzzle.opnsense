@@ -66,7 +66,7 @@ def main():
         "landing_page": {"type": "str", "required": False},
         "shell": {"type": "str", "required": False},
         "expires": {"type": "str", "required": False},
-        "groups": {"type": "list", "required": False},
+        "groups": {"type": "str", "required": False},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {

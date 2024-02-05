@@ -19,6 +19,8 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     UnsupportedVersionForModule,
 )
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import etree_to_dict
+
 
 class ListEnum(Enum):
     """Enum class with some handy utility functions."""
@@ -72,7 +74,7 @@ class Group:
     scope: str
     priv: str
     gid: Optional[str] = None
-    member: Optional[str] = None
+    member: Optional[list[str]] = None
 
     @staticmethod
     def from_xml(element: Element) -> "Group":
@@ -113,6 +115,23 @@ class Group:
 
         return element
 
+    def check_if_user_in_group(self, user: "User") -> bool:
+        """
+        This function checks, if a user is already in the group
+        """
+
+        if user.uid in self.member:
+            return True
+
+        return False
+
+    def add_user(self, user: "User") -> None:
+        """
+        This function adds a user to a group
+        """
+
+        self.member.append(user.uid)
+
 
 @dataclass
 class User:
@@ -133,7 +152,6 @@ class User:
     landing_page: Optional[str] = None
     expires: Optional[str] = None
     authorizedkeys: Optional[str] = None
-    groups: Optional[list] = None
     cert: Optional[str] = None  # TODO is in another xml path
     api_keys_item_api_key: Optional[str] = None
     groupname: Optional[str] = None
@@ -253,7 +271,7 @@ class User:
         comment = params.get("comment")
         landing_page = params.get("landing_page")
         expires = params.get("expires")
-        groups = params.get("groups")
+        groupname = params.get("groups")
         authorizedkeys = params.get("authorizedkeys")
         cert = params.get("cert")
         api_keys_item_api_key = params.get("api_keys_item_api_key")
@@ -273,7 +291,7 @@ class User:
             "comment": comment,
             "landing_page": landing_page,
             "expires": expires,
-            "groups": groups,
+            "groupname": groupname,
             "authorizedkeys": authorizedkeys,
             "cert": cert,
             "api_keys_item_api_key": api_keys_item_api_key,
@@ -329,94 +347,55 @@ class UserSet(OPNsenseModuleConfig):
 
         return [Group.from_xml(group_data) for group_data in group_list]
 
-    def _find_group(self, xml_groups: list[Element], group: str) -> Element:
-        for xml_group in self._load_groups():
-            name = xml_group.find("name")
-            if name is not None and name.text == group:
-                return xml_group
-
-    def _get_xml_group_members(self, xml_group: Element) -> Element:
-        group_members = xml_group.findall("member")
-
-        return group_members
-
-    def _extend_member_of_group(self, member_uid: str, xml_group) -> Element:
-        new_member = SubElement(xml_group, "member")
-
-        new_member.text = member_uid
-
-        return xml_group
-
     @property
     def changed(self) -> bool:
         """ """
 
-        return self._load_users() != self._users
+        return self._load_users() != self._users or self._load_groups() != self._groups
+
+    def _update_user_groups(self, user: User, existing_user: Optional[User] = None):
+        """
+        Updates or adds the user to specified groups.
+
+        Parameters:
+        - user: The user to be added or updated in groups.
+        - existing_user: The existing user object, if the user already exists.
+        """
+        target_user = existing_user if existing_user else user
+        group_names = user.groupname if isinstance(user.groupname, list) else [user.groupname]
+
+        for group_name in group_names:
+            for index, existing_group in enumerate(self._groups):
+                if existing_group.name == group_name:
+                    if not existing_group.check_if_user_in_group(target_user):
+                        existing_group.add_user(target_user)
+                        self._groups[index] = existing_group
 
     def add_or_update(self, user: User) -> None:
         """
-        Adds or updates a user in the user list.
-
-        This method checks for the existence of the provided `user` in the user list.
-        If found, the user's details are updated. If not, the user is added. Existence is
-        determined by the `User` class's equality condition.
-
-        For new users without a UID, the method assigns the next available UID and updates
-        the UID counter.
+        Adds a new user or updates an existing one, including group associations.
 
         Parameters:
-            user (User): The user to add or update.
-
-        Returns:
-            None.
+        - user: The user to add or update.
         """
-
         existing_user: Optional[User] = next((r for r in self._users if r == user), None)
         next_uid: Element = self.get("uid")
 
         if existing_user:
-            if user.groups:
-                for group in user.groups:
-                    xml_group = self._find_group(xml_groups=self._load_groups(), group=group)
-
-                    if xml_group is not None:
-                        xml_group_members = self._get_xml_group_members(xml_group=xml_group)
-
-                        if any(
-                            member.text == str(existing_user.uid) for member in xml_group_members
-                        ):
-                            # User is already in the group, no action required
-                            continue
-                        else:
-                            # update group with element
-                            self.set()
-                        # # User not in Group, extend Group
-                        # for existing_group in self._groups:
-                        #     found_index = None  # Initialize to None to indicate not found
-            #
-            #     # Iterate over existing_group with index
-            #     for index, member in enumerate(existing_group):
-            #         if member.text == str(group):
-            #             found_index = (
-            #                 index  # Update found_index with the correct index
-            #             )
-            #             break  # Exit loop once found
-            #
-            #     if found_index is not None:
-            #         self._groups[found_index] = self._extend_member_of_group(
-            #             member_uid=existing_user, xml_group=xml_group
-            #         )
-            #     else:
-            #         continue
-
+            # Update groups if needed
+            self._update_user_groups(user, existing_user)
+            # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
         else:
+            # Assign UID if not set
             if not user.uid:
                 user.uid = next_uid.text
-
-                # increase the next_uid
+                # Increase the next_uid
                 self.set(value=str(int(next_uid.text) + 1), setting="uid")
 
+            # Update groups for the new user
+            self._update_user_groups(user)
+            # Add the new user
             self._users.append(user)
 
     def delete(self, user: User) -> None:
@@ -427,7 +406,7 @@ class UserSet(OPNsenseModuleConfig):
     def find(self, **kwargs) -> Optional[User]:
         """ """
 
-        for user in self.__users:
+        for user in self._users:
             match = all(getattr(user, key, None) == value for key, value in kwargs.items())
             if match:
                 return user
@@ -436,33 +415,31 @@ class UserSet(OPNsenseModuleConfig):
     def save(self) -> bool:
         """ """
 
-        # if not self.changed:
-        #    return False
+        if not self.changed:
+            return False
 
+        # Assuming self._config_map["system"] gives you the path to the 'system' element
         filter_element: Element = self._config_xml_tree.find(self._config_map["system"])
 
-        # Iterate over the filter_element and remove each user element
-        for user_element in filter_element.findall("user"):
-            if user_element.tag == "user":
-                # TODO: compare the diffrent attributes
+        # Remove specific child elements (e.g., 'user', 'group') from filter_element
+        for user_element in list(
+            filter_element.findall("user")
+        ):  # Use list() to avoid modification during iteration
+            filter_element.remove(user_element)
 
-                filter_element.remove(user_element)
+        for group_element in list(filter_element.findall("group")):
+            filter_element.remove(group_element)
 
-        for group_element in filter_element.findall("group"):
-            if group_element.tag == "group":
-                # TODO: compare the diffrent attributes
-
-                filter_element.remove(group_element)
-
+        ## Now, add the updated elements back directly to filter_element
         filter_element.extend([group.to_etree() for group in self._groups])
-
-        # Extend the filter_element with the updated user elements
         filter_element.extend([user.to_etree() for user in self._users])
 
-        # filter_element.extend([group for group in self._groups])
-
+        # Write the updated XML tree to the file
         tree: ElementTree = ElementTree(self._config_xml_tree)
+
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+
+        # Reload the configuration to reflect the updated changes
         self._config_xml_tree = self._load_config()
 
         return True

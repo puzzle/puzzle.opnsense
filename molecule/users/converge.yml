@@ -82,5 +82,4 @@
         username: test_user_11
         password: test_password_11
         expires: 02/27/2024
-        #groups:
-        #  - admins
+        groups: admins
