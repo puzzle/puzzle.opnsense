@@ -71,8 +71,8 @@ class Group:
 
     name: str
     description: str
-    scope: str
-    priv: str
+    scope: Optional[str] = None
+    priv: Optional[str] = None
     gid: Optional[str] = None
     member: Optional[list[str]] = None
 
