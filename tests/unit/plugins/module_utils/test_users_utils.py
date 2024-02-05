@@ -15,7 +15,12 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
     elements_equal,
 )
-from ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils import User, UserSet
+from ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils import (
+    Group,
+    User,
+    UserSet,
+    UserLoginShell,
+)
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
 )
@@ -25,16 +30,21 @@ TEST_VERSION_MAP = {
     "OPNsense Test": {
         "users": {
             "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
             "system": "system",
             "php_requirements": [
-                "contrib/base32/Base32.php",
                 "/usr/local/etc/inc/system.inc",
             ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
             "configure_functions": {
-                "system_cron_configure": {
-                    "name": "system_cron_configure",
-                    "configure_params": [],
-                },
+                "name": "echo password_hash",
+                "configure_params": [f"'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     }
@@ -57,6 +67,20 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <shell>/bin/sh</shell>
                 <uid>1000</uid>
             </user>
+            <group>
+                <name>admins</name>
+                <description>System Administrators</description>
+                <scope>system</scope>
+                <gid>1999</gid>
+                <member>0</member>
+                <member>2004</member>
+                <member>2005</member>
+                <member>2006</member>
+                <member>2009</member>
+                <member>2010</member>
+                <member>2014</member>
+                <priv>page-all</priv>
+            </group>
         </system>
     </opnsense>
     """
@@ -99,7 +123,7 @@ def test_user_from_xml():
     assert test_user.authorizedkeys is None
     assert test_user.ipsecpsk is None
     assert test_user.otp_seed is None
-    assert test_user.shell == "/bin/sh"
+    assert test_user.shell == UserLoginShell.SH
     assert test_user.uid == "1000"
 
 
@@ -120,12 +144,16 @@ def test_user_to_etree():
     assert xml_utils.elements_equal(test_element, orig_user)
 
 
-def test_user_from_ansible_module_params_simple():
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+def test_user_from_ansible_module_params_simple(sample_config_path):
     test_params: dict = {
         "username": "vagrant",
         "password": "vagrant",
         "scope": "user",
-        "description": "vagrant box management",
+        "full_name": "vagrant box management",
         "shell": "/bin/sh",
         "uid": "1000",
     }
@@ -133,14 +161,14 @@ def test_user_from_ansible_module_params_simple():
     new_user: User = User.from_ansible_module_params(test_params)
 
     assert new_user.name == "vagrant"
-    assert new_user.password == "vagrant"  # Verify hashed password
+    assert new_user.password == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
     assert new_user.scope == "user"
     assert new_user.descr == "vagrant box management"
     assert new_user.expires is None
     assert new_user.authorizedkeys is None
     assert new_user.ipsecpsk is None
     assert new_user.otp_seed is None
-    assert new_user.shell == "/bin/sh"
+    assert new_user.shell == UserLoginShell.SH
     assert new_user.uid == "1000"
 
 
@@ -155,7 +183,19 @@ def test_user_set_load_simple_rules(mocked_version_utils: MagicMock, sample_conf
         user_set.save()
 
 
-# def test_firewall_rule_from_xml_any_1():
+def test_group_from_xml():
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+
+    test_etree_group: Element = list(list(test_etree_opnsense)[0])[3]
+    test_group: Group = Group.from_xml(test_etree_group)
+
+    assert test_group.name == "admins"
+    assert test_group.description == "System Administrators"
+    assert test_group.scope == "system"
+    assert test_group.member == ["0", "2004", "2005", "2006", "2009", "2010", "2014"]
+    # assert test_group.
+
+
 #    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 #
 #    test_etree_rule: Element = list(list(test_etree_opnsense)[0])[2]

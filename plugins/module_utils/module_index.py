@@ -100,6 +100,7 @@ VERSION_MAP = {
         "users": {
             "users": "system/user",
             "uid": "system/nextuid",
+            "gid": "system/nextgid",
             "system": "system",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",

@@ -3,13 +3,9 @@
 
 from dataclasses import dataclass, asdict, fields
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional
 
-from xml.etree.ElementTree import Element, ElementTree
-import os
-import hashlib
-import base64
-import subprocess
+from xml.etree.ElementTree import Element, ElementTree, SubElement
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
@@ -68,6 +64,57 @@ class UserLoginShell(ListEnum):
 
 
 @dataclass
+class Group:
+    """Used to represent a Group."""
+
+    name: str
+    description: str
+    scope: str
+    priv: str
+    gid: Optional[str] = None
+    member: Optional[str] = None
+
+    @staticmethod
+    def from_xml(element: Element) -> "Group":
+        """ """
+
+        group_dict: dict = xml_utils.etree_to_dict(element)["group"]
+
+        # Handle 'disabled' element
+        # user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
+
+        return Group(**group_dict)
+
+    def to_etree(self) -> Element:
+        """ """
+
+        group_dict: dict = asdict(self)
+
+        # for user_key, user_val in user_dict.copy().items():
+        #    if user_val is None and user_key in [
+        #        "expires",
+        #        "authorizedkeys",
+        #        "ipsecpsk",
+        #        "otp_seed",
+        #    ]:
+        #        continue
+        #
+        #    if issubclass(type(user_val), ListEnum):
+        #        user_dict[user_key] = user_val.value
+        #
+        #    elif user_val is None or user_val is False:
+        #        del user_dict[user_key]
+        #        continue
+        #
+        #    elif isinstance(user_val, bool):
+        #        user_dict[user_key] = "1"
+
+        element: Element = xml_utils.dict_to_etree("group", group_dict)[0]
+
+        return element
+
+
+@dataclass
 class User:
     """Used to represent an User."""
 
@@ -86,6 +133,7 @@ class User:
     landing_page: Optional[str] = None
     expires: Optional[str] = None
     authorizedkeys: Optional[str] = None
+    groups: Optional[list] = None
     cert: Optional[str] = None  # TODO is in another xml path
     api_keys_item_api_key: Optional[str] = None
     groupname: Optional[str] = None
@@ -205,6 +253,7 @@ class User:
         comment = params.get("comment")
         landing_page = params.get("landing_page")
         expires = params.get("expires")
+        groups = params.get("groups")
         authorizedkeys = params.get("authorizedkeys")
         cert = params.get("cert")
         api_keys_item_api_key = params.get("api_keys_item_api_key")
@@ -224,6 +273,7 @@ class User:
             "comment": comment,
             "landing_page": landing_page,
             "expires": expires,
+            "groups": groups,
             "authorizedkeys": authorizedkeys,
             "cert": cert,
             "api_keys_item_api_key": api_keys_item_api_key,
@@ -253,6 +303,7 @@ class UserSet(OPNsenseModuleConfig):
     def __init__(self, path: str = "/conf/config.xml"):
         super().__init__(module_name="users", path=path)
         self._users = self._load_users()
+        self._groups = self._load_groups()
 
     def _load_users(self) -> List[User]:
         element_tree_users: Element = self.get("system")
@@ -265,6 +316,36 @@ class UserSet(OPNsenseModuleConfig):
                 user_list.append(user)
 
         return [User.from_xml(user_data) for user_data in user_list]
+
+    def _load_groups(self) -> List:
+        element_tree_groups: Element = self.get("system")
+
+        element_tree_groups.findall("group")
+
+        group_list = []
+        for group in element_tree_groups:
+            if group.tag == "group":
+                group_list.append(group)
+
+        return [Group.from_xml(group_data) for group_data in group_list]
+
+    def _find_group(self, xml_groups: list[Element], group: str) -> Element:
+        for xml_group in self._load_groups():
+            name = xml_group.find("name")
+            if name is not None and name.text == group:
+                return xml_group
+
+    def _get_xml_group_members(self, xml_group: Element) -> Element:
+        group_members = xml_group.findall("member")
+
+        return group_members
+
+    def _extend_member_of_group(self, member_uid: str, xml_group) -> Element:
+        new_member = SubElement(xml_group, "member")
+
+        new_member.text = member_uid
+
+        return xml_group
 
     @property
     def changed(self) -> bool:
@@ -294,6 +375,40 @@ class UserSet(OPNsenseModuleConfig):
         next_uid: Element = self.get("uid")
 
         if existing_user:
+            if user.groups:
+                for group in user.groups:
+                    xml_group = self._find_group(xml_groups=self._load_groups(), group=group)
+
+                    if xml_group is not None:
+                        xml_group_members = self._get_xml_group_members(xml_group=xml_group)
+
+                        if any(
+                            member.text == str(existing_user.uid) for member in xml_group_members
+                        ):
+                            # User is already in the group, no action required
+                            continue
+                        else:
+                            # update group with element
+                            self.set()
+                        # # User not in Group, extend Group
+                        # for existing_group in self._groups:
+                        #     found_index = None  # Initialize to None to indicate not found
+            #
+            #     # Iterate over existing_group with index
+            #     for index, member in enumerate(existing_group):
+            #         if member.text == str(group):
+            #             found_index = (
+            #                 index  # Update found_index with the correct index
+            #             )
+            #             break  # Exit loop once found
+            #
+            #     if found_index is not None:
+            #         self._groups[found_index] = self._extend_member_of_group(
+            #             member_uid=existing_user, xml_group=xml_group
+            #         )
+            #     else:
+            #         continue
+
             existing_user.__dict__.update(user.__dict__)
         else:
             if not user.uid:
@@ -321,8 +436,8 @@ class UserSet(OPNsenseModuleConfig):
     def save(self) -> bool:
         """ """
 
-        if not self.changed:
-            return False
+        # if not self.changed:
+        #    return False
 
         filter_element: Element = self._config_xml_tree.find(self._config_map["system"])
 
@@ -333,8 +448,18 @@ class UserSet(OPNsenseModuleConfig):
 
                 filter_element.remove(user_element)
 
+        for group_element in filter_element.findall("group"):
+            if group_element.tag == "group":
+                # TODO: compare the diffrent attributes
+
+                filter_element.remove(group_element)
+
+        filter_element.extend([group.to_etree() for group in self._groups])
+
         # Extend the filter_element with the updated user elements
         filter_element.extend([user.to_etree() for user in self._users])
+
+        # filter_element.extend([group for group in self._groups])
 
         tree: ElementTree = ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
