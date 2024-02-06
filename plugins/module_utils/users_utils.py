@@ -402,7 +402,26 @@ class UserSet(OPNsenseModuleConfig):
             self._users.append(user)
 
     def delete(self, user: User) -> None:
-        """ """
+        """
+        Removes a specified user from the internal list of managed users.
+
+        This method filters out the specified user from the current list of users managed by this
+        instance. It iterates over the list of users and retains only those that do not match the
+        user to be deleted. This approach ensures that the specified user is effectively removed
+        from the list, reflecting the deletion operation.
+
+        It's important to note that this operation directly modifies the internal state of the
+        instance by updating the list of users to exclude the specified user. However, this method
+        does not handle the persistence of these changes to any external storage or configuration
+        files. Any required persistence mechanism should be handled separately, ensuring that the
+        deletion has the intended effect across sessions or system states.
+
+        Parameters:
+            user (User): The user object to be removed from the list of managed users.
+
+        Returns:
+            None: This method does not return a value but updates the internal list of users.
+        """
 
         self._users = [r for r in self._users if r != user]
 
