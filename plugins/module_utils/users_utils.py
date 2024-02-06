@@ -342,7 +342,25 @@ class UserSet(OPNsenseModuleConfig):
 
     @property
     def changed(self) -> bool:
-        """ """
+        """
+        Evaluates whether there have been changes to user or group configurations that are not yet
+        reflected in the saved system configuration. This property serves as a check to determine
+        if updates have been made in memory to the user or group lists that differ from what is
+        currently persisted in the system's configuration files.
+
+        Returns:
+            bool: True if there are changes to the user or group configurations that have not been
+                persisted yet; False otherwise.
+
+        The method works by comparing the current in-memory representations of users and groups
+        against the versions loaded from the system's configuration files. A difference in these
+        lists indicates that changes have been made in the session that have not been saved, thus
+        prompting the need for a save operation to update the system configuration accordingly.
+
+        Note:
+            This property should be consulted before performing a save operation to avoid unnecessary
+            writes to the system configuration when no changes have been made.
+        """
 
         return self._load_users() != self._users or self._load_groups() != self._groups
 
