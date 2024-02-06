@@ -307,7 +307,46 @@ class User:
 
 
 class UserSet(OPNsenseModuleConfig):
-    """ """
+    """
+    Represents a collection of user and group configurations within the OPNsense system,
+    facilitating the management of users and groups through direct manipulation of the system's
+    configuration file.
+
+    The UserSet class provides a high-level interface to add, update, delete, and find users and
+    groups in the system's configuration, abstracting the complexities of direct XML manipulation.
+    It ensures that changes to users and groups are consistent and coherent, maintaining the
+    integrity of the system's access control and configuration.
+
+    Upon initialization, the class loads existing user and group configurations from the specified
+    configuration file path, allowing for subsequent operations to reflect the current state of the
+    system accurately. The class offers methods to perform CRUD (Create, Read, Update, Delete)
+    operations on user and group entities, alongside utility methods to check for changes and save
+    updates back to the configuration file.
+
+    Attributes:
+        _users (List[User]): A list of User objects representing the users currently managed by
+                             the system.
+        _groups (List[Group]): A list of Group objects representing the groups currently managed
+                               by the system.
+
+    Methods:
+        __init__(self, path: str): Initializes a new UserSet instance, loading users and groups
+                                   from the specified configuration file.
+        _load_users(self): Loads users from the system configuration into the _users list.
+        _load_groups(self): Loads groups from the system configuration into the _groups list.
+        add_or_update(self, user: User): Adds a new user or updates an existing one in the system.
+        delete(self, user: User): Removes a specified user from the system's configuration.
+        find(self, **kwargs): Searches for and returns a user matching specified criteria.
+        save(self): Saves changes made to users or groups back to the system's configuration file.
+
+    Usage:
+        The UserSet class is intended for use within the OPNsense system's configuration management
+        tools, providing a structured and safe approach to modifying user and group settings.
+
+    Note:
+        Modifications made through UserSet instances are not persisted automatically. The `save`
+        method must be called to write changes back to the configuration file.
+    """
 
     _users: List[User]
 
