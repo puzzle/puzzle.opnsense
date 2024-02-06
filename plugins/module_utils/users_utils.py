@@ -242,7 +242,20 @@ class User:
     # pylint: disable=too-many-locals
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "User":
-        """ """
+        """
+        Creates a User instance from Ansible module parameters.
+
+        Args:
+            params (dict): Parameters from an Ansible module, expected to contain
+                        user attributes such as 'username', 'password', etc.
+
+        Returns:
+            User: An instance of the User class initialized with the provided parameters.
+                Fields not provided are omitted from initialization.
+
+        This method processes parameters typically received from an Ansible module,
+        handling optional attributes and setting the password securely if provided.
+        """
 
         disabled = params.get("disabled")
         username = params.get("username")
