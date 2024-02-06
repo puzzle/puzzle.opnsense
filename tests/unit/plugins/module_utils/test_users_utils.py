@@ -151,7 +151,7 @@ def test_user_to_etree():
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_otp_seed",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User.set_otp_seed",
     return_value="3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ",
 )
 def test_user_from_ansible_module_params_simple(
@@ -236,7 +236,7 @@ def test_user_set_add_group(mocked_version_utils: MagicMock, sample_config_path)
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_otp_seed",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User.set_otp_seed",
     return_value="3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ",
 )
 def test_user_from_ansible_module_params_with_group(

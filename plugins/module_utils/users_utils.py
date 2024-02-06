@@ -71,25 +71,6 @@ class UserLoginShell(ListEnum):
     TCSH = "/bin/tcsh"
 
 
-def set_otp_seed(otp_seed: str = None) -> str:
-    """
-    Generates and returns a base32-encoded OTP seed.
-
-    Args:
-        otp_seed (str, optional): Existing OTP seed to encode (default: None).
-
-    Returns:
-        str: Base32-encoded OTP seed.
-
-    If no OTP seed is provided, a random seed is generated and encoded as base32.
-    """
-
-    if otp_seed is None:
-        otp_seed = os.urandom(20)
-
-    return base64.b32encode(otp_seed).decode("utf-8")
-
-
 def set_password(password: str) -> str:
     """
     Securely sets a password, adapting to the OPNsense version.
@@ -319,6 +300,43 @@ class User:
                 # Convert string to ListEnum
                 setattr(self, field_name, field_type.from_string(value))
 
+    def set_otp_seed(self, otp_seed: str = None) -> str:
+        """
+        Generates and returns a base32-encoded OTP seed.
+
+        Args:
+            otp_seed (str, optional): Existing OTP seed to encode (default: None).
+
+        Returns:
+            str: Base32-encoded OTP seed.
+
+        If no OTP seed is provided, a random seed is generated and encoded as base32.
+        """
+
+        if otp_seed is None:
+            otp_seed = os.urandom(20)
+
+        return base64.b32encode(otp_seed).decode("utf-8")
+
+    def set_authorizedkeys(self, authorizedkeys: str = None) -> str:
+        """
+        Encodes the authorized SSH keys as base32.
+
+        Args:
+            authorizedkeys (str, optional): SSH keys to encode (default: None).
+
+        Returns:
+            str: Base32-encoded authorized SSH keys.
+
+        Encodes the provided SSH keys as base32. If no keys are provided,
+        an empty string is returned.
+        """
+
+        if authorizedkeys:
+            return base64.b32encode(authorizedkeys).decode("utf-8")
+
+        return None
+
     def to_etree(self) -> Element:
         """
         Converts the User instance to an XML Element.
@@ -387,7 +405,7 @@ class User:
             "descr": params.get("full_name"),
             "scope": params.get("scope"),
             "ipsecpsk": params.get("ipsecpsk"),
-            "otp_seed": set_otp_seed(params.get("otp_seed")),
+            "otp_seed": cls.set_otp_seed(params.get("otp_seed")),
             "shell": params.get("shell"),
             "uid": params.get("uid"),
             "full_name": params.get("full_name"),
@@ -396,7 +414,7 @@ class User:
             "landing_page": params.get("landing_page"),
             "expires": params.get("expires"),
             "groupname": params.get("groups"),
-            "authorizedkeys": params.get("authorizedkeys"),
+            "authorizedkeys": cls.set_authorizedkeys(params.get("authorizedkeys")),
             "cert": params.get("cert"),
             "api_keys_item_api_key": params.get("api_keys_item_api_key"),
         }
