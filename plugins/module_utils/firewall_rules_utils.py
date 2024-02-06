@@ -334,21 +334,16 @@ class FirewallRule:
                         rule_dict[direction][key] = current_val
                 del rule_dict[f"{direction}_{key}"]
         for rule_key, rule_val in rule_dict.copy().items():
-            if (rule_val is None or rule_val is False) and rule_key != "quick":
+            if rule_key == "quick":
+                if rule_val:
+                    del rule_dict[rule_key]
+                    continue
+                rule_dict[rule_key] = "0"
+            elif rule_val in [None, False]:
                 del rule_dict[rule_key]
-                continue
-            if issubclass(type(rule_val), ListEnum):
+            elif issubclass(type(rule_val), ListEnum):
                 rule_dict[rule_key] = rule_val.value
-
-            elif rule_key == "quick":
-                if rule_val is True:
-                    del rule_dict["quick"]
-                else:
-                    rule_dict[rule_key] = "0"
-
             elif isinstance(rule_val, bool):
-                if "quick" in rule_key:
-                    raise Exception(rule_val)
                 rule_dict[rule_key] = "1"
 
         element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
@@ -396,44 +391,27 @@ class FirewallRule:
         ```
         """
 
-        interface = params.get("interface")
-        action = params.get("action")
-        description = params.get("description")
-        quick = params.get("quick")
-        ipprotocol = params.get("ipprotocol")
-        direction = params.get("direction")
-        protocol = params.get("protocol")
-        source_invert = params.get("source_invert")
-        source_ip = params.get("source_ip")
-        source_any = source_ip is None or source_ip == "any"
-        source_port = params.get("source_port")
-        destination_invert = params.get("target_invert")
-        destination_ip = params.get("target_ip")
-        destination_port = params.get("target_port")
-        destination_any = destination_ip is None or destination_ip == "any"
-        log = params.get("log")
-        category = params.get("category")
-        disabled = params.get("disabled")
-
         rule_dict = {
-            "interface": interface,
-            "type": action,
-            "descr": description,
-            "quick": quick,
-            "ipprotocol": ipprotocol,
-            "direction": direction,
-            "protocol": protocol,
-            "source_not": source_invert,
-            "source_address": source_ip if source_ip != "any" else None,
-            "source_any": source_any,
-            "source_port": source_port,
-            "destination_not": destination_invert,
-            "destination_address": destination_ip if destination_ip != "any" else None,
-            "destination_any": destination_any,
-            "destination_port": destination_port,
-            "log": log,
-            "category": category,
-            "disabled": disabled,
+            "interface": params.get("interface"),
+            "type": params.get("action"),
+            "descr": params.get("description"),
+            "quick": params.get("quick"),
+            "ipprotocol": params.get("ipprotocol"),
+            "direction": params.get("direction"),
+            "protocol": params.get("protocol"),
+            "source_not": params.get("source_invert"),
+            "source_address": params.get("source_ip") if params.get("source_ip") != "any" else None,
+            "source_any": params.get("source_ip") is None or params.get("source_ip") == "any",
+            "source_port": params.get("source_port"),
+            "destination_not": params.get("target_invert"),
+            "destination_address": (
+                params.get("target_ip") if params.get("target_ip") != "any" else None
+            ),
+            "destination_any": params.get("target_ip") is None or params.get("target_ip") == "any",
+            "destination_port": params.get("target_port"),
+            "log": params.get("log"),
+            "category": params.get("category"),
+            "disabled": params.get("disabled"),
         }
 
         rule_dict = {key: value for key, value in rule_dict.items() if value is not None}
@@ -625,7 +603,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
             None: This method does not return anything.
         """
 
-        self._rules = [r for r in self._rules if r != rule]
+        self._rules.remove(rule)
 
     def find(self, **kwargs) -> Optional[FirewallRule]:
         """
