@@ -317,6 +317,28 @@ class UserSet(OPNsenseModuleConfig):
         self._groups = self._load_groups()
 
     def _load_users(self) -> List[User]:
+        """
+        Loads user data from the system's configuration and converts it into a list of User objects.
+
+        This method accesses the 'system' element of the configuration, searching for all 'user'
+        elements. Each found 'user' element represents a user configuration within the system.
+        The method collects these elements, and for each one, it creates a User object by parsing
+        the XML data into the structured format defined by the User data class.
+
+        The conversion process relies on the `from_xml` class method of the User, which interprets
+        the XML data and initializes a User object with the corresponding attributes extracted from
+        the XML element.
+
+        Returns:
+            List[User]: A list of User objects representing all users found in the system's
+                        configuration. If no users are found, an empty list is returned.
+
+        Note:
+            This method is intended to be used internally within the class to refresh or initialize
+            the in-memory representation of users based on the current state of the system's
+            configuration.
+        """
+
         element_tree_users: Element = self.get("system")
 
         element_tree_users.findall("user")
