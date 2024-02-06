@@ -329,6 +329,29 @@ class UserSet(OPNsenseModuleConfig):
         return [User.from_xml(user_data) for user_data in user_list]
 
     def _load_groups(self) -> List:
+        """
+        Loads and returns a list of Group objects from the system's configuration XML.
+
+        This method parses the system's configuration file to extract information about groups,
+        creating a list of Group objects. Each group found within the 'system' configuration
+        section is instantiated as a Group object based on its XML representation.
+
+        Returns:
+            List[Group]: A list of Group objects representing all groups found in the system's
+                        configuration file. The groups are extracted by searching for 'group'
+                        tags within the 'system' section of the configuration XML.
+
+        The process involves searching the XML for all 'group' elements, collecting these elements
+        into a list, and then transforming each XML element into a Group object using the static
+        method `Group.from_xml`. This method is critical for initializing the internal state of
+        the system with the current group configurations as defined in the configuration file.
+
+        Note:
+            The method assumes that the 'system' element of the configuration XML is already loaded
+            and accessible via the `self.get("system")` call, which should return the relevant
+            XML section for parsing.
+        """
+
         element_tree_groups: Element = self.get("system")
 
         element_tree_groups.findall("group")
