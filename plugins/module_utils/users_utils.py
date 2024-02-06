@@ -407,7 +407,28 @@ class UserSet(OPNsenseModuleConfig):
         self._users = [r for r in self._users if r != user]
 
     def find(self, **kwargs) -> Optional[User]:
-        """ """
+        """
+        Searches for a user matching specified criteria within the stored user list.
+
+        This method iterates over the collection of users managed by the instance, evaluating each
+        user against the provided keyword arguments. The comparison is performed by ensuring all
+        specified attributes of a user match the corresponding values given in `kwargs`.
+
+        The method employs a flexible approach, allowing for the search of users based on any number
+        of attributes, such as name, group, or any other user-specific detail that is available as
+        an attribute of the User objects.
+
+        If a user meeting all the specified criteria is found, that User object is returned. If no
+        matching user is found after checking all users in the collection, the method returns None,
+        indicating the absence of a user with the specified attributes.
+
+        Parameters:
+            **kwargs: Variable keyword arguments representing the attributes and their expected
+                      values for the user to match.
+
+        Returns:
+            Optional[User]: The User object that matches the criteria, or None if no match is found.
+        """
 
         for user in self._users:
             match = all(getattr(user, key, None) == value for key, value in kwargs.items())
