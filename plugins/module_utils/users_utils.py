@@ -190,7 +190,40 @@ class Group:
 
 @dataclass
 class User:
-    """Used to represent an User."""
+    """
+    Represents a User entity with various attributes.
+
+    Args:
+        name (str): The username of the user.
+        password (str): The user's password.
+        scope (Optional[str]): The scope of the user, default is "User".
+        descr (Optional[str]): A description of the user, if available.
+        ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
+        otp_seed (Optional[str]): OTP seed for two-factor authentication, if used.
+        shell (Optional[UserLoginShell]): The user's login shell, if specified.
+        uid (Optional[str]): The user's unique identifier.
+        disabled (bool): Whether the user is disabled (default is False).
+        full_name (Optional[str]): The user's full name, if available.
+        email (Optional[str]): The user's email address, if provided.
+        comment (Optional[str]): Additional comments or information about the user.
+        landing_page (Optional[str]): The landing page for the user, if specified.
+        expires (Optional[str]): The expiration date for the user, if set.
+        authorizedkeys (Optional[str]): Authorized SSH keys for the user, if applicable.
+        cert (Optional[str]): Certificate information for the user, if relevant.
+        api_keys_item_api_key (Optional[str]): API key associated with the user, if any.
+        groupname (Optional[list[str]]): List of group names the user belongs to, if any.
+
+    Methods:
+        __eq__(self, other): Compares two User objects for equality, excluding 'password' and 'uid'.
+        to_etree(self): Converts the User instance to an XML Element.
+        from_ansible_module_params(cls, params: dict): Creates a User instance from Ansible module
+        parameters.
+        from_xml(element: Element): Creates a User instance from an XML Element.
+
+    The User class is designed to represent user entities with various attributes commonly used in
+    system configurations. It provides methods for comparing, converting to XML, creating from
+    Ansible module parameters, and creating from XML representations.
+    """
 
     name: str
     password: str
