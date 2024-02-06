@@ -114,3 +114,31 @@
           - test_user_14_result is failed
         fail_msg: "User creation should fail due to non-existing group"
         success_msg: "User creation failed as expected due to non-existing group"
+
+      # Test User with empty otp_seed
+    - name: "Test User 15: Test User Creation with empty otp_seed"
+      puzzle.opnsense.users:
+        username: test_user_15
+        password: test_password_15
+        otp_seed: ""
+
+      # Test User with otp_seed
+    - name: "Test User 16: Test User Creation with otp_seed"
+      puzzle.opnsense.users:
+        username: test_user_16
+        password: test_password_16
+        otp_seed: test_seed
+
+      # Test User with empty authorizedkeys
+    - name: "Test User 17: Test User Creation with empty authorizedkeys"
+      puzzle.opnsense.users:
+        username: test_user_17
+        password: test_password_17
+        authorizedkeys: ""
+
+      # Test User with authorizedkeys
+    - name: "Test User 18: Test User Creation with authorizedkeys"
+      puzzle.opnsense.users:
+        username: test_user_18
+        password: test_password_18
+        authorizedkeys: test_authorizedkeys

@@ -280,7 +280,12 @@ class User:
             return False
 
         for field in fields(self):
-            if field.name != "password" and field.name != "uid":
+            if (
+                field.name != "password"
+                and field.name != "uid"
+                and field.name != "otp_seed"
+                and field.name != "authorizedkeys"
+            ):
                 if getattr(self, field.name) != getattr(other, field.name):
                     return False
 
@@ -359,12 +364,7 @@ class User:
         user_dict: dict = asdict(self)
 
         for user_key, user_val in user_dict.copy().items():
-            if user_val is None and user_key in [
-                "expires",
-                "authorizedkeys",
-                "ipsecpsk",
-                "otp_seed",
-            ]:
+            if user_val is None and user_key in ["expires", "ipsecpsk"]:
                 continue
 
             if issubclass(type(user_val), ListEnum):
@@ -405,7 +405,11 @@ class User:
             "descr": params.get("full_name"),
             "scope": params.get("scope"),
             "ipsecpsk": params.get("ipsecpsk"),
-            "otp_seed": cls.set_otp_seed(params.get("otp_seed")),
+            "otp_seed": (
+                cls.set_otp_seed(params.get("otp_seed"))
+                if params.get("otp_seed") is not None
+                else None
+            ),
             "shell": params.get("shell"),
             "uid": params.get("uid"),
             "full_name": params.get("full_name"),
@@ -414,7 +418,11 @@ class User:
             "landing_page": params.get("landing_page"),
             "expires": params.get("expires"),
             "groupname": params.get("groups"),
-            "authorizedkeys": cls.set_authorizedkeys(params.get("authorizedkeys")),
+            "authorizedkeys": (
+                cls.set_authorizedkeys(params.get("authorizedkeys"))
+                if params.get("authorizedkeys") is not None
+                else None
+            ),
             "cert": params.get("cert"),
             "api_keys_item_api_key": params.get("api_keys_item_api_key"),
         }

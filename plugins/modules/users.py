@@ -74,6 +74,16 @@ options:
         required: false
         type: list
         elements: str
+    otp_seed:
+        description:
+            - The otp_seed of a OPNsense user.
+        required: false
+        type: str
+    authorizedkeys:
+        description:
+            - The authorizedkeys of a OPNsense user.
+        required: false
+        type: str
     scope:
         description:
             - The scope of the OPNsense user.
@@ -160,6 +170,8 @@ def main():
         "landing_page": {"type": "str", "required": False},
         "shell": {"type": "str", "required": False},
         "expires": {"type": "str", "required": False},
+        "otp_seed": {"type": "str", "required": False},
+        "authorizedkeys": {"type": "str", "required": False},
         "groups": {"type": "list", "required": False, "elements": "str"},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
