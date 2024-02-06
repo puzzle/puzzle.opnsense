@@ -374,11 +374,32 @@ class UserSet(OPNsenseModuleConfig):
 
     def add_or_update(self, user: User) -> None:
         """
-        Adds a new user or updates an existing one, including group associations.
+        Adds a new user to the system or updates an existing user's information, ensuring that group
+        associations are correctly managed. This method determines whether the provided user already
+        exists within the system. If the user exists, it updates the user's details and group
+        associations; if the user does not exist, it assigns a unique user ID and adds the user to
+        the system.
+
+        The method handles the assignment of user IDs and updates the internal tracking of the next
+        available ID. It also manages group memberships by updating group associations for both new
+        and existing users as necessary.
 
         Parameters:
-        - user: The user to add or update.
+            user (User): The user object to add or update. This object should contain all relevant
+                        information about the user, including username, password, and any group
+                        memberships.
+
+        Note:
+            This operation directly affects the internal list of users managed by this instance,
+            reflecting changes immediately in the system's state. However, persistent storage or
+            external system updates must be handled separately to ensure that changes remain
+            effective across sessions or reboots.
+
+        Returns:
+            None: This method does not return a value but updates the internal state to include or
+                modify the specified user's information.
         """
+
         existing_user: Optional[User] = next((r for r in self._users if r == user), None)
         next_uid: Element = self.get("uid")
 
