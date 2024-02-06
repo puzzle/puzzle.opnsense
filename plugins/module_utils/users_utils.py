@@ -138,7 +138,27 @@ def set_password(password: str) -> str:
 
 @dataclass
 class Group:
-    """Used to represent a Group."""
+    """
+    Represents a Group entity with various attributes.
+
+    Args:
+        name (str): The name of the group.
+        description (str): A description of the group.
+        scope (Optional[str]): The scope of the group, if specified.
+        priv (Optional[str]): Privileges associated with the group, if applicable.
+        gid (Optional[str]): The group's unique identifier, if provided.
+        member (Optional[List[str]]): List of member usernames in the group, if any.
+
+    Methods:
+        from_xml(element: Element): Creates a Group instance from an XML Element.
+        to_etree(self): Converts the Group instance to an XML Element.
+        check_if_user_in_group(self, user: "User"): Checks if a user is already in the group.
+        add_user(self, user: "User"): Adds a user to the group.
+
+    The Group class is designed to represent group entities with various attributes commonly used
+    in system configurations. It provides methods for creating from XML, converting to XML,
+    checking if a user is in the group, and adding a user to the group.
+    """
 
     name: str
     description: str
@@ -149,7 +169,7 @@ class Group:
 
     @staticmethod
     def from_xml(element: Element) -> "Group":
-        """ """
+        """Creates a Group instance from an XML Element."""
 
         group_dict: dict = xml_utils.etree_to_dict(element)["group"]
 
@@ -159,7 +179,7 @@ class Group:
         return Group(**group_dict)
 
     def to_etree(self) -> Element:
-        """ """
+        """Converts the Group instance to an XML Element."""
 
         group_dict: dict = asdict(self)
 
@@ -169,7 +189,13 @@ class Group:
 
     def check_if_user_in_group(self, user: "User") -> bool:
         """
-        This function checks, if a user is already in the group
+        Checks if a user is already in the group.
+
+        Args:
+            user (User): The User object to check if they are in the group.
+
+        Returns:
+            bool: True if the user is in the group, False otherwise.
         """
 
         if self.member and user.uid in self.member:
@@ -179,7 +205,12 @@ class Group:
 
     def add_user(self, user: "User") -> None:
         """
-        This function adds a user to a group
+        Adds a user to the group.
+
+        Args:
+            user (User): The User object to add to the group.
+
+        This function adds a user to the group by appending their UID to the group's member list.
         """
 
         if not isinstance(self.member, list):
