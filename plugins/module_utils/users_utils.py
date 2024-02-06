@@ -237,7 +237,23 @@ class User:
                 setattr(self, field_name, field_type.from_string(value))
 
     def to_etree(self) -> Element:
-        """ """
+        """
+        Converts the User instance to an XML Element.
+
+        This method serializes the User object into an XML Element, filtering out
+        None or False values except for specific fields. It handles special cases
+        for fields that are instances of ListEnum by converting their values to
+        their corresponding enum values. Boolean values are converted to "1" for
+        True, and fields with None values are removed unless they are part of a
+        predefined list of exceptions.
+
+        Returns:
+            Element: An XML Element representing the serialized User object, ready
+                    for inclusion in an XML document.
+
+        This approach ensures that the XML representation is compact and adheres to
+        the expected schema, with consideration for optional fields and data types.
+        """
 
         user_dict: dict = asdict(self)
 
