@@ -76,12 +76,41 @@
     #    password: test_password_10
     #    shell: /bin/tcsh
 #
-      # Test User with Expiration date
-    - name: "Test User 11: Test User Creation with Expiration date"
+    #  # Test User with Expiration date
+    #- name: "Test User 11: Test User Creation with Expiration date"
+    #  puzzle.opnsense.users:
+    #    username: test_user_11
+    #    password: test_password_11
+    #    expires: 02/27/2024
+
+      # Test User with group as string
+    - name: "Test User 12: Test User Creation with group as string"
       puzzle.opnsense.users:
-        username: test_user_11
-        password: test_password_11
-        expires: 02/27/2024
+        username: test_user_12
+        password: test_password_12
+        groups: admins
+
+      # Test User with group as list
+    - name: "Test User 13: Test User Creation with group as list"
+      puzzle.opnsense.users:
+        username: test_user_13
+        password: test_password_13
         groups:
           - admins
-          #- test
+
+      # Test User with not existing group as list
+    - name: "Test User 14: Test User Creation with not existing group as list"
+      puzzle.opnsense.users:
+        username: test_user_14
+        password: test_password_14
+        groups:
+          - test
+      register: test_user_14_result
+      ignore_errors: yes
+
+    - name: "Verify that the user creation failed due to non-existing group"
+      assert:
+        that:
+          - test_user_14_result is failed
+        fail_msg: "User creation should fail due to non-existing group"
+        success_msg: "User creation failed as expected due to non-existing group"

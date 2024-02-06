@@ -80,7 +80,7 @@ class Group:
     scope: Optional[str] = None
     priv: Optional[str] = None
     gid: Optional[str] = None
-    member: List[str] = field(default_factory=list)
+    member: Optional[List[str]] = None
 
     @staticmethod
     def from_xml(element: Element) -> "Group":
@@ -88,8 +88,8 @@ class Group:
 
         group_dict: dict = xml_utils.etree_to_dict(element)["group"]
 
-        # Handle 'disabled' element
-        # user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
+        if "member" in group_dict and isinstance(group_dict["member"], str):
+            group_dict["member"] = [group_dict["member"]]
 
         return Group(**group_dict)
 
@@ -297,6 +297,9 @@ class User:
 
         user_dict: dict = xml_utils.etree_to_dict(element)["user"]
 
+        if "groupname" in user_dict and isinstance(user_dict["groupname"], str):
+            user_dict["groupname"] = [user_dict["groupname"]]
+
         # Handle 'disabled' element
         user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
 
@@ -341,7 +344,7 @@ class UserSet(OPNsenseModuleConfig):
     def changed(self) -> bool:
         """ """
 
-        return self._load_users() != self._users and self._load_groups() != self._groups
+        return self._load_users() != self._users or self._load_groups() != self._groups
 
     def _update_user_groups(self, user: User, existing_user: Optional[User] = None):
         """
@@ -381,7 +384,8 @@ class UserSet(OPNsenseModuleConfig):
 
         if existing_user:
             # Update groups if needed
-            self._update_user_groups(user, existing_user)
+            if existing_user.groupname:
+                self._update_user_groups(user, existing_user)
             # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
         else:
@@ -391,8 +395,9 @@ class UserSet(OPNsenseModuleConfig):
                 # Increase the next_uid
                 self.set(value=str(int(next_uid.text) + 1), setting="uid")
 
-            # Update groups for the new user
-            self._update_user_groups(user)
+            if user.groupname:
+                # Update groups for the new user
+                self._update_user_groups(user)
             # Add the new user
             self._users.append(user)
 
@@ -439,5 +444,7 @@ class UserSet(OPNsenseModuleConfig):
 
         # Reload the configuration to reflect the updated changes
         self._config_xml_tree = self._load_config()
+
+        # raise Exception(f"local: {self._load_users()} new: {self._users}")
 
         return True
