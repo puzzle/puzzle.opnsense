@@ -71,6 +71,71 @@ class UserLoginShell(ListEnum):
     TCSH = "/bin/tcsh"
 
 
+def set_password(password: str) -> str:
+    """
+    Securely sets a password, adapting to the OPNsense version.
+
+    This method securely sets a user's password by adapting the process based
+    on the OPNsense version. It dynamically selects the PHP requirements and
+    configuration functions to apply the password securely.
+
+    Args:
+        password (str): The password to be set for a user.
+
+    Returns:
+        str: The standard output from the password configuration operation,
+             typically indicating success or failure.
+
+    Raises:
+        UnsupportedOPNsenseVersion: If the OPNsense version is not supported.
+        UnsupportedVersionForModule: If the module is not supported for the
+                                     current OPNsense version.
+
+    This method leverages the OPNsense utility functions to adapt the password
+    setting process to the version-specific requirements and configurations,
+    ensuring compatibility across different OPNsense versions.
+    """
+
+    # get version
+    _opnsense_version = version_utils.get_opnsense_version()
+
+    # set module
+    _module_name = "password"
+
+    # get php_requirements
+    try:
+        version_map: dict = module_index.VERSION_MAP[_opnsense_version]
+    except KeyError as ke:
+        raise UnsupportedOPNsenseVersion(
+            f"OPNsense version '{_opnsense_version}' not supported "
+            "by puzzle.opnsense collection.\n"
+            f"Supported versions are {list(module_index.VERSION_MAP.keys())}"
+        ) from ke
+
+    if _module_name not in version_map:
+        raise UnsupportedVersionForModule(
+            f"Module '{_module_name}' not supported "
+            f"for OPNsense version '{_opnsense_version}'.\n"
+            f"Supported modules are {list(version_map.keys())}"
+        )
+
+    _config_map = version_map[_module_name]
+    php_requirements = _config_map["php_requirements"]
+    configure_function = _config_map["configure_functions"]["name"]
+    configure_params = _config_map["configure_functions"]["configure_params"]
+
+    formatted_params = [
+        param.replace("'password'", f"'{password}'") if "password" in param else param
+        for param in configure_params
+    ]
+
+    return opnsense_utils.run_function(
+        php_requirements=php_requirements,
+        configure_function=configure_function,
+        configure_params=formatted_params,
+    ).get("stdout")
+
+
 @dataclass
 class Group:
     """Used to represent a Group."""
@@ -199,46 +264,6 @@ class User:
 
         return element
 
-    def _set_password(password: str) -> str:
-        # get version
-        _opnsense_version = version_utils.get_opnsense_version()
-
-        # set module
-        _module_name = "password"
-
-        # get php_requirements
-        try:
-            version_map: dict = module_index.VERSION_MAP[_opnsense_version]
-        except KeyError as ke:
-            raise UnsupportedOPNsenseVersion(
-                f"OPNsense version '{_opnsense_version}' not supported "
-                "by puzzle.opnsense collection.\n"
-                f"Supported versions are {list(module_index.VERSION_MAP.keys())}"
-            ) from ke
-
-        if _module_name not in version_map:
-            raise UnsupportedVersionForModule(
-                f"Module '{_module_name}' not supported "
-                f"for OPNsense version '{_opnsense_version}'.\n"
-                f"Supported modules are {list(version_map.keys())}"
-            )
-
-        _config_map = version_map[_module_name]
-        php_requirements = _config_map["php_requirements"]
-        configure_function = _config_map["configure_functions"]["name"]
-        configure_params = _config_map["configure_functions"]["configure_params"]
-
-        formatted_params = [
-            param.replace("'password'", f"'{password}'") if "password" in param else param
-            for param in configure_params
-        ]
-
-        return opnsense_utils.run_function(
-            php_requirements=php_requirements,
-            configure_function=configure_function,
-            configure_params=formatted_params,
-        ).get("stdout")
-
     # pylint: disable=too-many-locals
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "User":
@@ -262,7 +287,7 @@ class User:
         password = params.get("password")
 
         if password:
-            password = cls._set_password(password)
+            password = set_password(password)
 
         uid = params.get("uid")
         scope = params.get("scope")
