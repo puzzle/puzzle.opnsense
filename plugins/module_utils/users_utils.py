@@ -342,7 +342,6 @@ class User:
 
         return element
 
-    # pylint: disable=too-many-locals
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "User":
         """
@@ -360,47 +359,25 @@ class User:
         handling optional attributes and setting the password securely if provided.
         """
 
-        disabled = params.get("disabled")
-        username = params.get("username")
-        password = params.get("password")
-
-        if password:
-            password = set_password(password)
-
-        uid = params.get("uid")
-        scope = params.get("scope")
-        ipsecpsk = params.get("ipsecpsk")
-        otp_seed = params.get("otp_seed")
-        shell = params.get("shell")
-        full_name = params.get("full_name")
-        email = params.get("email")
-        comment = params.get("comment")
-        landing_page = params.get("landing_page")
-        expires = params.get("expires")
-        groupname = params.get("groups")
-        authorizedkeys = params.get("authorizedkeys")
-        cert = params.get("cert")
-        api_keys_item_api_key = params.get("api_keys_item_api_key")
-
         user_dict = {
-            "disabled": disabled,
-            "name": username,
-            "password": password,
-            "descr": full_name,
-            "scope": scope,
-            "ipsecpsk": ipsecpsk,
-            "otp_seed": otp_seed,
-            "shell": shell,
-            "uid": uid,
-            "full_name": full_name,
-            "email": email,
-            "comment": comment,
-            "landing_page": landing_page,
-            "expires": expires,
-            "groupname": groupname,
-            "authorizedkeys": authorizedkeys,
-            "cert": cert,
-            "api_keys_item_api_key": api_keys_item_api_key,
+            "disabled": params.get("disabled"),
+            "name": params.get("username"),
+            "password": set_password(params.get("password")),
+            "descr": params.get("full_name"),
+            "scope": params.get("scope"),
+            "ipsecpsk": params.get("ipsecpsk"),
+            "otp_seed": params.get("otp_seed"),
+            "shell": params.get("shell"),
+            "uid": params.get("uid"),
+            "full_name": params.get("full_name"),
+            "email": params.get("email"),
+            "comment": params.get("comment"),
+            "landing_page": params.get("landing_page"),
+            "expires": params.get("expires"),
+            "groupname": params.get("groups"),
+            "authorizedkeys": params.get("authorizedkeys"),
+            "cert": params.get("cert"),
+            "api_keys_item_api_key": params.get("api_keys_item_api_key"),
         }
 
         user_dict = {key: value for key, value in user_dict.items() if value is not None}
