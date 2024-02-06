@@ -4,6 +4,8 @@
 from dataclasses import dataclass, asdict, fields
 from enum import Enum
 from typing import List, Optional
+import base64
+import os
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -67,6 +69,25 @@ class UserLoginShell(ListEnum):
     CSH = "/bin/csh"
     SH = "/bin/sh"
     TCSH = "/bin/tcsh"
+
+
+def set_otp_seed(otp_seed: str = None) -> str:
+    """
+    Generates and returns a base32-encoded OTP seed.
+
+    Args:
+        otp_seed (str, optional): Existing OTP seed to encode (default: None).
+
+    Returns:
+        str: Base32-encoded OTP seed.
+
+    If no OTP seed is provided, a random seed is generated and encoded as base32.
+    """
+
+    if otp_seed is None:
+        otp_seed = os.urandom(20)
+
+    return base64.b32encode(otp_seed).decode("utf-8")
 
 
 def set_password(password: str) -> str:
@@ -366,7 +387,7 @@ class User:
             "descr": params.get("full_name"),
             "scope": params.get("scope"),
             "ipsecpsk": params.get("ipsecpsk"),
-            "otp_seed": params.get("otp_seed"),
+            "otp_seed": set_otp_seed(params.get("otp_seed")),
             "shell": params.get("shell"),
             "uid": params.get("uid"),
             "full_name": params.get("full_name"),
