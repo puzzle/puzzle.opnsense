@@ -293,7 +293,18 @@ class User:
 
     @staticmethod
     def from_xml(element: Element) -> "User":
-        """ """
+        """
+        Converts an XML element into a User object.
+
+        Parameters:
+            element (Element): An XML element representing a user, with child elements for each user attribute.
+
+        Returns:
+            User: A User object initialized with the data extracted from the XML element.
+
+        This method extracts data from an XML element, handling different data types appropriately,
+        such as converting single group names into a list and interpreting the 'disabled' field as a boolean.
+        """
 
         user_dict: dict = xml_utils.etree_to_dict(element)["user"]
 
