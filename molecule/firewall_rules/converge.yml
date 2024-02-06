@@ -28,6 +28,7 @@
         interface: 'lan'
         action: 'pass'
         description: "New Test disabled pass Rule"
+        disabled: true
 
       # Test basic functionality of the disabled quick button
     - name: "Quick: Test pass Rule with quick disabled"
