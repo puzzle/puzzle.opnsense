@@ -52,7 +52,7 @@ options:
           If a packet matches a rule specifying quick, then that rule is considered the last matching rule and the specified action is taken.
           When a rule does not have quick enabled, the last matching rule wins.
         required: false
-        default: false
+        default: true
         type: bool
     interface:
         description: Choose on which interface packets must come in to match this rule.
