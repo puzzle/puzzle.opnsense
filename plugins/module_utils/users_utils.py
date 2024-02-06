@@ -341,7 +341,7 @@ class UserSet(OPNsenseModuleConfig):
     def changed(self) -> bool:
         """ """
 
-        return self._load_users() != self._users or self._load_groups() != self._groups
+        return self._load_users() != self._users and self._load_groups() != self._groups
 
     def _update_user_groups(self, user: User, existing_user: Optional[User] = None):
         """
