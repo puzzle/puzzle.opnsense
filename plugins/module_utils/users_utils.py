@@ -1,11 +1,11 @@
 #  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from dataclasses import dataclass, asdict, fields, field
+from dataclasses import dataclass, asdict, fields
 from enum import Enum
 from typing import List, Optional
 
-from xml.etree.ElementTree import Element, ElementTree, SubElement
+from xml.etree.ElementTree import Element, ElementTree
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
@@ -18,8 +18,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     UnsupportedOPNsenseVersion,
     UnsupportedVersionForModule,
 )
-
-from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import etree_to_dict
 
 
 class OPNSenseGroupNotFoundError(Exception):
@@ -273,7 +271,7 @@ class User:
     authorizedkeys: Optional[str] = None
     cert: Optional[str] = None  # TODO is in another xml path
     api_keys_item_api_key: Optional[str] = None
-    groupname: Optional[list[str]] = None
+    groupname: Optional[List[str]] = None
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, User):
@@ -766,7 +764,7 @@ class UserSet(OPNsenseModuleConfig):
         for group_element in list(filter_element.findall("group")):
             filter_element.remove(group_element)
 
-        ## Now, add the updated elements back directly to filter_element
+        # Now, add the updated elements back directly to filter_element
         filter_element.extend([group.to_etree() for group in self._groups])
         filter_element.extend([user.to_etree() for user in self._users])
 

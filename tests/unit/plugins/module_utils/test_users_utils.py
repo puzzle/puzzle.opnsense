@@ -1,20 +1,14 @@
 #  Copyright: (c) 2024, Puzzle ITC
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 import os
-import re
 from tempfile import NamedTemporaryFile
-from typing import Optional
 from unittest.mock import patch, MagicMock
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
-import hashlib
 
 import pytest
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
-from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
-    elements_equal,
-)
 from ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils import (
     Group,
     User,
@@ -45,7 +39,7 @@ TEST_VERSION_MAP = {
             ],
             "configure_functions": {
                 "name": "echo password_hash",
-                "configure_params": [f"'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     }

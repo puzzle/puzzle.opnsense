@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>, Kilian Soltermann <soltermann@puzzle.ch>
+#  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-"""Firewall rules module: Read, write, edit operations for firewall rules """
+"""User module: Read, write, edit operations for OPNsense Users """
 
 __metaclass__ = type
 
@@ -14,10 +14,104 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
+module: users
+short_description: Manage OPNsense users
+description:
+    - This module allows you to manage users on an OPNsense firewall.
+author:
+    - Kilian Soltermann (@killuuuhh)
+version_added: "1.0.0"
+options:
+    username:
+        description:
+            - The username of the OPNsense user.
+        required: true
+        type: str
+    password:
+        description:
+            - The password of the OPNsense user.
+        required: true
+        type: str
+    disabled:
+        description:
+            - Indicates whether the user account should be disabled.
+        required: false
+        default: false
+        type: bool
+    full_name:
+        description:
+            - The full name of the OPNsense user.
+        required: false
+        type: str
+    email:
+        description:
+            - The email address of the OPNsense user.
+        required: false
+        type: str
+    comment:
+        description:
+            - Additional comments or notes for the OPNsense user.
+        required: false
+        type: str
+    landing_page:
+        description:
+            - The landing page for the OPNsense user.
+        required: false
+        type: str
+    shell:
+        description:
+            - The shell for the OPNsense user.
+        required: false
+        type: str
+    expires:
+        description:
+            - The expiration date for the OPNsense user account.
+        required: false
+        type: str
+    groups:
+        description:
+            - A list of groups the OPNsense user belongs to.
+        required: false
+        type: list
+        elements: str
+    scope:
+        description:
+            - The scope of the OPNsense user.
+        required: false
+        type: str
+    uid:
+        description:
+            - The UID of the OPNsense user.
+        required: false
+        type: str
+    state:
+        description:
+            - The desired state of the OPNsense user.
+        required: false
+        choices:
+            - present
+            - absent
+        default: present
+        type: str
 '''
 
 EXAMPLES = r'''
+- name: Add OPNsense user
+  opnsense_user:
+    username: johndoe
+    password: secret
+    full_name: John Doe
+    email: johndoe@example.com
+    groups:
+      - admins
+    state: present
+  register: result
 
+- name: Remove OPNsense user
+  opnsense_user:
+    username: johndoe
+    state: absent
+  register: result
 '''
 
 RETURN = '''
@@ -58,7 +152,7 @@ def main():
             "type": "str",
             "required": True,
         },
-        "password": {"type": "str", "required": True},
+        "password": {"type": "str", "required": True, "no_log": True},
         "disabled": {"type": "bool", "default": False},
         "full_name": {"type": "str", "required": False},
         "email": {"type": "str", "required": False},
@@ -66,7 +160,7 @@ def main():
         "landing_page": {"type": "str", "required": False},
         "shell": {"type": "str", "required": False},
         "expires": {"type": "str", "required": False},
-        "groups": {"type": "list", "required": False},
+        "groups": {"type": "list", "required": False, "elements": "str"},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {

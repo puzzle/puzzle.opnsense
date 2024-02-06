@@ -113,7 +113,7 @@ VERSION_MAP = {
             ],
             "configure_functions": {
                 "name": "echo password_hash",
-                "configure_params": [f"'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     },
