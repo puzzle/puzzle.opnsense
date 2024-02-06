@@ -153,7 +153,7 @@ def test_user_to_etree():
 
 
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 def test_user_from_ansible_module_params_simple(sample_config_path):
@@ -232,7 +232,7 @@ def test_user_set_add_group(mocked_version_utils: MagicMock, sample_config_path)
 
 
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 def test_user_from_ansible_module_params_with_group(sample_config_path):
@@ -266,7 +266,7 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -306,7 +306,7 @@ def test_user_from_ansible_module_params_with_group_as_string(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -346,7 +346,7 @@ def test_user_from_ansible_module_params_with_multiple_groups_as_list(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -383,7 +383,7 @@ def test_user_from_ansible_module_params_with_no_groups(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.User._set_password",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
