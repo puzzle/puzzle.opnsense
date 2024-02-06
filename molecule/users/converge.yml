@@ -7,83 +7,83 @@
       ansible.builtin.debug:
         msg: "test"
 
-    #  # Test User minimum requirements
-    #- name: "Test User 1: Test minimum requirements User Creation"
-    #  puzzle.opnsense.users:
-    #    username: test_user_1
-    #    password: test_password_1
-#
-    #  # Test User minimum requirements disabled
-    #- name: "Test User 2: Test disabled User Creation"
-    #  puzzle.opnsense.users:
-    #    username: test_user_2
-    #    password: test_password_2
-    #    disabled: True
-#
-    #  # Test User with Full Name
-    #- name: "Test User 3: Test User Creation with Full Name"
-    #  puzzle.opnsense.users:
-    #    username: test_user_3
-    #    password: test_password_3
-    #    full_name: Test User 3
-#
-    #  # Test User with E-Mail
-    #- name: "Test User 4: Test User Creation with E-Mail"
-    #  puzzle.opnsense.users:
-    #    username: test_user_4
-    #    password: test_password_4
-    #    email: test_user_4@test.ch
-#
-    #  # Test User with Comment
-    #- name: "Test User 5: Test User Creation with Comment"
-    #  puzzle.opnsense.users:
-    #    username: test_user_5
-    #    password: test_password_5
-    #    comment: Test User 5 Comment
-#
-    #  # Test User with Preferred landing page
-    #- name: "Test User 6: Test User Creation with Preferred landing page"
-    #  puzzle.opnsense.users:
-    #    username: test_user_6
-    #    password: test_password_6
-    #    landing_page: /ui/ipsec/sessions
-#
-    #  # Test User with nologin shell
-    #- name: "Test User 7: Test User Creation with nologin shell"
-    #  puzzle.opnsense.users:
-    #    username: test_user_7
-    #    password: test_password_7
-    #    shell: /sbin/nologin
-#
-    #  # Test User with csh shell
-    #- name: "Test User 8: Test User Creation with csh shell"
-    #  puzzle.opnsense.users:
-    #    username: test_user_8
-    #    password: test_password_8
-    #    shell: /bin/csh
-#
-    #  # Test User with sh shell
-    #- name: "Test User 9: Test User Creation with sh shell"
-    #  puzzle.opnsense.users:
-    #    username: test_user_9
-    #    password: test_password_9
-    #    shell: /bin/sh
-#
-    #  # Test User with tcsh shell
-    #- name: "Test User 10: Test User Creation with tcsh shell"
-    #  puzzle.opnsense.users:
-    #    username: test_user_10
-    #    password: test_password_10
-    #    shell: /bin/tcsh
-#
-    #  # Test User with Expiration date
-    #- name: "Test User 11: Test User Creation with Expiration date"
-    #  puzzle.opnsense.users:
-    #    username: test_user_11
-    #    password: test_password_11
-    #    expires: 02/27/2024
+      # Test User minimum requirements
+    - name: "Test User 1: Test minimum requirements User Creation"
+      puzzle.opnsense.users:
+        username: test_user_1
+        password: test_password_1
 
-      # Test User with group as string
+      # Test User minimum requirements disabled
+    - name: "Test User 2: Test disabled User Creation"
+      puzzle.opnsense.users:
+        username: test_user_2
+        password: test_password_2
+        disabled: True
+
+      # Test User with Full Name
+    - name: "Test User 3: Test User Creation with Full Name"
+      puzzle.opnsense.users:
+        username: test_user_3
+        password: test_password_3
+        full_name: Test User 3
+
+      # Test User with E-Mail
+    - name: "Test User 4: Test User Creation with E-Mail"
+      puzzle.opnsense.users:
+        username: test_user_4
+        password: test_password_4
+        email: test_user_4@test.ch
+
+      # Test User with Comment
+    - name: "Test User 5: Test User Creation with Comment"
+      puzzle.opnsense.users:
+        username: test_user_5
+        password: test_password_5
+        comment: Test User 5 Comment
+
+      # Test User with Preferred landing page
+    - name: "Test User 6: Test User Creation with Preferred landing page"
+      puzzle.opnsense.users:
+        username: test_user_6
+        password: test_password_6
+        landing_page: /ui/ipsec/sessions
+
+      # Test User with nologin shell
+    - name: "Test User 7: Test User Creation with nologin shell"
+      puzzle.opnsense.users:
+        username: test_user_7
+        password: test_password_7
+        shell: /sbin/nologin
+
+      # Test User with csh shell
+    - name: "Test User 8: Test User Creation with csh shell"
+      puzzle.opnsense.users:
+        username: test_user_8
+        password: test_password_8
+        shell: /bin/csh
+
+      # Test User with sh shell
+    - name: "Test User 9: Test User Creation with sh shell"
+      puzzle.opnsense.users:
+        username: test_user_9
+        password: test_password_9
+        shell: /bin/sh
+
+      # Test User with tcsh shell
+    - name: "Test User 10: Test User Creation with tcsh shell"
+      puzzle.opnsense.users:
+        username: test_user_10
+        password: test_password_10
+        shell: /bin/tcsh
+
+      # Test User with Expiration date
+    - name: "Test User 11: Test User Creation with Expiration date"
+      puzzle.opnsense.users:
+        username: test_user_11
+        password: test_password_11
+        expires: 02/27/2024
+
+     # Test User with group as string
     - name: "Test User 12: Test User Creation with group as string"
       puzzle.opnsense.users:
         username: test_user_12

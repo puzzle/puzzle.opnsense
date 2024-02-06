@@ -416,7 +416,26 @@ class UserSet(OPNsenseModuleConfig):
         return None
 
     def save(self) -> bool:
-        """ """
+        """
+        Saves updated configuration to the XML file if changes are detected.
+
+        Initially checks for modifications via the `changed` attribute. If unchanged, it returns
+        False, indicating no save operation was necessary. For changes, the XML configuration tree
+        is updated accordingly.
+
+        Retrieves the 'system' element using `_config_map`, removing old 'user' and 'group' elements
+        to clear outdated configurations. It then repopulates 'system' with updated configurations
+        for users and groups, converting each to an XML element via `to_etree()` method.
+
+        After updating, it writes the changes to the file system with UTF-8 encoding and XML
+        declaration. Subsequently, the configuration file is reloaded to update the internal state
+        with the new changes.
+
+        Concludes by returning True to indicate successful change persistence.
+
+        Returns:
+            bool: True if changes were successfully saved, False if no changes occurred.
+        """
 
         if not self.changed:
             return False
@@ -444,7 +463,5 @@ class UserSet(OPNsenseModuleConfig):
 
         # Reload the configuration to reflect the updated changes
         self._config_xml_tree = self._load_config()
-
-        # raise Exception(f"local: {self._load_users()} new: {self._users}")
 
         return True
