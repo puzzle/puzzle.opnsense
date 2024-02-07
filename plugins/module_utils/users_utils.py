@@ -338,7 +338,7 @@ class User:
         """
 
         if authorizedkeys:
-            return base64.b32encode(authorizedkeys).decode("utf-8")
+            return base64.b64encode(authorizedkeys.encode("utf-8")).decode("utf-8")
 
         return None
 
@@ -364,7 +364,12 @@ class User:
         user_dict: dict = asdict(self)
 
         for user_key, user_val in user_dict.copy().items():
-            if user_val is None and user_key in ["expires", "ipsecpsk"]:
+            if user_val is None and user_key in [
+                "expires",
+                "ipsecpsk",
+                "otp_seed",
+                "authorizedkeys",
+            ]:
                 continue
 
             if issubclass(type(user_val), ListEnum):
@@ -406,7 +411,7 @@ class User:
             "scope": params.get("scope"),
             "ipsecpsk": params.get("ipsecpsk"),
             "otp_seed": (
-                cls.set_otp_seed(params.get("otp_seed"))
+                cls.set_otp_seed(cls, otp_seed=params.get("otp_seed"))
                 if params.get("otp_seed") is not None
                 else None
             ),
@@ -419,8 +424,8 @@ class User:
             "expires": params.get("expires"),
             "groupname": params.get("groups"),
             "authorizedkeys": (
-                cls.set_authorizedkeys(params.get("authorizedkeys"))
-                if params.get("authorizedkeys") is not None
+                cls.set_authorizedkeys(cls, authorizedkeys=params.get("authorizedkeys"))
+                if params.get("authorizedkeys")
                 else None
             ),
             "cert": params.get("cert"),

@@ -135,9 +135,10 @@ def test_user_to_etree():
         scope="user",
         name="vagrant",
         descr="vagrant box management",
-        shell="/bin/sh",
+        shell="/bin/sh",q
         uid="1000",
     )
+
     test_element = test_user.to_etree()
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)

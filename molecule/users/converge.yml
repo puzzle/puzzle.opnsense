@@ -139,6 +139,6 @@
       # Test User with authorizedkeys
     - name: "Test User 18: Test User Creation with authorizedkeys"
       puzzle.opnsense.users:
-        username: test_user_18
-        password: test_password_18
-        authorizedkeys: test_authorizedkeys
+          username: test_user_18
+          password: test_password_18
+          authorizedkeys: test_authorized_key
