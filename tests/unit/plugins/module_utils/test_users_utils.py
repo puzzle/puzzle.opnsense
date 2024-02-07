@@ -135,7 +135,7 @@ def test_user_to_etree():
         scope="user",
         name="vagrant",
         descr="vagrant box management",
-        shell="/bin/sh",q
+        shell="/bin/sh",
         uid="1000",
     )
 
