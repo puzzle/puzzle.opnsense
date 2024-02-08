@@ -3,9 +3,10 @@
 
 from dataclasses import dataclass, asdict, fields
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 import base64
 import os
+import re
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -25,6 +26,12 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 class OPNSenseGroupNotFoundError(Exception):
     """
     Exception raised when an OPNsense group is not found.
+    """
+
+
+class OPNSenseNotValidBase32APIKeyError(Exception):
+    """
+    Exception raised when a not valid base32 api code is provided
     """
 
 
@@ -291,7 +298,7 @@ class User:
     expires: Optional[str] = None
     authorizedkeys: Optional[str] = None
     cert: Optional[str] = None  # TODO is in another xml path
-    api_keys_item_api_key: Optional[str] = None
+    apikeys: Optional[List[str]] = None
     groupname: Optional[List[str]] = None
 
     def __eq__(self, other) -> bool:
@@ -299,7 +306,12 @@ class User:
             return False
 
         for field in fields(self):
-            if field.name != "password" and field.name != "uid" and field.name != "otp_seed":
+            if (
+                field.name != "password"
+                and field.name != "uid"
+                and field.name != "otp_seed"
+                and field.name != "apikeys"
+            ):
                 if getattr(self, field.name) != getattr(other, field.name):
                     return False
 
@@ -336,6 +348,38 @@ class User:
             otp_seed = os.urandom(20)
 
         return base64.b32encode(otp_seed.encode("utf-8")).decode("utf-8")
+
+    def set_apikeys(self, apikeys: list = None) -> list:
+        """
+        Generates a list of dictionaries, each containing a 'key' and a 'secret'.
+        If apikeys is provided, each element in apikeys is used as the 'key', and a new 'secret' is generated.
+        If apikeys is not provided or is an empty list, a single 'key'-'secret' pair is generated.
+
+        Args:
+            apikeys (list, optional): A list of strings to be used as the 'key' part of each pair.
+
+        Returns:
+            list: A list of dictionaries, where each dictionary has a 'key' and a 'secret'.
+        """
+
+        api_keys = []
+
+        # Check if apikeys is None or contains an empty string
+        if apikeys is None or "" in apikeys:
+            key = base64.b32encode(os.urandom(60)).decode("utf-8")
+            secret = base64.b32encode(os.urandom(60)).decode("utf-8")
+            api_keys.append({"key": key, "secret": secret})
+        else:
+            for api_key in apikeys:
+                if len(api_key) >= 80:
+                    secret = base64.b32encode(os.urandom(60)).decode("utf-8")
+                    api_keys.append({"key": api_key, "secret": secret})
+                else:
+                    raise OPNSenseNotValidBase32APIKeyError(
+                        f"The API key: {api_key} is not a valid string. Must be >= 80 characters."
+                    )
+
+        return api_keys
 
     def set_authorizedkeys(self, authorizedkeys: str = None) -> str:
         """
@@ -385,6 +429,16 @@ class User:
                 "authorizedkeys",
             ]:
                 continue
+            if isinstance(user_val, list) and user_key == "apikeys":
+
+                items_list = [{"item": val} for val in user_val]
+
+                # If user_key already exists, and it's a list, add to it
+                if user_key in user_dict and isinstance(user_dict[user_key], list):
+                    user_dict[user_key].extend(items_list)
+                else:
+                    # Otherwise, create a new list for this user_key
+                    user_dict[user_key] = items_list
 
             if issubclass(type(user_val), ListEnum):
                 user_dict[user_key] = user_val.value
@@ -443,7 +497,11 @@ class User:
                 else None
             ),
             "cert": params.get("cert"),
-            "api_keys_item_api_key": params.get("api_keys_item_api_key"),
+            "apikeys": (
+                cls.set_apikeys(cls, apikeys=params.get("apikeys"))
+                if params.get("apikeys")
+                else None
+            ),
         }
 
         user_dict = {key: value for key, value in user_dict.items() if value is not None}
@@ -472,6 +530,12 @@ class User:
 
         # Handle 'disabled' element
         user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
+
+        if "apikeys" in user_dict and isinstance(user_dict["apikeys"], str):
+            apikeys_elements = user_dict["apikeys"].get("item", [])
+            if isinstance(apikeys_elements, dict):
+                apikeys_elements = [apikeys_elements]
+            user_dict["apikeys"] = [item["key"] for item in apikeys_elements]
 
         return User(**user_dict)
 

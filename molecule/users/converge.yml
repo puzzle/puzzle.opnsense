@@ -158,3 +158,11 @@
           password: test_password_18
           authorizedkeys: test_authorized_key
           full_name: "Test User 18: Test User Creation with authorizedkeys"
+
+      # Test User with api_keys
+    - name: "Test User 19: Test User Creation with api_keys"
+      puzzle.opnsense.users:
+          username: test_user_19
+          password: test_password_19
+          apikeys: ""
+          full_name: "Test User 19: Test User Creation with api_keys"

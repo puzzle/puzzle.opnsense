@@ -62,6 +62,24 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <shell>/bin/sh</shell>
                 <uid>1000</uid>
             </user>
+            <user>
+                <password>$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O</password>
+                <scope>user</scope>
+                <name>test_user_1</name>
+                <descr>test_user_1</descr>
+                <expires />
+                <authorizedkeys />
+                <apikeys>
+                    <item>
+                        <key>AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy</key>
+                        <secret>$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0</secret>
+                    </item>
+                </apikeys>
+                <ipsecpsk />
+                <otp_seed />
+                <shell>/bin/sh</shell>
+                <uid>1001</uid>
+            </user>
             <group>
                 <name>admins</name>
                 <description>System Administrators</description>
@@ -150,6 +168,74 @@ def test_user_to_etree():
     assert xml_utils.elements_equal(test_element, orig_user)
 
 
+def test_user_with_api_key_from_xml():
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+
+    test_etree_user: Element = list(list(test_etree_opnsense)[0])[3]
+    test_user: User = User.from_xml(test_etree_user)
+
+    assert test_user.name == "test_user_1"
+    assert test_user.password == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
+    assert test_user.scope == "user"
+    assert test_user.descr == "test_user_1"
+    assert (
+        test_user.apikeys["item"]["secret"]
+        == "$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0"
+    )
+    assert (
+        test_user.apikeys["item"]["key"]
+        == "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
+    )
+    assert test_user.expires is None
+    assert test_user.authorizedkeys is None
+    assert test_user.ipsecpsk is None
+    assert test_user.otp_seed is None
+    assert test_user.shell == UserLoginShell.SH
+    assert test_user.uid == "1001"
+
+
+def test_user_with_apikeys_to_etree():
+    test_user: User = User(
+        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+        scope="user",
+        name="test_user_1",
+        descr="test_user_1",
+        shell="/bin/sh",
+        uid="1001",
+        apikeys=[
+            {
+                "key": "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
+                "secret": "$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0",
+            }
+        ],
+    )
+
+    test_element = test_user.to_etree()
+
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_user: Element = list(list(orig_etree)[0])[3]
+
+    assert xml_utils.elements_equal(test_element, orig_user)
+
+
+def test_user_to_etree():
+    test_user: User = User(
+        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+        scope="user",
+        name="vagrant",
+        descr="vagrant box management",
+        shell="/bin/sh",
+        uid="1000",
+    )
+
+    test_element = test_user.to_etree()
+
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_user: Element = list(list(orig_etree)[0])[2]
+
+    assert xml_utils.elements_equal(test_element, orig_user)
+
+
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils.set_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
@@ -182,16 +268,16 @@ def test_user_from_ansible_module_params_simple(mock_set_password, sample_config
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_set_load_simple_rules(mocked_version_utils: MagicMock, sample_config_path):
+def test_user_set_load_simple_user(mocked_version_utils: MagicMock, sample_config_path):
     with UserSet(sample_config_path) as user_set:
-        assert len(user_set._users) == 1
+        assert len(user_set._users) == 2
         user_set.save()
 
 
 def test_group_from_xml():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
-    test_etree_group: Element = list(list(test_etree_opnsense)[0])[3]
+    test_etree_group: Element = list(list(test_etree_opnsense)[0])[4]
     test_group: Group = Group.from_xml(test_etree_group)
 
     assert test_group.name == "admins"
