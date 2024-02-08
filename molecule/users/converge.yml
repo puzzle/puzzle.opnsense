@@ -18,6 +18,7 @@
       puzzle.opnsense.users:
         username: test_user_2
         password: test_password_2
+        full_name: "Test User 2: Test disabled User Creation"
         disabled: True
 
       # Test User with Full Name
@@ -25,7 +26,7 @@
       puzzle.opnsense.users:
         username: test_user_3
         password: test_password_3
-        full_name: Test User 3
+        full_name: "Test User 3: Test User Creation with Full Name"
 
       # Test User with E-Mail
     - name: "Test User 4: Test User Creation with E-Mail"
@@ -33,6 +34,7 @@
         username: test_user_4
         password: test_password_4
         email: test_user_4@test.ch
+        full_name: "Test User 4: Test User Creation with E-Mail"
 
       # Test User with Comment
     - name: "Test User 5: Test User Creation with Comment"
@@ -40,6 +42,7 @@
         username: test_user_5
         password: test_password_5
         comment: Test User 5 Comment
+        full_name: "Test User 5: Test User Creation with Comment"
 
       # Test User with Preferred landing page
     - name: "Test User 6: Test User Creation with Preferred landing page"
@@ -47,6 +50,7 @@
         username: test_user_6
         password: test_password_6
         landing_page: /ui/ipsec/sessions
+        full_name: "Test User 6: Test User Creation with Preferred landing page"
 
       # Test User with nologin shell
     - name: "Test User 7: Test User Creation with nologin shell"
@@ -54,6 +58,7 @@
         username: test_user_7
         password: test_password_7
         shell: /sbin/nologin
+        full_name: "Test User 7: Test User Creation with nologin shell"
 
       # Test User with csh shell
     - name: "Test User 8: Test User Creation with csh shell"
@@ -61,6 +66,7 @@
         username: test_user_8
         password: test_password_8
         shell: /bin/csh
+        full_name: "Test User 8: Test User Creation with csh shell"
 
       # Test User with sh shell
     - name: "Test User 9: Test User Creation with sh shell"
@@ -68,6 +74,7 @@
         username: test_user_9
         password: test_password_9
         shell: /bin/sh
+        full_name: "Test User 9: Test User Creation with sh shell"
 
       # Test User with tcsh shell
     - name: "Test User 10: Test User Creation with tcsh shell"
@@ -75,6 +82,7 @@
         username: test_user_10
         password: test_password_10
         shell: /bin/tcsh
+        full_name: "Test User 10: Test User Creation with tcsh shell"
 
       # Test User with Expiration date
     - name: "Test User 11: Test User Creation with Expiration date"
@@ -82,12 +90,14 @@
         username: test_user_11
         password: test_password_11
         expires: 02/27/2024
+        full_name: "Test User 11: Test User Creation with Expiration date"
 
      # Test User with group as string
     - name: "Test User 12: Test User Creation with group as string"
       puzzle.opnsense.users:
         username: test_user_12
         password: test_password_12
+        full_name: "Test User 12: Test User Creation with group as string"
         groups: admins
 
       # Test User with group as list
@@ -95,6 +105,7 @@
       puzzle.opnsense.users:
         username: test_user_13
         password: test_password_13
+        full_name: "Test User 13: Test User Creation with group as list"
         groups:
           - admins
 
@@ -103,6 +114,7 @@
       puzzle.opnsense.users:
         username: test_user_14
         password: test_password_14
+        full_name: "Test User 14: Test User Creation with not existing group as list"
         groups:
           - test
       register: test_user_14_result
@@ -121,6 +133,7 @@
         username: test_user_15
         password: test_password_15
         otp_seed: ""
+        full_name: "Test User 15: Test User Creation with empty otp_seed"
 
       # Test User with otp_seed
     - name: "Test User 16: Test User Creation with otp_seed"
@@ -128,6 +141,7 @@
         username: test_user_16
         password: test_password_16
         otp_seed: test_seed
+        full_name: "Test User 16: Test User Creation with otp_seed"
 
       # Test User with empty authorizedkeys
     - name: "Test User 17: Test User Creation with empty authorizedkeys"
@@ -135,6 +149,7 @@
         username: test_user_17
         password: test_password_17
         authorizedkeys: ""
+        full_name: "Test User 17: Test User Creation with empty authorizedkeys"
 
       # Test User with authorizedkeys
     - name: "Test User 18: Test User Creation with authorizedkeys"
@@ -142,3 +157,4 @@
           username: test_user_18
           password: test_password_18
           authorizedkeys: test_authorized_key
+          full_name: "Test User 18: Test User Creation with authorizedkeys"

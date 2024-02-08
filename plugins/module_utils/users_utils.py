@@ -218,6 +218,25 @@ class Group:
 
         self.member.append(user.uid)
 
+    def remove_user(self, user: "User") -> None:
+        """
+        Removes a user from the group.
+
+        Args:
+            user (User): The User object to remove from the group.
+
+        This function removes a user from the group by removing their UID from the group's member list.
+        """
+
+        if not isinstance(self.member, list):
+            # Convert self.member to a list if it's not already a list.
+            # If self.member is None or empty, this will set it to an empty list.
+            self.member = [self.member] if self.member else []
+
+        # Check if the user's UID is in the member list, then remove it.
+        if user.uid in self.member:
+            self.member.remove(user.uid)
+
 
 @dataclass
 class User:
@@ -280,12 +299,7 @@ class User:
             return False
 
         for field in fields(self):
-            if (
-                field.name != "password"
-                and field.name != "uid"
-                and field.name != "otp_seed"
-                and field.name != "authorizedkeys"
-            ):
+            if field.name != "password" and field.name != "uid" and field.name != "otp_seed":
                 if getattr(self, field.name) != getattr(other, field.name):
                     return False
 
@@ -609,7 +623,8 @@ class UserSet(OPNsenseModuleConfig):
         Manages the association of a user with specified groups, either by updating the groups of an
         existing user or adding a new user to the appropriate groups. This method ensures that the
         user is a member of all specified groups, adding the user to any groups they are not already
-        a part of, and maintains the integrity of group memberships across updates.
+        a part of, and maintains the integrity of group memberships across updates. If user.groupname
+        is None, the user is removed from all groups.
 
         Parameters:
             user (User): The user whose group memberships are to be updated. This includes both new
@@ -618,24 +633,21 @@ class UserSet(OPNsenseModuleConfig):
                                             user's current information. It is used to determine if
                                             the existing group memberships need to be updated.
 
-        The method iterates through the groups specified for the user, checking whether each group
-        exists and whether the user is already a member. If a group does not exist, an exception is
-        raised to indicate the issue. If the user is not already a member of a group, they are added.
-
-        Note:
-            This method can raise an OPNSenseGroupNotFoundError if any of the specified groups do
-            not exist on the instance, ensuring that the caller can handle such cases appropriately.
-
         Raises:
             OPNSenseGroupNotFoundError: If a specified group does not exist on the instance, this
                                         exception is raised, indicating the need for corrective
                                         action or error handling.
-
-        This approach ensures that user-group associations are accurately reflected and maintained
-        within the system, supporting consistent access control and group-based configurations.
         """
-
         target_user = existing_user if existing_user else user
+
+        # If the groupname is None, remove the user from all groups.
+        if user.groupname is None:
+            for existing_group in self._groups:
+                if existing_group.check_if_user_in_group(target_user):
+                    existing_group.remove_user(target_user)
+            return  # Exit the method after removing the user from all groups.
+
+        # Convert groupname to a list if it's not already.
         group_names = user.groupname if isinstance(user.groupname, list) else [user.groupname]
 
         for group_name in group_names:
