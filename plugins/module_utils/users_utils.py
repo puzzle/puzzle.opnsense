@@ -640,8 +640,7 @@ class UserSet(OPNsenseModuleConfig):
         """
         target_user = existing_user if existing_user else user
 
-        # If the groupname is None, remove the user from all groups.
-        if user.groupname is None:
+        if user.groupname is None or not hasattr(user, "groupname"):
             for existing_group in self._groups:
                 if existing_group.check_if_user_in_group(target_user):
                     existing_group.remove_user(target_user)
@@ -697,8 +696,7 @@ class UserSet(OPNsenseModuleConfig):
 
         if existing_user:
             # Update groups if needed
-            if existing_user.groupname:
-                self._update_user_groups(user, existing_user)
+            self._update_user_groups(user, existing_user)
             # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
         else:
