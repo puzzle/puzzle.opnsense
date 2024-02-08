@@ -321,7 +321,7 @@ class User:
         if otp_seed is None:
             otp_seed = os.urandom(20)
 
-        return base64.b32encode(otp_seed).decode("utf-8")
+        return base64.b32encode(otp_seed.encode("utf-8")).decode("utf-8")
 
     def set_authorizedkeys(self, authorizedkeys: str = None) -> str:
         """
