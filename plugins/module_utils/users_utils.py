@@ -680,7 +680,7 @@ class UserSet(OPNsenseModuleConfig):
                 modify the specified user's information.
         """
 
-        existing_user: Optional[User] = next((r for r in self._users if r == user), None)
+        existing_user: Optional[User] = next((u for u in self._users if u.name == user.name), None)
         next_uid: Element = self.get("uid")
 
         if existing_user:
