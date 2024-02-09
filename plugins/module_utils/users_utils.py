@@ -3,10 +3,9 @@
 
 from dataclasses import dataclass, asdict, fields
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional
 import base64
 import os
-import re
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -267,7 +266,8 @@ class User:
         expires (Optional[str]): The expiration date for the user, if set.
         authorizedkeys (Optional[str]): Authorized SSH keys for the user, if applicable.
         cert (Optional[str]): Certificate information for the user, if relevant.
-        api_keys_item_api_key (Optional[str]): API key associated with the user, if any.
+        apikeys (Optional[list[str]]): API key associated with the user, if any. Will be generated
+        if "" is provided
         groupname (Optional[list[str]]): List of group names the user belongs to, if any.
 
     Methods:
@@ -514,13 +514,15 @@ class User:
         Converts an XML element into a User object.
 
         Parameters:
-            element (Element): An XML element representing a user, with child elements for each user attribute.
+            element (Element): An XML element representing a user, with child elements
+            for each user attribute.
 
         Returns:
             User: A User object initialized with the data extracted from the XML element.
 
         This method extracts data from an XML element, handling different data types appropriately,
-        such as converting single group names into a list and interpreting the 'disabled' field as a boolean.
+        such as converting single group names into a list and interpreting the
+        'disabled' field as a boolean.
         """
 
         user_dict: dict = xml_utils.etree_to_dict(element)["user"]

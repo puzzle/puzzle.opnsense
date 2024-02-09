@@ -74,6 +74,12 @@ options:
         required: false
         type: list
         elements: str
+    apikeys:
+        description:
+            - A list of apikeys for an OPNsense User. Generates new apikey if "" is provided.
+        required: false
+        type: list
+        elements: str
     otp_seed:
         description:
             - The otp_seed of a OPNsense user.
@@ -171,9 +177,9 @@ def main():
         "shell": {"type": "str", "required": False},
         "expires": {"type": "str", "required": False},
         "otp_seed": {"type": "str", "required": False},
-        "authorizedkeys": {"type": "str", "required": False},
+        "authorizedkeys": {"type": "str", "required": False, "no_log": True},
         "groups": {"type": "list", "required": False, "elements": "str"},
-        "apikeys": {"type": "list", "required": False, "elements": "str"},
+        "apikeys": {"type": "list", "required": False, "elements": "str", "no_log": True},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {

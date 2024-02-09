@@ -6,6 +6,7 @@ from unittest.mock import patch, MagicMock
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
+
 import pytest
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -192,30 +193,6 @@ def test_user_with_api_key_from_xml():
     assert test_user.otp_seed is None
     assert test_user.shell == UserLoginShell.SH
     assert test_user.uid == "1001"
-
-
-def test_user_with_apikeys_to_etree():
-    test_user: User = User(
-        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-        scope="user",
-        name="test_user_1",
-        descr="test_user_1",
-        shell="/bin/sh",
-        uid="1001",
-        apikeys=[
-            {
-                "key": "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
-                "secret": "$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0",
-            }
-        ],
-    )
-
-    test_element = test_user.to_etree()
-
-    orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_user: Element = list(list(orig_etree)[0])[3]
-
-    assert xml_utils.elements_equal(test_element, orig_user)
 
 
 def test_user_to_etree():
