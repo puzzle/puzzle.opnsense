@@ -15,7 +15,7 @@ from typing import List, Optional, Dict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import (
+from plugins.module_utils import (
     version_utils,
     opnsense_utils,
     module_index,
@@ -40,7 +40,7 @@ class MissingConfigDefinitionForModuleError(Exception):
 class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
-    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
+    plugins.module_utils.module_index.VERSION_MAP.
     """
 
 
@@ -102,6 +102,7 @@ class OPNsenseModuleConfig:
         Args:
             module_name (str): The name of the module.
             check_mode (bool): Check mode
+            config_context_names (List[str]): Names of required config contexts.
             path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
         self._module_name = module_name
@@ -181,7 +182,9 @@ class OPNsenseModuleConfig:
         """
 
         if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
+            tree: ElementTree.ElementTree = ElementTree.ElementTree(
+                self._config_xml_tree
+            )
             tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
             self._config_xml_tree = self._load_config()
             return True
