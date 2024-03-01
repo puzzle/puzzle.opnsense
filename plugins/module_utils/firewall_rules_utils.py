@@ -542,8 +542,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
     _rules: List[FirewallRule]
 
     def __init__(self, path: str = "/conf/config.xml"):
-        super().__init__(module_name="firewall_rules", path=path)
-        print(self._config_map)
+        super().__init__(module_name="firewall_rules", config_context_names=["firewall_rules"], path=path)
         self._rules = self._load_rules()
 
     def _load_rules(self) -> List[FirewallRule]:
@@ -648,7 +647,9 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        filter_element: Element = self._config_xml_tree.find(self._config_map["rules"])
+        filter_element: Element = self._config_xml_tree.find(
+            self._config_maps[self._module_name]["rules"]
+        )
 
         self._config_xml_tree.remove(filter_element)
         filter_element.clear()

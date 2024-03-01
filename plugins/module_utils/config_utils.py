@@ -15,7 +15,7 @@ from typing import List, Optional, Dict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-from plugins.module_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     version_utils,
     opnsense_utils,
     module_index,
@@ -40,7 +40,7 @@ class MissingConfigDefinitionForModuleError(Exception):
 class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
-    plugins.module_utils.module_index.VERSION_MAP.
+    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
     """
 
 
