@@ -73,7 +73,7 @@ class OPNsenseModuleConfig:
     Attributes:
         _config_xml_tree (Element): The XML tree of the configuration file.
         _config_path (str): The file path of the configuration.
-        _config_maps (dict): The mappings of settings and their XPath in the XML tree.
+        _config_maps (List[str]): The mappings of settings and their XPath in the XML tree.
         _config_contexts (dict): List of required config_contexts
         _module_name (str): The name of the module.
         _opnsense_version (str): The OPNsense version.
