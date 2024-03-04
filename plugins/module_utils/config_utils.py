@@ -199,9 +199,9 @@ class OPNsenseModuleConfig:
         Returns:
         - Element: The retrieved setting element.
         """
-        for config_key, config_map in self._config_maps.items():
-            if setting_name in config_map:
-                return self._config_xml_tree.find(config_map[setting_name])
+        for cfg_map in self._config_maps.values():
+            if setting_name in cfg_map:
+                return self._config_xml_tree.find(cfg_map[setting_name])
 
         supported_settings: List[str] = []
         for cfg_map in self._config_maps.values():
@@ -227,8 +227,8 @@ class OPNsenseModuleConfig:
 
         all_php_requirements: list = []
 
-        for config_map in self._config_maps.values():
-            php_requirements: Optional[list] = config_map.get("php_requirements")
+        for cfg_map in self._config_maps.values():
+            php_requirements: Optional[list] = cfg_map.get("php_requirements")
 
             # enforce presence of php_requirements in the VERSION_MAP
             if php_requirements is None:
@@ -281,8 +281,8 @@ class OPNsenseModuleConfig:
 
         all_configure_functions: dict = {}
 
-        for config_map in self._config_maps.values():
-            configure_functions: Optional[dict] = config_map.get("configure_functions")
+        for cfg_map in self._config_maps.values():
+            configure_functions: Optional[dict] = cfg_map.get("configure_functions")
 
             # enforce presence of configure_functions in the VERSION_MAP
             if configure_functions is None:
@@ -354,7 +354,8 @@ class OPNsenseModuleConfig:
                 )
             else:
                 result_dict = {
-                    "check_mode": "Ansible running in check mode, does not execute configure functions",
+                    "check_mode":
+                        "Ansible running in check mode, does not execute configure functions",
                     "rc": 0,
                 }
             cmd_output.append({**meta_dict, **result_dict})
@@ -390,7 +391,7 @@ class OPNsenseModuleConfig:
 
         # get xpath from key_mapping
         xpath: Optional[str] = None
-        for cfg_key, cfg_map in self._config_maps.items():
+        for cfg_map in self._config_maps.values():
             if setting in cfg_map:
                 xpath = cfg_map.get(setting)
 
@@ -433,6 +434,8 @@ class OPNsenseModuleConfig:
                 # Find the setting in the file-based configuration
                 config_diff_before.update({xpath: file_config.find(xpath).text})
                 # Find the setting in the in-memory configuration
-                config_diff_after.update({xpath: self._config_xml_tree.find(xpath).text})
+                config_diff_after.update(
+                    {xpath: self._config_xml_tree.find(xpath).text}
+                )
 
         return {"before": config_diff_before, "after": config_diff_after}
