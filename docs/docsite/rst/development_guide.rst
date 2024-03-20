@@ -31,7 +31,7 @@ Ansible documentation (`Prepare your environment
 
    .. code-block:: shell-session
 
-    git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense \
+    git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense.git \
        <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense
 
 3. This collection supports Python versions >=3.6 therefore make sure your system
@@ -180,60 +180,137 @@ In this example, the configuration for "OPNsense 22.7 (amd64/OpenSSL)" is outlin
 This detailed and version-specific mapping ensures the utility module operates correctly across different OPNsense releases, contributing significantly to the robustness and reliability of the configuration management process.
 
 
-Using Vagrant
+Using Molecule
 =============
 
-Run ansible directly against a running instance of OPNsense with Vagrant.
-For this to work it is required to have **vagrant** installed alongside with **virtualbox**.
+Run Ansible directly against a running instance of OPNsense managed by Molecule.
+System requirements for this workflow is to have **vagrant** installed alongside with **virtualbox**.
 
-.. code-block::
+1. Initialize a Molecule scenario
+---------------------------------
 
-    Vagrant.configure(2) do |config|
-      config.vm.guest = :freebsd
-      config.vm.boot_timeout = 600
+If there is no Molecule scenario for your plugin, create one inside the
+`molecule` directory, eg. `molecule/MY_SCENARIO`. This directory requires
+a Molecule configuration YAML `molecule.yml`. The quickest setup is to copy
+an existing example from a preexisting scenario. This file will look more
+or less like this:
 
-      config.vm.box = "puzzle/opnsense"
-      config.vm.communicator = 'ssh'
+.. code-block:: yaml
 
-      config.ssh.sudo_command = "%c"
-      config.ssh.shell = "/bin/sh"
+    ---
+    scenario:
+        name: MY_SCENARIO
+        test_sequence:
+            - destroy
+            - syntax
+            - create
+            - converge
+            - idempotence
+            - verify
+            - destroy
+    
+    driver:
+        name: vagrant
+        parallel: true
+    
+    platforms:
+        - name: "23.7"
+          box: puzzle/opnsense
+          hostname: false
+          box_version: "23.7"
+          memory: 1024
+          cpus: 2
+          instance_raw_config_args:
+              - 'vm.guest = :freebsd'
+              - 'ssh.sudo_command = "%c"'
+              - 'ssh.shell = "/bin/sh"'
+    
+    provisioner:
+        name: ansible
+        env:
+            ANSIBLE_VERBOSITY: 3
+    verifier:
+        name: ansible
+        options:
+            become: true
 
-      config.vm.provider 'virtualbox' do |vb|
-        vb.memory = 1024
-        vb.cpus = 1
-        vb.gui = false
-        vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']
-        vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']
-        vb.customize ['modifyvm', :id, '--nicpromisc4', 'allow-all']
-      end
+Now you are ready to start up your test VM using the following molecule
+command:
 
-      config.vm.network :forwarded_port, guest: 443, host: 10443, auto_correct: true
-      config.vm.network "private_network", adapter: 2, virtualbox__intnet: true, auto_config: false
-      config.vm.network "private_network", adapter: 3, virtualbox__intnet: true, auto_config: false
-      config.vm.network "private_network", adapter: 4, virtualbox__intnet: true, auto_config: false
+.. code-block:: bash
 
-      config.vm.provision "ansible" do |ansible|
-        ansible.playbook = "playbook.yml"
-      end
-    end
+    pipenv run molecule create --scenario-name MY_SCENARIO
 
-Start up the vm
 
-.. code-block::
+.. note::
 
-    vagrant up
+    Molecule leverages a sequence of different playbooks defined inside the
+    `molecule.yml` in order to ensure execution and verification of ansible
+    tests against a running instance. The full test sequence can be executed
+    using `pipenv run molecule test`. However, like in this 'create' example
+    we can run single stages such that we can eg. start the VM separately and
+    control the teardown manually.
 
-Apply any changes made, while using the vm
 
-.. code-block::
+2. Add tests to your scenario
+----------------------------
 
-   vagrant provision
+Molecule runs its scenario tests during its 'converge' stage.
+Therefore your actual tests are required to be written inside a 
+`molecule/MY_SCENARIO/converge.yaml` playbook, like for example:
 
-Stop the current vm
+.. code-block:: yaml
 
-.. code-block::
+    ---
+    - name: converge
+      hosts: all
+      become: true
+      tasks:
+        - name: Test MY_MODULE
+          puzzle.opnsense.MY_MODULE:
+            name: John
+          register: output
 
-   vagrant down
+        - name: Test output
+          assert:
+            that: 
+              - "Hello John" == output.result
+
+
+These tests can now be executed using molecule:
+
+.. code-block:: bash
+
+    pipenv run molecule converge --scenario-name MY_SCENARIO
+
+3. Debug executions on your VM
+------------------------------
+
+If you want to inspect the OPNsense XML config you can connect to your
+VM using vagrant. Since Molecule does not place Vagrantfiles inside the
+collection directory you first need to identify your VM-id using:
+
+.. code-block:: bash
+
+    vagrant global-status
+
+Select your VM-id and run:
+
+.. code-block:: bash
+
+    vagrant ssh YOUR_VM_ID
+
+
+4. Poweroff your VM
+-------------------
+
+
+To cleanup your environment from any VM run:
+
+.. code-block:: bash
+
+    pipenv run molecule destroy --scenario-name MY_SCENARIO
+
 
 Testing Your Code
 =================
