@@ -188,8 +188,8 @@ def test_unsupported_module_setting(sample_config_path):
 
 def test_setting_from_two_contexts_accessible(sample_config_path):
     """
-    Test case to verify that an UnsupportedModuleSettingError exception is raised
-    when attempting to retrieve an unsupported module setting.
+    Test case to verify that a OPNsenseModuleConfig with multiple context can access
+    settings of any given context.
 
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
