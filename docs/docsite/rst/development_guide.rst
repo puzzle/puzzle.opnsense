@@ -34,7 +34,7 @@ Ansible documentation (`Prepare your environment
     git clone git@github.com/<YOUR_GITHUB_HANDLE>/puzzle.opnsense.git \
        <YOUR_WORKING_DIR>/ansible_collections/puzzle/opnsense
 
-3. This collection supports Python versions >=3.6 therefore make sure your system
+3. This collection supports Python versions >=3.6,<3.12 therefore make sure your system
    supports any of those versions.
 4. Setup the pipenv:
 
