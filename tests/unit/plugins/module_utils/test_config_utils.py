@@ -38,6 +38,16 @@ TEST_VERSION_MAP = {
                 },
             },
         },
+        "test_module_2": {
+            "timezone": "system/timezone",
+            "php_requirements": ["req_1", "req_2"],
+            "configure_functions": {
+                "test_configure_function": {
+                    "name": "test_configure_function",
+                    "configure_params": ["param_1"],
+                },
+            },
+        },
         "missing_php_requirements": {
             "setting_1": "settings/one",
             "setting_2": "settings/two",
@@ -77,6 +87,7 @@ TEST_XML: str = """<?xml version="1.0"?>
     <opnsense>
         <system>
             <hostname>test_name</hostname>
+            <timezone>test_timezone</timezone>
         </system>
     </opnsense>
     """
@@ -173,6 +184,26 @@ def test_unsupported_module_setting(sample_config_path):
             "for OPNsense version 'OPNsense Test'",
         ):
             _val = new_config.get("unsupported")
+
+
+def test_setting_from_two_contexts_accessible(sample_config_path):
+    """
+    Test case to verify that an UnsupportedModuleSettingError exception is raised
+    when attempting to retrieve an unsupported module setting.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        "test_module",
+        config_context_names=["test_module", "test_module_2"],
+        path=sample_config_path,
+    ) as new_config:
+        hostname = new_config.get("hostname")
+        timezone = new_config.get("timezone")
+
+        assert hostname.text == "test_name"
+        assert timezone.text == "test_timezone"
 
 
 def test_php_requirements_must_be_present(sample_config_path):
