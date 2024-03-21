@@ -9,13 +9,13 @@
 
       # Test User minimum requirements
     - name: "Test User 1: Test minimum requirements User Creation"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_1
         password: test_password_1
 
       # Test User minimum requirements disabled
     - name: "Test User 2: Test disabled User Creation"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_2
         password: test_password_2
         full_name: "Test User 2: Test disabled User Creation"
@@ -23,14 +23,14 @@
 
       # Test User with Full Name
     - name: "Test User 3: Test User Creation with Full Name"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_3
         password: test_password_3
         full_name: "Test User 3: Test User Creation with Full Name"
 
       # Test User with E-Mail
     - name: "Test User 4: Test User Creation with E-Mail"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_4
         password: test_password_4
         email: test_user_4@test.ch
@@ -38,7 +38,7 @@
 
       # Test User with Comment
     - name: "Test User 5: Test User Creation with Comment"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_5
         password: test_password_5
         comment: Test User 5 Comment
@@ -46,7 +46,7 @@
 
       # Test User with Preferred landing page
     - name: "Test User 6: Test User Creation with Preferred landing page"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_6
         password: test_password_6
         landing_page: /ui/ipsec/sessions
@@ -54,7 +54,7 @@
 
       # Test User with nologin shell
     - name: "Test User 7: Test User Creation with nologin shell"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_7
         password: test_password_7
         shell: /sbin/nologin
@@ -62,7 +62,7 @@
 
       # Test User with csh shell
     - name: "Test User 8: Test User Creation with csh shell"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_8
         password: test_password_8
         shell: /bin/csh
@@ -70,7 +70,7 @@
 
       # Test User with sh shell
     - name: "Test User 9: Test User Creation with sh shell"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_9
         password: test_password_9
         shell: /bin/sh
@@ -78,7 +78,7 @@
 
       # Test User with tcsh shell
     - name: "Test User 10: Test User Creation with tcsh shell"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_10
         password: test_password_10
         shell: /bin/tcsh
@@ -86,7 +86,7 @@
 
       # Test User with Expiration date
     - name: "Test User 11: Test User Creation with Expiration date"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_11
         password: test_password_11
         expires: 02/27/2024
@@ -94,7 +94,7 @@
 
      # Test User with group as string
     - name: "Test User 12: Test User Creation with group as string"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_12
         password: test_password_12
         full_name: "Test User 12: Test User Creation with group as string"
@@ -102,7 +102,7 @@
 
       # Test User with group as list
     - name: "Test User 13: Test User Creation with group as list"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_13
         password: test_password_13
         full_name: "Test User 13: Test User Creation with group as list"
@@ -111,7 +111,7 @@
 
       # Test User with not existing group as list
     - name: "Test User 14: Test User Creation with not existing group as list"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_14
         password: test_password_14
         full_name: "Test User 14: Test User Creation with not existing group as list"
@@ -129,7 +129,7 @@
 
       # Test User with empty otp_seed
     - name: "Test User 15: Test User Creation with empty otp_seed"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_15
         password: test_password_15
         otp_seed: ""
@@ -137,7 +137,7 @@
 
       # Test User with otp_seed
     - name: "Test User 16: Test User Creation with otp_seed"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_16
         password: test_password_16
         otp_seed: test_seed
@@ -145,7 +145,7 @@
 
       # Test User with empty authorizedkeys
     - name: "Test User 17: Test User Creation with empty authorizedkeys"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
         username: test_user_17
         password: test_password_17
         authorizedkeys: ""
@@ -153,7 +153,7 @@
 
       # Test User with authorizedkeys
     - name: "Test User 18: Test User Creation with authorizedkeys"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
           username: test_user_18
           password: test_password_18
           authorizedkeys: test_authorized_key
@@ -161,7 +161,7 @@
 
       # Test User with api_keys
     - name: "Test User 19: Test User Creation with api_keys"
-      puzzle.opnsense.users:
+      puzzle.opnsense.system_access_users:
           username: test_user_19
           password: test_password_19
           apikeys: ""

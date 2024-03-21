@@ -24,7 +24,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index impor
 # Test version map for OPNsense versions and modules
 TEST_VERSION_MAP = {
     "OPNsense Test": {
-        "users": {
+        "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
             "gid": "system/nextgid",

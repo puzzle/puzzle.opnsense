@@ -5,7 +5,7 @@
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-"""User module: Read, write, edit operations for OPNsense Users """
+"""system_access_users module: Read, write, edit operations for OPNsense Users """
 
 __metaclass__ = type
 

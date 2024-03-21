@@ -1,6 +1,6 @@
 ---
 scenario:
-    name: users
+    name: system_access_users
     test_sequence:
         # - dependency not relevant unless we have requirements
         - destroy

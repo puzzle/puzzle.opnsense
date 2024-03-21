@@ -587,7 +587,7 @@ class UserSet(OPNsenseModuleConfig):
     _users: List[User]
 
     def __init__(self, path: str = "/conf/config.xml"):
-        super().__init__(module_name="users", path=path)
+        super().__init__(module_name="system_access_users", path=path)
         self._users = self._load_users()
         self._groups = self._load_groups()
 

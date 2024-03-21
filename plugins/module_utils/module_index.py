@@ -97,7 +97,7 @@ VERSION_MAP = {
                 },
             },
         },
-        "users": {
+        "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
             "gid": "system/nextgid",
@@ -185,7 +185,7 @@ VERSION_MAP = {
                 },
             },
         },
-        "users": {
+        "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
             "gid": "system/nextgid",
@@ -273,7 +273,7 @@ VERSION_MAP = {
                 },
             },
         },
-        "users": {
+        "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
             "gid": "system/nextgid",
