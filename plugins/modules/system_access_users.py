@@ -113,7 +113,7 @@ options:
 
 EXAMPLES = r'''
 - name: Add OPNsense user
-  opnsense_user:
+  puzzle.opnsense.system_access_users:
     username: johndoe
     password: secret
     full_name: John Doe
@@ -124,7 +124,7 @@ EXAMPLES = r'''
   register: result
 
 - name: Remove OPNsense user
-  opnsense_user:
+  puzzle.opnsense.system_access_users:
     username: johndoe
     state: absent
   register: result
