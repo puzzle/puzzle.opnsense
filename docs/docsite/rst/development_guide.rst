@@ -183,7 +183,7 @@ This detailed and version-specific mapping ensures the utility module operates c
 Add Support for new OPNsense releases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When there is a new OPNsense release we need to update the [VERSION_MAP](https://github.com/puzzle/puzzle.opnsense/blob/main/plugins/module_utils/module_index.py#L31) and verify the location of the existing xpaths, php requirements and configure function. A good start is to diff the PHP files from the old and the new release. Also all the implemented Tests will help you to get up to speed with a new release. Add the new release to your molecule plattforms and run molecule against the new release.
+When there is a new OPNsense release we need to update the [VERSION_MAP](https://github.com/puzzle/puzzle.opnsense/blob/main/plugins/module_utils/module_index.py#L31) and verify the location of the existing xpaths, php requirements and configure function. A good start is to diff the PHP files from the old and the new release. Also all the implemented Tests will help you to get up to speed with a new release. Add the new release to your molecule platforms and run molecule against the new release.
 
 Using Molecule
 =============
