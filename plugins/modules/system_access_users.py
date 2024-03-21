@@ -14,7 +14,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: users
+module: system_access_users
 short_description: Manage OPNsense users
 description:
     - This module allows you to manage users on an OPNsense firewall.
