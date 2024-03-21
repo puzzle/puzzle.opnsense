@@ -177,7 +177,7 @@ VERSION_MAP = {
         },
     },
     "OPNsense 24.1": {
-            "system_settings_general": {
+        "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
             "timezone": "system/timezone",
