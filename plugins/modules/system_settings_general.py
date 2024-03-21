@@ -174,21 +174,21 @@ def main():
             if not is_hostname(hostname_param):
                 module.fail_json(msg="Invalid hostname parameter specified")
 
-            if hostname_param != config.get("hostname"):
+            if hostname_param != config.get("hostname").text:
                 config.set(value=hostname_param, setting="hostname")
 
         if domain_param:
             if not is_domain(domain_param):
                 module.fail_json(msg="Invalid domain parameter specified")
 
-            if domain_param != config.get("domain"):
+            if domain_param != config.get("domain").text:
                 config.set(value=domain_param, setting="domain")
 
         if timezone_param:
             if not is_timezone(timezone_param):
                 module.fail_json(msg="Invalid timezone parameter specified")
 
-            if timezone_param != config.get("timezone"):
+            if timezone_param != config.get("timezone").text:
                 config.set(value=timezone_param, setting="timezone")
 
         if config.changed:
