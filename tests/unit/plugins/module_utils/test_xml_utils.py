@@ -1,7 +1,7 @@
 # Copyright: (c) 2023, Fabio Bertagna <bertagna@puzzle.ch>, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-"""Tests for the plugins.module_utils.xml_utils module."""
+"""Tests for the ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils module."""
 
 # This is probably intentional and required for the fixture
 # pylint: disable=redefined-outer-name

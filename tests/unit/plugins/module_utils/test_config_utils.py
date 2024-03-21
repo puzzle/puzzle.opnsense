@@ -1,6 +1,6 @@
 # Copyright: (c) 2023, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-"""Tests for the plugins.module_utils.config_utils module."""
+"""Tests for the ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils module."""
 
 # This is probably intentional and required for the fixture
 # pylint: disable=redefined-outer-name,unused-argument,protected-access
@@ -30,6 +30,16 @@ TEST_VERSION_MAP = {
     "OPNsense Test": {
         "test_module": {
             "hostname": "system/hostname",
+            "php_requirements": ["req_1", "req_2"],
+            "configure_functions": {
+                "test_configure_function": {
+                    "name": "test_configure_function",
+                    "configure_params": ["param_1"],
+                },
+            },
+        },
+        "test_module_2": {
+            "timezone": "system/timezone",
             "php_requirements": ["req_1", "req_2"],
             "configure_functions": {
                 "test_configure_function": {
@@ -77,6 +87,7 @@ TEST_XML: str = """<?xml version="1.0"?>
     <opnsense>
         <system>
             <hostname>test_name</hostname>
+            <timezone>test_timezone</timezone>
         </system>
     </opnsense>
     """
@@ -128,7 +139,10 @@ def test_unsupported_opnsense_version(
         match="OPNsense version 'OPNsense X.X.X' not supported by puzzle.opnsense collection",
     ):
         _val = OPNsenseModuleConfig(
-            module_name="test_module", check_mode=False, path=sample_config_path
+            module_name="test_module",
+            config_context_names=["test_module"],
+            path=sample_config_path,
+            check_mode=False,
         )
 
 
@@ -142,11 +156,14 @@ def test_unsupported_module(sample_config_path):
     """
     with pytest.raises(
         UnsupportedVersionForModule,
-        match=r"Module 'unsupported_module' not supported "
+        match=r"Config context 'unsupported_module' not supported "
         "for OPNsense version 'OPNsense Test'.",
     ):
         _val = OPNsenseModuleConfig(
-            module_name="unsupported_module", check_mode=False, path=sample_config_path
+            module_name="unsupported_module",
+            config_context_names=["unsupported_module"],
+            path=sample_config_path,
+            check_mode=False,
         )
 
 
@@ -159,7 +176,7 @@ def test_unsupported_module_setting(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        "test_module", config_context_names=["test_module"], path=sample_config_path
     ) as new_config:
         with pytest.raises(
             UnsupportedModuleSettingError,
@@ -167,6 +184,47 @@ def test_unsupported_module_setting(sample_config_path):
             "for OPNsense version 'OPNsense Test'",
         ):
             _val = new_config.get("unsupported")
+
+
+def test_setting_from_two_contexts_accessible(sample_config_path):
+    """
+    Test case to verify that a OPNsenseModuleConfig with multiple context can access
+    settings of any given context.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        "test_module",
+        config_context_names=["test_module", "test_module_2"],
+        path=sample_config_path,
+    ) as new_config:
+        hostname = new_config.get("hostname")
+        timezone = new_config.get("timezone")
+
+        assert hostname.text == "test_name"
+        assert timezone.text == "test_timezone"
+
+
+def test_setting_from_another_context_raises_error(sample_config_path):
+    """
+    Test case to verify that a OPNsenseModuleConfig with multiple context cannot access
+    a context it has not been initialized with.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        "test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+    ) as new_config:
+        with pytest.raises(
+            UnsupportedModuleSettingError,
+            match="Setting 'timezone' is not supported in module 'test_module' "
+            "for OPNsense version 'OPNsense Test'",
+        ):
+            _timezone = new_config.get("timezone")
 
 
 def test_php_requirements_must_be_present(sample_config_path):
@@ -179,13 +237,14 @@ def test_php_requirements_must_be_present(sample_config_path):
     """
     with OPNsenseModuleConfig(
         module_name="missing_php_requirements",
-        check_mode=False,
+        config_context_names=["missing_php_requirements"],
         path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_php_requirements' has no php_requirements defined in "
-            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
             "OPNsense version 'OPNsense Test'.",
         ):
             _val = new_config._get_php_requirements()
@@ -201,13 +260,14 @@ def test_config_functions_must_be_present(sample_config_path):
     """
     with OPNsenseModuleConfig(
         module_name="missing_configure_functions",
-        check_mode=False,
+        config_context_names=["missing_configure_functions"],
         path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_configure_functions' has no configure_functions defined in "
-            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
             "OPNsense version 'OPNsense Test'.",
         ):
             _val = new_config._get_configure_functions()
@@ -223,8 +283,9 @@ def test_php_requirements_must_be_list(sample_config_path):
     """
     with OPNsenseModuleConfig(
         module_name="invalid_php_requirements",
-        check_mode=False,
+        config_context_names=["invalid_php_requirements"],
         path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -247,8 +308,9 @@ def test_configure_functions_must_be_dict(sample_config_path):
     """
     with OPNsenseModuleConfig(
         module_name="invalid_configure_functions",
-        check_mode=False,
+        config_context_names=["invalid_configure_functions"],
         path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         with pytest.raises(
             ModuleMisconfigurationError,
@@ -270,7 +332,10 @@ def test_get_php_requirements(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         requirements: List[str] = new_config._get_php_requirements()
 
@@ -288,7 +353,10 @@ def test_get_configure_functions(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        module_name="test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         requirements: Dict = new_config._get_configure_functions()
 
@@ -307,7 +375,10 @@ def test_changed(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         assert new_config.changed
@@ -322,7 +393,10 @@ def test_get_setting(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         hostname_setting: Element = new_config.get("hostname")
         assert isinstance(hostname_setting, Element)
@@ -338,7 +412,10 @@ def test_save_on_changed(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         assert new_config.save()
@@ -352,7 +429,10 @@ def test_save_on_not_changed(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         assert not new_config.save()
 
@@ -366,7 +446,10 @@ def test_diff_on_change(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         new_config.set(value="testtest", setting="hostname")
         diff = new_config.diff
@@ -391,37 +474,10 @@ def test_diff_on_no_change(sample_config_path):
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(
-        "test_module", check_mode=False, path=sample_config_path
+        module_name="test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+        check_mode=False,
     ) as new_config:
         diff = new_config.diff
         assert diff["before"] == diff["after"]
-
-
-def test_exit_on_changed_not_in_checkmode(sample_config_path):
-    """
-    Test that a RuntimeError is raised when configuration changes are not saved.
-    """
-    with pytest.raises(
-        RuntimeError, match="Config has changed. Cannot exit without saving."
-    ):
-        with OPNsenseModuleConfig(
-            "test_module", check_mode=False, path=sample_config_path
-        ) as new_config:
-            new_config.set(value="testtest", setting="hostname")
-            # The RuntimeError should be raised here, when exiting the context manager
-
-
-def test_exit_on_changed_in_checkmode(sample_config_path):
-    """
-    Verifies that the OPNsenseModuleConfig context manager exits without error
-    in check mode even after changes are made. The test confirms that
-    RuntimeError is not raised when the 'check_mode' is set to True, even
-    if changes are applied to the configuration. This is because in check mode,
-    changes should not be saved, and thus, the process should exit cleanly
-    without raising a RuntimeError about unsaved changes.
-    """
-
-    with OPNsenseModuleConfig(
-        "test_module", check_mode=True, path=sample_config_path
-    ) as new_config:
-        new_config.set(value="testtest", setting="hostname")

@@ -166,7 +166,9 @@ def main():
     timezone_param = module.params.get("timezone")
 
     with OPNsenseModuleConfig(
-        module_name="system_settings_general", check_mode=module.check_mode
+        module_name="system_settings_general",
+        config_context_names=["system_settings_general"],
+        check_mode=module.check_mode,
     ) as config:
         if hostname_param:
             if not is_hostname(hostname_param):

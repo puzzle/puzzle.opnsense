@@ -31,15 +31,15 @@ class OPNSenseConfigUsageError(Exception):
 class MissingConfigDefinitionForModuleError(Exception):
     """
     Exception raised when a required config definition is missing for a module in the
-    plugins.module_utils.module_index.VERSION_MAP. Required configs must include
-    'php_requirements' and 'configure_functions'.
+    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
+    Required configs must include 'php_requirements' and 'configure_functions'.
     """
 
 
 class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
-    plugins.module_utils.module_index.VERSION_MAP.
+    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
     """
 
 
@@ -73,7 +73,8 @@ class OPNsenseModuleConfig:
     Attributes:
         _config_xml_tree (Element): The XML tree of the configuration file.
         _config_path (str): The file path of the configuration.
-        _config_map (dict): The mapping of settings and their XPath in the XML tree.
+        _config_maps (List[str]): The mappings of settings and their XPath in the XML tree.
+        _config_contexts (dict): List of required config_contexts
         _module_name (str): The name of the module.
         _opnsense_version (str): The OPNsense version.
         _check_mode (bool): If the module is run in check_mode or not
@@ -81,13 +82,18 @@ class OPNsenseModuleConfig:
 
     _config_xml_tree: Element
     _config_path: str
-    _config_map: dict
     _module_name: str
+    _config_maps: Dict[str, dict] = {}
+    _config_contexts: List[str]
     _opnsense_version: str
     _check_mode: bool
 
     def __init__(
-        self, module_name: str, check_mode: bool, path: str = "/conf/config.xml"
+        self,
+        module_name: str,
+        config_context_names: List[str],
+        path: str = "/conf/config.xml",
+        check_mode: bool = False,
     ):
         """
         Initializes the OPNsenseModuleConfig class.
@@ -98,26 +104,28 @@ class OPNsenseModuleConfig:
             path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
         self._module_name = module_name
+        self._config_contexts = config_context_names
         self._config_path = path
         self._config_xml_tree = self._load_config()
         self._opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
-
         try:
             version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
         except KeyError as ke:
             raise UnsupportedOPNsenseVersion(
                 f"OPNsense version '{self._opnsense_version}' not supported "
-                "by puzzle.opnsense collection"
+                "by puzzle.opnsense collection.\n"
+                f"Supported versions are {list(module_index.VERSION_MAP.keys())}"
             ) from ke
+        for config_context_name in config_context_names:
+            if config_context_name not in version_map:
+                raise UnsupportedVersionForModule(
+                    f"Config context '{config_context_name}' not supported "
+                    f"for OPNsense version '{self._opnsense_version}'.\n"
+                    f"Supported config contexts are {list(version_map.keys())}"
+                )
 
-        if self._module_name not in version_map:
-            raise UnsupportedVersionForModule(
-                f"Module '{self._module_name}' not supported "
-                f"for OPNsense version '{self._opnsense_version}'."
-            )
-
-        self._config_map = version_map[self._module_name]
+            self._config_maps[config_context_name] = version_map[config_context_name]
 
     def _load_config(self) -> Element:
         """
@@ -191,12 +199,18 @@ class OPNsenseModuleConfig:
         Returns:
         - Element: The retrieved setting element.
         """
-        if setting_name not in self._config_map:
-            raise UnsupportedModuleSettingError(
-                f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
-                f"for OPNsense version '{self._opnsense_version}'"
-            )
-        return self._config_xml_tree.find(self._config_map[setting_name])
+        for cfg_map in self._config_maps.values():
+            if setting_name in cfg_map:
+                return self._config_xml_tree.find(cfg_map[setting_name])
+
+        supported_settings: List[str] = []
+        for cfg_map in self._config_maps.values():
+            supported_settings.extend(cfg_map.keys())
+        raise UnsupportedModuleSettingError(
+            f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
+            f"for OPNsense version '{self._opnsense_version}'."
+            f"Supported settings are {supported_settings}"
+        )
 
     def _get_php_requirements(self) -> list:
         """
@@ -211,26 +225,30 @@ class OPNsenseModuleConfig:
         - ModuleMisconfigurationError: If PHP requirements are not in list format.
         """
 
-        php_requirements: Optional[list] = self._config_map.get("php_requirements")
+        all_php_requirements: list = []
 
-        # enforce presence of php_requirements in the VERSION_MAP
-        if php_requirements is None:
-            raise MissingConfigDefinitionForModuleError(
-                f"Module '{self._module_name}' has no php_requirements defined in "
-                f"the plugins.module_utils.module_index.VERSION_MAP for given "
-                f"OPNsense version '{self._opnsense_version}'."
-            )
+        for cfg_map in self._config_maps.values():
+            php_requirements: Optional[list] = cfg_map.get("php_requirements")
 
-        # ensure php_requirements are defined as a list
-        if not isinstance(php_requirements, list):
-            raise ModuleMisconfigurationError(
-                f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
-                "not provided as a list in the VERSION_MAP using OPNsense version"
-                f"'{self._opnsense_version}'."
-            )
+            # enforce presence of php_requirements in the VERSION_MAP
+            if php_requirements is None:
+                raise MissingConfigDefinitionForModuleError(
+                    f"Module '{self._module_name}' has no php_requirements defined in "
+                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
+                    f"OPNsense version '{self._opnsense_version}'."
+                )
 
-        # return list
-        return php_requirements
+            # ensure php_requirements are defined as a list
+            if not isinstance(php_requirements, list):
+                raise ModuleMisconfigurationError(
+                    f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
+                    "not provided as a list in the VERSION_MAP using OPNsense version"
+                    f"'{self._opnsense_version}'."
+                )
+
+            all_php_requirements.extend(php_requirements)
+
+        return all_php_requirements
 
     def _get_configure_functions(self) -> dict:
         """
@@ -261,31 +279,33 @@ class OPNsenseModuleConfig:
             Functionality depends on accurate and complete version_map.
         """
 
-        configure_functions: Optional[dict] = self._config_map.get(
-            "configure_functions"
-        )
+        all_configure_functions: dict = {}
 
-        # enforce presence of configure_functions in the VERSION_MAP
-        if configure_functions is None:
-            raise MissingConfigDefinitionForModuleError(
-                f"Module '{self._module_name}' has no configure_functions defined in "
-                f"the plugins.module_utils.module_index.VERSION_MAP for given "
-                f"OPNsense version '{self._opnsense_version}'."
-            )
+        for cfg_map in self._config_maps.values():
+            configure_functions: Optional[dict] = cfg_map.get("configure_functions")
 
-        # ensure configure_functions are defined as a list
-        if not isinstance(configure_functions, dict):
-            raise ModuleMisconfigurationError(
-                "Configure functions (configure_functions) for the module "
-                f"'{self._module_name}' are "
-                "not provided as a list in the VERSION_MAP using OPNsense version "
-                f"'{self._opnsense_version}'."
-            )
+            # enforce presence of configure_functions in the VERSION_MAP
+            if configure_functions is None:
+                raise MissingConfigDefinitionForModuleError(
+                    f"Module '{self._module_name}' has no configure_functions defined in "
+                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
+                    f"OPNsense version '{self._opnsense_version}'."
+                )
 
-        # return list
-        return configure_functions
+            # ensure configure_functions are defined as a list
+            if not isinstance(configure_functions, dict):
+                raise ModuleMisconfigurationError(
+                    "Configure functions (configure_functions) for the module "
+                    f"'{self._module_name}' are "
+                    "not provided as a list in the VERSION_MAP using OPNsense version "
+                    f"'{self._opnsense_version}'."
+                )
 
-    def apply_settings(self) -> List[str]:
+            all_configure_functions.update(configure_functions)
+
+        return all_configure_functions
+
+    def apply_settings(self) -> List[dict]:
         """
         Retrieves and applies configuration-specific PHP requirements and configure functions for
         a given module.
@@ -326,11 +346,17 @@ class OPNsenseModuleConfig:
         # run configure functions with all required php dependencies and store their output.
         for value in configure_functions.values():
             meta_dict = {"function": value["name"], "params": value["configure_params"]}
-            result_dict = opnsense_utils.run_function(
-                php_requirements=php_requirements,
-                configure_function=value["name"],
-                configure_params=value["configure_params"],
-            )
+            if not self._check_mode:
+                result_dict = opnsense_utils.run_function(
+                    php_requirements=php_requirements,
+                    configure_function=value["name"],
+                    configure_params=value["configure_params"],
+                )
+            else:
+                result_dict = {
+                    "check_mode": "Ansible running in check mode, does not execute configure functions",  # pylint: disable=line-too-long
+                    "rc": 0,
+                }
             cmd_output.append({**meta_dict, **result_dict})
 
         return cmd_output
@@ -363,8 +389,15 @@ class OPNsenseModuleConfig:
         """
 
         # get xpath from key_mapping
-        xpath = self._config_map.get(setting)
+        xpath: Optional[str] = None
+        for cfg_map in self._config_maps.values():
+            if setting in cfg_map:
+                xpath = cfg_map.get(setting)
 
+        if xpath is None:
+            raise ModuleMisconfigurationError(
+                f"Could not access given setting {setting}"
+            )
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 
@@ -392,14 +425,16 @@ class OPNsenseModuleConfig:
         # Create a dictionary to store the differences
         config_diff_before = {}
         config_diff_after = {}
+        for cfg_map in self._config_maps.values():
+            for setting_name, xpath in cfg_map.items():
+                if setting_name in ["php_requirements", "configure_functions"]:
+                    continue
 
-        for setting_name, xpath in self._config_map.items():
-            if setting_name in ["php_requirements", "configure_functions"]:
-                continue
-
-            # Find the setting in the file-based configuration
-            config_diff_before.update({xpath: file_config.find(xpath).text})
-            # Find the setting in the in-memory configuration
-            config_diff_after.update({xpath: self._config_xml_tree.find(xpath).text})
+                # Find the setting in the file-based configuration
+                config_diff_before.update({xpath: file_config.find(xpath).text})
+                # Find the setting in the in-memory configuration
+                config_diff_after.update(
+                    {xpath: self._config_xml_tree.find(xpath).text}
+                )
 
         return {"before": config_diff_before, "after": config_diff_after}

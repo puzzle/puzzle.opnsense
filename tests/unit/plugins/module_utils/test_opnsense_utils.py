@@ -1,6 +1,6 @@
 # Copyright: (c) 2023, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-"""Tests for the plugins.module_utils.opnsense_utils module."""
+"""Tests for the ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils module."""
 
 from __future__ import absolute_import, division, print_function
 

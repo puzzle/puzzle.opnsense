@@ -126,9 +126,9 @@ Structure of VERSION_MAP
 
 - Top-Level Keys: Each top-level key represents a specific version of OPNsense, such as "OPNsense 22.7 (amd64/OpenSSL)".
 
-- Module Configuration: The value associated with each OPNsense version key is a dictionary. This dictionary maps module names to their specific configuration settings.
+- Config Context: Config context define a reusable context for modules to be consumed. They scope settings, configure functions and php requirements to single use cases. An Ansible Module can use one or multiple config contexts to access XML-Settings or php functions.
 
-- Configuration Details: For each module, the configuration includes:
+- Configuration Details: For each config context, the configuration includes:
 
   - **Setting Mappings**: Key-value pairs where the key represents a configuration setting (e.g., 'hostname') and the value is its corresponding XPath in the OPNsense configuration file.
 
