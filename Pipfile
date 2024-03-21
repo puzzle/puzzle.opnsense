@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 ansible = "==8.2.0"
 molecule = "<6"
-antsibull-docs = "==2.5.0"
+antsibull-docs = "==2.9.0"
 coverage = "==6.5.0"
 molecule-plugins = {extras = ["vagrant"], version = "==23.5.0"}
 pytest = "==7.4.3"
