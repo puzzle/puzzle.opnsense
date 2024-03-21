@@ -12,7 +12,7 @@
         max_log_file_size_mb: 15
 
     # we have no alternative way to compare the values
-    # other than getting theme from the config
+    # other than getting them from the config
     # see https://github.com/opnsense/core/blob/24.1/src/opnsense/scripts/syslog/log_archive#L36
     - name: Get current config
       ansible.builtin.slurp:
