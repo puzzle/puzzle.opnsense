@@ -8,7 +8,7 @@
         preserve_logs: 10
 
     - name: Converge - Set max log file size
-      puzzle.opnsense.system_settings_general:
+      puzzle.opnsense.system_settings_logging:
         max_log_file_size_mb: 15
 
     # we have no alternative way to compare the values
