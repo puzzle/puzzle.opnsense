@@ -587,7 +587,11 @@ class UserSet(OPNsenseModuleConfig):
     _users: List[User]
 
     def __init__(self, path: str = "/conf/config.xml"):
-        super().__init__(module_name="system_access_users", path=path)
+        super().__init__(
+            module_name="system_access_users",
+            config_context_names=["system_access_users"],
+            path=path,
+        )
         self._users = self._load_users()
         self._groups = self._load_groups()
 
@@ -857,8 +861,10 @@ class UserSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        # Assuming self._config_map["system"] gives you the path to the 'system' element
-        filter_element: Element = self._config_xml_tree.find(self._config_map["system"])
+        # Assuming self._config_maps["system_access_users"]["system"] gives you the path to the 'system' element
+        filter_element: Element = self._config_xml_tree.find(
+            self._config_maps["system_access_users"]["system"]
+        )
 
         # Remove specific child elements (e.g., 'user', 'group') from filter_element
         for user_element in list(
