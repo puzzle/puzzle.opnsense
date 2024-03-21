@@ -76,7 +76,22 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -126,6 +141,21 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "23.7": {
         "system_settings_general": {
@@ -171,6 +201,21 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
                     "configure_params": ["true"],
                 },
             },
