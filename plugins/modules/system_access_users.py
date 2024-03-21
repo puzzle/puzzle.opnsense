@@ -212,6 +212,7 @@ def main():
     else:
         description = ANSIBLE_MANAGED
 
+    # since description matches the full_name in GUI
     module.params["full_name"] = description
 
     ansible_user: User = User.from_ansible_module_params(module.params)
