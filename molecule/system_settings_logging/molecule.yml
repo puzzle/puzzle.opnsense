@@ -1,6 +1,6 @@
 ---
 scenario:
-    name: system_settings_general
+    name: system_settings_logging
     test_sequence:
         # - dependency not relevant uless we have requirements
         - destroy
