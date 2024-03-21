@@ -29,6 +29,7 @@ options:
     description:
       - Maximum file size per log file, e.g. V(5)
       - When set and a logfile exceeds the amount specified, it will be rotated
+      - This option is available in OPNsense 24.1 and newer
     type: int
     required: false
 '''
