@@ -223,6 +223,22 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            "max_log_file_size_mb": "syslog/maxfilesize",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
 }

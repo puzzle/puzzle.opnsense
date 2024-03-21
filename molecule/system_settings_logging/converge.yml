@@ -1,0 +1,28 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Set preserve logs
+      puzzle.opnsense.system_settings_logging:
+        preserve_logs: 10
+
+    - name: Converge - Set max log file size
+      puzzle.opnsense.system_settings_general:
+        max_log_file_size_mb: 15
+
+    # we have no alternative way to compare the values
+    # other than getting theme from the config
+    # see https://github.com/opnsense/core/blob/24.1/src/opnsense/scripts/syslog/log_archive#L36
+    - name: Get current config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Compare preserve logs
+      ansible.builtin.assert:
+        that: "'<preservelogs>111</preservelogs>' in ( current_config.content | b64decode )"
+
+    - name: Compare max log file size
+      ansible.builtin.assert:
+        that: "'<maxfilesize>112</maxfilesize>' in ( current_config.content | b64decode )"
