@@ -156,7 +156,10 @@ from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils.users_utils import User, UserSet
+from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
+    User,
+    UserSet,
+)
 
 
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
