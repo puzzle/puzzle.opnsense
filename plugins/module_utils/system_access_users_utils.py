@@ -166,7 +166,8 @@ class Group:
         Args:
             user (User): The User object to remove from the group.
 
-        This function removes a user from the group by removing their UID from the group's member list.
+        This function removes a user from the group by removing their UID
+        from the group's member list.
         """
 
         if not isinstance(self.member, list):
@@ -287,7 +288,8 @@ class User:
     def set_apikeys(self, apikeys: list = None) -> list:
         """
         Generates a list of dictionaries, each containing a 'key' and a 'secret'.
-        If apikeys is provided, each element in apikeys is used as the 'key', and a new 'secret' is generated.
+        If apikeys is provided, each element in apikeys is used as the 'key',
+        and a new 'secret' is generated.
         If apikeys is not provided or is an empty list, a single 'key'-'secret' pair is generated.
 
         Args:
@@ -617,8 +619,8 @@ class UserSet(OPNsenseModuleConfig):
         prompting the need for a save operation to update the system configuration accordingly.
 
         Note:
-            This property should be consulted before performing a save operation to avoid unnecessary
-            writes to the system configuration when no changes have been made.
+            This property should be consulted before performing a save operation to avoid
+            unnecessary writes to the system configuration when no changes have been made.
         """
 
         return self._load_users() != self._users or self._load_groups() != self._groups
@@ -628,8 +630,8 @@ class UserSet(OPNsenseModuleConfig):
         Manages the association of a user with specified groups, either by updating the groups of an
         existing user or adding a new user to the appropriate groups. This method ensures that the
         user is a member of all specified groups, adding the user to any groups they are not already
-        a part of, and maintains the integrity of group memberships across updates. If user.groupname
-        is None, the user is removed from all groups.
+        a part of, and maintains the integrity of group memberships across updates.
+        If user.groupname is None, the user is removed from all groups.
 
         Parameters:
             user (User): The user whose group memberships are to be updated. This includes both new
