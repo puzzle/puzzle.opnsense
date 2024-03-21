@@ -43,5 +43,5 @@ the [Ansible `EXAMPLES` block format](https://docs.ansible.com/ansible/latest/de
 
 ### Additional Notes (Optional)
 
-    * Mention any specific functionalities or edge cases to consider.
-    * Reference existing plugins or modules (if any) for inspiration or reference.
+* Mention any specific functionalities or edge cases to consider.
+* Reference existing plugins or modules (if any) for inspiration or reference.
