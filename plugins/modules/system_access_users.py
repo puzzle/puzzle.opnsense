@@ -182,7 +182,7 @@ def main():
         "otp_seed": {"type": "str", "required": False},
         "authorizedkeys": {"type": "str", "required": False, "no_log": True},
         "groups": {"type": "list", "required": False, "elements": "str"},
-        "apikeys": {"type": "list", "required": False, "elements": "str", "no_log": True},
+        "apikeys": {"type": "list", "required": False, "elements": "str"},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {
@@ -234,9 +234,9 @@ def main():
             result["opnsense_configure_output"] = user_set.apply_settings()
 
             if ansible_user.apikeys:
-                result["apikeys"] = []
+                result["generated_apikeys"] = []
                 for new_generated_api_key in ansible_user.apikeys:
-                    result["apikeys"].append(new_generated_api_key["key"])
+                    result["generated_apikeys"].append(new_generated_api_key["key"])
 
             for cmd_result in result["opnsense_configure_output"]:
                 if cmd_result["rc"] != 0:
