@@ -354,8 +354,7 @@ class OPNsenseModuleConfig:
                 )
             else:
                 result_dict = {
-                    "check_mode":
-                        "Ansible running in check mode, does not execute configure functions",
+                    "check_mode": "Ansible running in check mode, does not execute configure functions",
                     "rc": 0,
                 }
             cmd_output.append({**meta_dict, **result_dict})
