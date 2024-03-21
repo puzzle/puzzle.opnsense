@@ -180,6 +180,11 @@ In this example, the configuration for "OPNsense 22.7 (amd64/OpenSSL)" is outlin
 This detailed and version-specific mapping ensures the utility module operates correctly across different OPNsense releases, contributing significantly to the robustness and reliability of the configuration management process.
 
 
+Add Support for new OPNsense releases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When there is a new OPNsense release we need to update the [VERSION_MAP](https://github.com/puzzle/puzzle.opnsense/blob/main/plugins/module_utils/module_index.py#L31) and verify the location of the existing xpaths, php requirements and configure function. A good start is to diff the PHP files from the old and the new release. Also all the implemented Tests will help you to get up to speed with a new release. Add the new release to your molecule platforms and run molecule against the new release.
+
 Using Molecule
 =============
 
@@ -208,11 +213,11 @@ or less like this:
             - idempotence
             - verify
             - destroy
-    
+
     driver:
         name: vagrant
         parallel: true
-    
+
     platforms:
         - name: "23.7"
           box: puzzle/opnsense
@@ -224,7 +229,7 @@ or less like this:
               - 'vm.guest = :freebsd'
               - 'ssh.sudo_command = "%c"'
               - 'ssh.shell = "/bin/sh"'
-    
+
     provisioner:
         name: ansible
         env:
@@ -256,7 +261,7 @@ command:
 ----------------------------
 
 Molecule runs its scenario tests during its 'converge' stage.
-Therefore your actual tests are required to be written inside a 
+Therefore your actual tests are required to be written inside a
 `molecule/MY_SCENARIO/converge.yaml` playbook, like for example:
 
 .. code-block:: yaml
@@ -273,7 +278,7 @@ Therefore your actual tests are required to be written inside a
 
         - name: Test output
           assert:
-            that: 
+            that:
               - "Hello John" == output.result
 
 
