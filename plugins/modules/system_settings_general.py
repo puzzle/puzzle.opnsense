@@ -4,7 +4,7 @@
 # Copyright: (c) 2023, Reto Kupferschmid <kupferschmid@puzzle.ch>, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-"""Example module: Show minimal functionality of OPNsenseConfig class"""
+"""system_settings_general module: Module to configure general OPNsense system settings"""
 
 __metaclass__ = type
 
