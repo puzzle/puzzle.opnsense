@@ -1,6 +1,6 @@
 # Copyright: (c) 2023, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-"""Tests for the plugins.module_utils.config_utils module."""
+"""Tests for the ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils module."""
 
 # This is probably intentional and required for the fixture
 # pylint: disable=redefined-outer-name,unused-argument,protected-access
@@ -206,6 +206,27 @@ def test_setting_from_two_contexts_accessible(sample_config_path):
         assert timezone.text == "test_timezone"
 
 
+def test_setting_from_another_context_raises_error(sample_config_path):
+    """
+    Test case to verify that a OPNsenseModuleConfig with multiple context cannot access
+    a context it has not been initialized with.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        "test_module",
+        config_context_names=["test_module"],
+        path=sample_config_path,
+    ) as new_config:
+        with pytest.raises(
+            UnsupportedModuleSettingError,
+            match="Setting 'timezone' is not supported in module 'test_module' "
+            "for OPNsense version 'OPNsense Test'",
+        ):
+            _timezone = new_config.get("timezone")
+
+
 def test_php_requirements_must_be_present(sample_config_path):
     """
     Test case to verify that a MissingConfigDefinitionForModuleError exception is raised
@@ -223,7 +244,7 @@ def test_php_requirements_must_be_present(sample_config_path):
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_php_requirements' has no php_requirements defined in "
-            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
             "OPNsense version 'OPNsense Test'.",
         ):
             _val = new_config._get_php_requirements()
@@ -246,7 +267,7 @@ def test_config_functions_must_be_present(sample_config_path):
         with pytest.raises(
             MissingConfigDefinitionForModuleError,
             match=r"Module 'missing_configure_functions' has no configure_functions defined in "
-            "the plugins.module_utils.module_index.VERSION_MAP for given "
+            "the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
             "OPNsense version 'OPNsense Test'.",
         ):
             _val = new_config._get_configure_functions()

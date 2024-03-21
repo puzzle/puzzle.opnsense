@@ -31,15 +31,15 @@ class OPNSenseConfigUsageError(Exception):
 class MissingConfigDefinitionForModuleError(Exception):
     """
     Exception raised when a required config definition is missing for a module in the
-    plugins.module_utils.module_index.VERSION_MAP. Required configs must include
-    'php_requirements' and 'configure_functions'.
+    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
+    Required configs must include 'php_requirements' and 'configure_functions'.
     """
 
 
 class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
-    plugins.module_utils.module_index.VERSION_MAP.
+    ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
     """
 
 
@@ -234,7 +234,7 @@ class OPNsenseModuleConfig:
             if php_requirements is None:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no php_requirements defined in "
-                    f"the plugins.module_utils.module_index.VERSION_MAP for given "
+                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
                     f"OPNsense version '{self._opnsense_version}'."
                 )
 
@@ -288,7 +288,7 @@ class OPNsenseModuleConfig:
             if configure_functions is None:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no configure_functions defined in "
-                    f"the plugins.module_utils.module_index.VERSION_MAP for given "
+                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
                     f"OPNsense version '{self._opnsense_version}'."
                 )
 
@@ -354,7 +354,7 @@ class OPNsenseModuleConfig:
                 )
             else:
                 result_dict = {
-                    "check_mode": "Ansible running in check mode, does not execute configure functions",
+                    "check_mode": "Ansible running in check mode, does not execute configure functions",  # pylint: disable=line-too-long
                     "rc": 0,
                 }
             cmd_output.append({**meta_dict, **result_dict})
