@@ -42,7 +42,7 @@ jobs:
           python -m pip install ansible antsibull-docs
 
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install collection locally
         run:
