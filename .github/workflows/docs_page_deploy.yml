@@ -68,7 +68,7 @@ jobs:
             .
 
       - name: Upload pages artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: github-pages
           path: ${{ github.workspace }}/pages-artifact.tar
