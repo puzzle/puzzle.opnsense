@@ -340,7 +340,7 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
