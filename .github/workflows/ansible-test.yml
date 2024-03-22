@@ -63,6 +63,8 @@ jobs:
           - stable-2.12
           - stable-2.13
           - stable-2.14
+          - stable-2.15
+          - stable-2.16
           - devel
         # - milestone
     # Ansible-test on various stable branches does not yet work well with cgroups v2.
@@ -124,6 +126,8 @@ jobs:
           - stable-2.12
           - stable-2.13
           - stable-2.14
+          - stable-2.15
+          - stable-2.16
           - devel
         # - milestone
 
@@ -188,6 +192,8 @@ jobs:
           - '3.8'
           - '3.9'
           - '3.10'
+          - '3.11'
+          - '3.12'
         exclude:
           # Because ansible-test doesn't support Python 3.9 for Ansible 2.9
           - ansible: stable-2.9
@@ -202,7 +208,7 @@ jobs:
           # for Ansible >=2.15 Python 3.6 support has been deprecated
           - ansible: devel
             python: '3.6'
-            
+
 
     steps:
       - name: >-
