@@ -1,0 +1,12 @@
+---
+- name: verify
+  hosts: all
+  tasks:
+
+    - name: Converge - Creation should be changed
+      assert:
+        that: create_rule.changed
+
+    - name: Converge - Deletion should be changed
+      assert:
+        that: delete_rule.changed

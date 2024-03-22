@@ -123,9 +123,7 @@ def sample_config_path(request):
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense X.X.X",
 )
-def test_unsupported_opnsense_version(
-    mocked_version_util: MagicMock, sample_config_path
-):
+def test_unsupported_opnsense_version(mocked_version_util: MagicMock, sample_config_path):
     """
     Test case to verify that an UnsupportedOPNsenseVersion exception is raised
     when attempting to initialize OPNsenseModuleConfig with an unsupported OPNsense version.
@@ -339,10 +337,7 @@ def test_get_php_requirements(sample_config_path):
     ) as new_config:
         requirements: List[str] = new_config._get_php_requirements()
 
-        assert (
-            requirements
-            == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["php_requirements"]
-        )
+        assert requirements == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["php_requirements"]
 
 
 def test_get_configure_functions(sample_config_path):
@@ -361,8 +356,7 @@ def test_get_configure_functions(sample_config_path):
         requirements: Dict = new_config._get_configure_functions()
 
         assert (
-            requirements
-            == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["configure_functions"]
+            requirements == TEST_VERSION_MAP["OPNsense Test"]["test_module"]["configure_functions"]
         )
 
 

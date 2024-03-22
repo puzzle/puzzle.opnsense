@@ -76,7 +76,46 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+            },
+        },
     },
     "OPNsense 23.1": {
         "system_settings_general": {
@@ -126,6 +165,45 @@ VERSION_MAP = {
                 },
             },
         },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",  # required for the service_log utility
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+            },
+        },
     },
     "OPNsense 23.7": {
         "system_settings_general": {
@@ -173,6 +251,113 @@ VERSION_MAP = {
                     "name": "filter_configure",
                     "configure_params": ["true"],
                 },
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": [],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+            },
+        },
+    },
+    "OPNsense 24.1": {
+        "system_settings_general": {
+            "hostname": "system/hostname",
+            "domain": "system/domain",
+            "timezone": "system/timezone",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "system_timezone_configure": {
+                    "name": "system_timezone_configure",
+                    "configure_params": ["true"],
+                },
+                "system_trust_configure": {
+                    "name": "system_trust_configure",
+                    "configure_params": ["true"],
+                },
+                "system_hostname_configure": {
+                    "name": "system_hostname_configure",
+                    "configure_params": ["true"],
+                },
+                "system_hosts_generate": {
+                    "name": "system_hosts_generate",
+                    "configure_params": ["true"],
+                },
+                "system_resolvconf_generate": {
+                    "name": "system_resolvconf_generate",
+                    "configure_params": ["true"],
+                },
+                "plugins_configure_dns": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dns'", "true"],
+                },
+                "plugins_configure_dhcp": {
+                    "name": "plugins_configure",
+                    "configure_params": ["'dhcp'", "true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     },

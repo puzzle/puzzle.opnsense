@@ -161,6 +161,7 @@ class OPNsenseModuleConfig:
         """
         if exc_type:
             raise exc_type(f"Exception occurred: {exc_val}")
+
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
@@ -173,9 +174,7 @@ class OPNsenseModuleConfig:
         """
 
         if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(
-                self._config_xml_tree
-            )
+            tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
             tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
             self._config_xml_tree = self._load_config()
             return True
@@ -395,9 +394,7 @@ class OPNsenseModuleConfig:
                 xpath = cfg_map.get(setting)
 
         if xpath is None:
-            raise ModuleMisconfigurationError(
-                f"Could not access given setting {setting}"
-            )
+            raise ModuleMisconfigurationError(f"Could not access given setting {setting}")
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 
@@ -433,8 +430,6 @@ class OPNsenseModuleConfig:
                 # Find the setting in the file-based configuration
                 config_diff_before.update({xpath: file_config.find(xpath).text})
                 # Find the setting in the in-memory configuration
-                config_diff_after.update(
-                    {xpath: self._config_xml_tree.find(xpath).text}
-                )
+                config_diff_after.update({xpath: self._config_xml_tree.find(xpath).text})
 
         return {"before": config_diff_before, "after": config_diff_after}
