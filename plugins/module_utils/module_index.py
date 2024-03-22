@@ -78,10 +78,14 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+<<<<<<< HEAD
             "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/util.inc",
+=======
+            "php_requirements": [
+>>>>>>> 88de66d (Init module index for firewall rule module)
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
@@ -97,6 +101,7 @@ VERSION_MAP = {
                 },
             },
         },
+<<<<<<< HEAD
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
@@ -116,6 +121,8 @@ VERSION_MAP = {
                 "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
+=======
+>>>>>>> 88de66d (Init module index for firewall rule module)
     },
     "OPNsense 23.1": {
         "system_settings_general": {
@@ -166,10 +173,14 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+<<<<<<< HEAD
             "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/util.inc",  # required for the service_log utility
+=======
+            "php_requirements": [
+>>>>>>> 88de66d (Init module index for firewall rule module)
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
@@ -185,6 +196,7 @@ VERSION_MAP = {
                 },
             },
         },
+<<<<<<< HEAD
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
@@ -204,6 +216,8 @@ VERSION_MAP = {
                 "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
+=======
+>>>>>>> 88de66d (Init module index for firewall rule module)
     },
     "OPNsense 23.7": {
         "system_settings_general": {
@@ -254,10 +268,14 @@ VERSION_MAP = {
             },
         },
         "firewall_rules": {
+<<<<<<< HEAD
             "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/util.inc",
+=======
+            "php_requirements": [
+>>>>>>> 88de66d (Init module index for firewall rule module)
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
@@ -273,6 +291,7 @@ VERSION_MAP = {
                 },
             },
         },
+<<<<<<< HEAD
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
@@ -313,6 +332,8 @@ VERSION_MAP = {
                 "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
+=======
+>>>>>>> 88de66d (Init module index for firewall rule module)
     },
     "OPNsense 24.1": {
         "system_settings_general": {
