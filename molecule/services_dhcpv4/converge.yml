@@ -1,0 +1,11 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Converge - Enable DHCP Server on LAN interface
+      puzzle.opnsense.services_dhcpv4:
+        interface: lan
+        enable: true
+        range_from: 10.2.0.100
+        range_to: 10.2.0.200

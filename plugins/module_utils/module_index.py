@@ -76,7 +76,22 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
+        "services_dhcpv4": {
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "OPNsense 23.1": {
         "system_settings_general": {
@@ -122,6 +137,21 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+        "services_dhcpv4": {
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
                     "configure_params": ["true"],
                 },
             },
@@ -175,6 +205,21 @@ VERSION_MAP = {
                 },
             },
         },
+        "services_dhcpv4": {
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "OPNsense 24.1": {
         "system_settings_general": {
@@ -223,6 +268,21 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
+        "services_dhcpv4": {
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
 }
