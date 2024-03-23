@@ -1,6 +1,6 @@
 ---
 scenario:
-    name: service_dhcpv4
+    name: services_dhcpv4
     test_sequence:
         # - dependency not relevant unless we have requirements
         - destroy
