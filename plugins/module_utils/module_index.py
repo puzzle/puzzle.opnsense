@@ -78,9 +78,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface+"/enable",
-            "range_from": interface+"/range/from",
-            "range_to": interface+"/range/to",
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -91,7 +91,7 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
     },
     "OPNsense 23.1": {
         "system_settings_general": {
@@ -140,11 +140,11 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-         },
+        },
         "services_dhcpv4": {
-            "enable": interface+"/enable",
-            "range_from": interface+"/range/from",
-            "range_to": interface+"/range/to",
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -154,7 +154,7 @@ VERSION_MAP = {
                     "name": "reconfigure_dhcpd",
                     "configure_params": ["true"],
                 },
-            },       
+            },
         },
     },
     "OPNsense 23.7": {
@@ -206,9 +206,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface+"/enable",
-            "range_from": interface+"/range/from",
-            "range_to": interface+"/range/to",
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -270,9 +270,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface+"/enable",
-            "range_from": interface+"/range/from",
-            "range_to": interface+"/range/to",
+            "enable": interface + "/enable",
+            "range_from": interface + "/range/from",
+            "range_to": interface + "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -283,6 +283,6 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
-        }
+        },
     },
 }

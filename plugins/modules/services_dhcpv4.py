@@ -9,7 +9,6 @@
 __metaclass__ = type
 
 
-
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
 DOCUMENTATION = r'''
@@ -76,21 +75,22 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     OPNsenseModuleConfig,
 )
 
+
 def main():
     """
     Main function of the services_dhcpv4 module
     """
 
     module_args = {
-        "interface": {"type": "string", "required": True },
+        "interface": {"type": "string", "required": True},
         "enable": {"type": "bool", "default": True, "required": False},
         "range_from": {"type": "string", "required": False},
         "range_to": {"type": "string", "required": False},
     }
 
     module = AnsibleModule(
-           argument_spec=module_args,
-           supports_check_mode=True,
+        argument_spec=module_args,
+        supports_check_mode=True,
     )
 
     result = {
@@ -105,27 +105,27 @@ def main():
     range_to = module.params.get("range_to")
 
     with OPNsenseModuleConfig(
-            module_name="services_dhcpv4",
-            config_context_names=["services_dhcpv4"],
-            check_mode=module.check_mode,
-        ) as config:
-          if enable != config.get("enable").text:
-              config.set(value=str(enable), setting="enable")
+        module_name="services_dhcpv4",
+        config_context_names=["services_dhcpv4"],
+        check_mode=module.check_mode,
+    ) as config:
+        if enable != config.get("enable").text:
+            config.set(value=str(enable), setting="enable")
 
-          if range_from != config.get("range_from").text:
-              config.set(value=str(range_from), setting="range_from")
+        if range_from != config.get("range_from").text:
+            config.set(value=str(range_from), setting="range_from")
 
-          if range_to  != config.get("range_to").text:
-              config.set(value=str(range_to), setting="range_to")
+        if range_to != config.get("range_to").text:
+            config.set(value=str(range_to), setting="range_to")
 
-          if config.changed:
-              result["diff"] = config.diff
-              result["changed"] = True
+        if config.changed:
+            result["diff"] = config.diff
+            result["changed"] = True
 
-          if config.changed and not module.check_mode:
-              config.save()
-              result["opnsense_configure_output"] = config.apply_settings()
-              for cmd_result in result["opnsense_configure_output"]:
+        if config.changed and not module.check_mode:
+            config.save()
+            result["opnsense_configure_output"] = config.apply_settings()
+            for cmd_result in result["opnsense_configure_output"]:
                 if cmd_result["rc"] != 0:
                     module.fail_json(
                         msg="Apply of the OPNsense settings failed",
