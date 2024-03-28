@@ -8,7 +8,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_uti
 
 def test_from_ansible_module_params_correct_default_return():
     """
-    Test the build class method FirewallRuleTarget.source_from_ansible_params
+    Test the build class method FirewallRuleTarget.from_ansible_params
     when default module params are given.
     :return:
     """
@@ -20,7 +20,7 @@ def test_from_ansible_module_params_correct_default_return():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "any"
@@ -40,7 +40,7 @@ def test_from_ansible_module_params_set_ip():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address == "192.168.0.1/24"
     assert source_target.port == "any"
@@ -59,7 +59,7 @@ def test_from_ansible_module_params_set_port():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "8000-9000"
@@ -79,7 +79,7 @@ def test_from_ansible_module_params_set_invert():
         "source_invert": True,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "any"
@@ -99,7 +99,7 @@ def test_from_ansible_module_params_set_port():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "22"
@@ -115,7 +115,7 @@ def test_from_xml_basic_source():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.any
@@ -132,7 +132,7 @@ def test_from_xml_test_not():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert not source_target.any
@@ -149,7 +149,7 @@ def test_from_xml_test_address():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert not source_target.any
@@ -166,7 +166,7 @@ def test_from_xml_test_port():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert not source_target.any

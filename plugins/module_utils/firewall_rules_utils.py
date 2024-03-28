@@ -238,13 +238,14 @@ class Destination:
 class FirewallRuleTarget:
     """Used to represent a source or destination target for a firewall rule."""
 
+    target: str
     address: Optional[str]
     port: Optional[str]
     any: bool = False
     invert: bool = False
 
     @classmethod
-    def _from_ansible_params(
+    def from_ansible_params(
         cls, target: Literal["source", "destination"], params: dict
     ) -> "FirewallRuleTarget":
         # if eg "source_ip" is "any" then we set the flag
@@ -254,34 +255,21 @@ class FirewallRuleTarget:
         ansible_invert: bool = params[f"{target}_invert"]
         ansible_port: str = params[f"{target}_port"]
 
-        return cls(address=ansible_address, any=ansible_any, port=ansible_port, invert=ansible_invert)
+        return cls(
+            target=target, address=ansible_address, any=ansible_any, port=ansible_port, invert=ansible_invert
+        )
 
     @classmethod
-    def destination_from_ansible_params(cls, params: dict) -> "FirewallRuleTarget":
-        return cls._from_ansible_params("destination", params)
-
-    @classmethod
-    def source_from_ansible_params(cls, params: dict) -> "FirewallRuleTarget":
-        return cls._from_ansible_params("source", params)
-
-    @classmethod
-    def _from_xml(cls, target: Literal["source", "destination"], element: Element) -> "FirewallRuleTarget":
+    def from_xml(cls, target: Literal["source", "destination"], element: Element) -> "FirewallRuleTarget":
         target_data: dict = xml_utils.etree_to_dict(element)[target]
 
         return FirewallRuleTarget(
+            target=target,
             address=target_data.get("address", None),
             port=target_data.get("port", "any"),
             any="any" in target_data and not target_data["any"],
             invert="not" in target_data and not target_data["not"],
         )
-
-    @classmethod
-    def source_from_xml(cls, element: Element) -> "FirewallRuleTarget":
-        return cls._from_xml("source", element)
-
-    @classmethod
-    def destination_from_xml(cls, element: Element) -> "FirewallRuleTarget":
-        return cls._from_xml("destination", element)
 
 
 @dataclass
