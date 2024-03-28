@@ -47,6 +47,25 @@ def test_from_ansible_module_params_set_ip():
     assert not source_target.any
     assert not source_target.invert
 
+def test_from_ansible_module_params_set_port():
+    """
+    Given an IP in the source param 'source_ip' it is expected
+    to be assigned to the FirewallRuleTarget.address instance attribute.
+    :return:
+    """
+    test_params: dict = {
+        "source_ip": "any",
+        "source_port": "8000-9000",
+        "source_invert": False,
+    }
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget.source_from_ansible_params(test_params)
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert source_target.address is None
+    assert source_target.port == "8000-9000"
+    assert source_target.any
+    assert not source_target.invert
+
 
 def test_from_ansible_module_params_set_invert():
     """
