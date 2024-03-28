@@ -264,6 +264,25 @@ class FirewallRuleTarget:
     def source_from_ansible_params(cls, params: dict) -> "FirewallRuleTarget":
         return cls._from_ansible_params("source", params)
 
+    @classmethod
+    def _from_xml(cls, target: Literal["source", "destination"], element: Element) -> "FirewallRuleTarget":
+        target_data: dict = xml_utils.etree_to_dict(element)[target]
+
+        return FirewallRuleTarget(
+            address=target_data.get("address", None),
+            port=target_data.get("port", "any"),
+            any="any" in target_data and not target_data["any"],
+            invert="not" in target_data and not target_data["not"],
+        )
+
+    @classmethod
+    def source_from_xml(cls, element: Element) -> "FirewallRuleTarget":
+        return cls._from_xml("source", element)
+
+    @classmethod
+    def destination_from_xml(cls, element: Element) -> "FirewallRuleTarget":
+        return cls._from_xml("destination", element)
+
 
 @dataclass
 class FirewallRule:

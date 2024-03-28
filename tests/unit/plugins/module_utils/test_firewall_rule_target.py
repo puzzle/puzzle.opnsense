@@ -1,5 +1,8 @@
 #  Copyright: (c) 2024, Puzzle ITC
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import FirewallRuleTarget
 
 
@@ -82,4 +85,72 @@ def test_from_ansible_module_params_set_port():
     assert source_target.address is None
     assert source_target.port == "22"
     assert source_target.any
+    assert not source_target.invert
+
+
+def test_from_xml_basic_source():
+    basic_source_xml: str = """
+    <source>
+        <any/>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert source_target.any
+    assert source_target.address is None
+    assert source_target.port is "any"
+    assert not source_target.invert
+
+
+def test_from_xml_test_not():
+    basic_source_xml: str = """
+    <source>
+        <not/>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert not source_target.any
+    assert source_target.address is None
+    assert source_target.port is "any"
+    assert source_target.invert
+
+
+def test_from_xml_test_address():
+    basic_source_xml: str = """
+    <source>
+        <address>10.0.0.1/24</address>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert not source_target.any
+    assert source_target.address == "10.0.0.1/24"
+    assert source_target.port is "any"
+    assert not source_target.invert
+
+
+def test_from_xml_test_port():
+    basic_source_xml: str = """
+    <source>
+        <port>22</port>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget._from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert not source_target.any
+    assert source_target.address is None
+    assert source_target.port == "22"
     assert not source_target.invert
