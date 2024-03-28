@@ -1,0 +1,15 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Assign Vagrant interface to device em4
+      puzzle.opnsense.interfaces_assignments:
+        identifier: "VAGRANT"
+        device: "em4"
+
+    - name: Create new assignment
+      puzzle.opnsense.interfaces_assignments:
+        identifier: "lan"
+        device: "vtnet1"
+        description: "lan_interface"
