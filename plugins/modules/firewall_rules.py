@@ -30,7 +30,6 @@ options:
             - pass
             - block
             - reject
-        required: false
         default: pass
         type: str
     disabled:
@@ -67,8 +66,7 @@ options:
         choices:
             - in
             - out
-        required: false
-        default: Null
+        default: in
         type: str
     protocol:
         description: Choose which IP protocol this rule should match.
@@ -207,7 +205,7 @@ options:
             - pfsync
             - divert
         required: false
-        default: Null
+        default: any
         type: str
     source_invert:
         description: Use this option to invert the sense of the match.
@@ -222,6 +220,7 @@ options:
     source_port:
         description: Source port, being a number from 0 to 65535 or any.
         required: false
+        default: any
         type: str
     target_invert:
         description: Use this option to invert the sense of the match.
@@ -303,9 +302,6 @@ opnsense_configure_output:
 from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
-    FirewallRuleProtocol,
-)
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleSet,
@@ -321,31 +317,20 @@ def main():
     module_args = {
         "action": {
             "type": "str",
-            "required": True,
             "choices": ["pass", "block", "reject"],
             "default": "pass",
         },
-        "disabled": {"type": "bool", "required": False, "default": False},
-        "quick": {"type": "bool", "required": False, "default": True},
         "disabled": {"type": "bool", "default": False},
         "quick": {"type": "bool", "default": True},
         "interface": {"type": "str", "required": True},
         "direction": {
             "type": "str",
-            "required": False,
             "default": "in",
             "choices": ["in", "out"],
         },
-        "ipprotocol": {
-            "type": "str",
-            "required": False,
-            "default" : "inet",
-            "choices": [ "inet", "inet6", "inet46" ]
-
-        },
+        "ipprotocol": {"type": "str", "default": "inet", "choices": ["inet", "inet6", "inet46"]},
         "protocol": {
             "type": "str",
-            "required": False,
             "default": "any",
             "choices": FirewallRuleProtocol.as_list(),
         },
@@ -386,7 +371,9 @@ def main():
     else:
         description = ANSIBLE_MANAGED
 
-    ansible_rule: FirewallRule = FirewallRule(...)  # TODO
+    module.params["description"] = description
+
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(module.params)  # TODO
 
     ansible_rule_state: str = module.params.get("state")
 

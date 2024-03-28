@@ -209,6 +209,7 @@ class IPProtocol(ListEnum):
 
 class FirewallRuleStateType(ListEnum):
     """Represents the FirewallRuleStateType."""  # TODO not yet in the ansible parameters
+
     NONE = "none"
     KEEP_STATE = "keep state"
     SLOPPY_STATE = "sloppy state"
@@ -258,7 +259,7 @@ class FirewallRule:
     disabled: bool = False
     log: bool = False
     category: Optional[str] = None
-    statetype: StateType = StateType.KEEP_STATE
+    statetype: FirewallRuleStateType = FirewallRuleStateType.KEEP_STATE
 
     # TODO ChangeLog
 
@@ -318,13 +319,13 @@ class FirewallRule:
         del rule_dict["uuid"]
 
         for direction in ["source", "destination"]:
+
+            if rule_dict.get(direction, None) is None:
+                rule_dict[direction] = {}
+
             for key in ["address", "network", "port", "any", "not"]:
-                current_val: Optional[Any] = rule_dict.get(
-                    f"{direction}_{key}"
-                )  # source_not = None
+                current_val: Optional[Any] = rule_dict.get(f"{direction}_{key}")  # source_not = None
                 if current_val is not None:
-                    if rule_dict.get(direction) is None:
-                        rule_dict[direction] = {}
 
                     # s/d_network
                     if isinstance(current_val, bool):
@@ -404,9 +405,7 @@ class FirewallRule:
             "source_any": params.get("source_ip") is None or params.get("source_ip") == "any",
             "source_port": params.get("source_port"),
             "destination_not": params.get("target_invert"),
-            "destination_address": (
-                params.get("target_ip") if params.get("target_ip") != "any" else None
-            ),
+            "destination_address": (params.get("target_ip") if params.get("target_ip") != "any" else None),
             "destination_any": params.get("target_ip") is None or params.get("target_ip") == "any",
             "destination_port": params.get("target_port"),
             "log": params.get("log"),
@@ -455,67 +454,33 @@ class FirewallRule:
         rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
 
         for direction in ["source", "destination"]:
-            for key in ["address", "network", "port", "any", "not"]:
-                if key in ["any", "not"]:
-                    # 'any' and 'not' must be a boolean value, therefore None is treated as False
-                    if key not in rule_dict[direction]:
-                        rule_dict[f"{direction}_{key}"] = False
-                        continue
-                    if rule_dict[direction][key] is None or rule_dict[direction][key] == "1":
-                        rule_dict[f"{direction}_{key}"] = True
-                    else:
-                        rule_dict[f"{direction}_{key}"] = False
-                else:
-                    rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key, None)
+            for key in ["address", "network", "port"]:
+                rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key)
 
+            rule_dict[f"{direction}_any"] = rule_dict[direction].get("any") in [
+                "1",
+                True,
+                None,
+            ]
+            rule_dict[f"{direction}_not"] = rule_dict[direction].get("not") in [
+                "1",
+                True,
+                None,
+            ]
             del rule_dict[direction]
 
-        # Handle 'disabled' element
-        rule_dict["disabled"] = rule_dict.get("disabled", "0") == "1"
-
-        # Handle 'quick' element
-        if "quick" in rule_dict:
-            rule_dict["quick"] = 0
-
-        # Handle 'log' element
-        rule_dict["log"] = rule_dict.get("log", "0") == "1"
-
-        # Handle 'uuid' element
-        rule_dict["uuid"] = element.attrib.get("uuid")
+        rule_dict.update(
+            disabled=rule_dict.get("disabled", "0") == "1",
+            quick=0 if "quick" in rule_dict else None,
+            log=rule_dict.get("log", "0") == "1",
+            uuid=element.attrib.get("uuid"),
+        )
 
         # TODO ignore changelog for now
         rule_dict.pop("updated", None)
         rule_dict.pop("created", None)
 
         return FirewallRule(**rule_dict)
-
-    def to_etree(self) -> Element:
-        rule_dict: dict = asdict(self)
-        del rule_dict["uuid"]
-
-        for direction in ["source", "destination"]:
-            for key in ["address", "network", "port", "any", "not"]:
-                current_val: Optional[Any] = rule_dict.get(f"{direction}_{key}")
-                if current_val is not None:
-
-                    if rule_dict.get(direction) is None:
-                        rule_dict[direction] = {}
-
-                    if not (isinstance(current_val, bool) and current_val is False):
-                        rule_dict[direction][key] = str(int(current_val))
-
-                    del rule_dict[f"{direction}_{key}"]
-
-        for rule_key, rule_val in rule_dict.copy().items():
-            if rule_val is None or rule_val is False:
-                del rule_dict[rule_key]
-
-        element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
-
-        if self.uuid:
-            element.attrib["uuid"] = self.uuid
-
-        return element
 
 
 class FirewallRuleSet(OPNsenseModuleConfig):
@@ -647,9 +612,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        filter_element: Element = self._config_xml_tree.find(
-            self._config_maps[self._module_name]["rules"]
-        )
+        filter_element: Element = self._config_xml_tree.find(self._config_maps[self._module_name]["rules"])
 
         self._config_xml_tree.remove(filter_element)
         filter_element.clear()
