@@ -11,15 +11,20 @@ from xml.etree.ElementTree import Element
 
 import pytest
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
-    elements_equal,
-)
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleAction,
     FirewallRuleSet,
     FirewallRule,
+    IPProtocol,
+    FirewallRuleProtocol,
+    FirewallRuleStateType,
+    FirewallRuleDirection,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
+)
+from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
+    elements_equal,
 )
 
 # Test version map for OPNsense versions and modules
@@ -123,7 +128,7 @@ def sample_config_path(request):
     - str: The path to the temporary file.
     """
     with patch(
-        "plugins.module_utils.version_utils.get_opnsense_version",  # pylint: disable=line-too-long
+        "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",  # pylint: disable=line-too-long
         return_value="OPNsense Test",
     ), patch.dict(VERSION_MAP, TEST_VERSION_MAP, clear=True):
         # Create a temporary file with a name based on the test function
@@ -178,7 +183,7 @@ def test_firewall_rule_from_xml_any_1():
     assert test_rule.ipprotocol == IPProtocol.IPv4
     assert test_rule.statetype == FirewallRuleStateType.KEEP_STATE
     assert test_rule.descr == "allow vagrant management"
-    assert test_rule.protocol is None
+    assert test_rule.protocol is FirewallRuleProtocol.ANY
     assert test_rule.source_port is None
     assert test_rule.source_address is None
     assert test_rule.source_network is None
@@ -215,7 +220,7 @@ def test_firewall_rule_to_etree():
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
     orig_rule: Element = list(list(orig_etree)[0])[0]
 
-    assert xml_utils.elements_equal(test_element, orig_rule)
+    assert elements_equal(test_element, orig_rule)
 
 
 def test_firewall_rule_from_ansible_module_params_simple():
@@ -278,17 +283,11 @@ def test_rule_set_write_rules_back(mocked_version_utils: MagicMock, sample_confi
         if sys.version_info > (3, 8, 0):
             es_args["xml_declaration"] = True
 
-        e1s = (
-            ElementTree.tostring(element=e1 , **es_args)
-            .decode()
-            .replace("\n", "")
-        )
+        e1s = ElementTree.tostring(element=e1, **es_args).decode().replace("\n", "")
         e2s = re.sub(
             r">(\s*)<",
             "><",
-            ElementTree.tostring(element=e1, **es_args)
-            .decode()
-            .replace("\n", ""),
+            ElementTree.tostring(element=e1, **es_args).decode().replace("\n", ""),
         )
 
         assert elements_equal(e1, e2), (
