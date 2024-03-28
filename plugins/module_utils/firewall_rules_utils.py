@@ -235,6 +235,19 @@ class Destination:
 
 
 @dataclass
+class FirewallRuleTarget:
+    """Used to represent a source or destination target for a firewall rule."""
+
+    address: Optional[str]
+    network: Optional[str]
+    port: Optional[str]
+    any: bool = False
+    invert: bool = False
+
+
+
+
+@dataclass
 class FirewallRule:
     """Used to represent a firewall rule."""
 
