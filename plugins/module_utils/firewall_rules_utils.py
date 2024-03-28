@@ -218,23 +218,6 @@ class FirewallRuleStateType(ListEnum):
 
 
 @dataclass
-class Source:
-    """Represents the source in a firewall rule"""
-
-    any: bool = False
-    # Add other source attributes as needed
-
-
-@dataclass
-class Destination:
-    """Represents the destination in a firewall rule"""
-
-    any: bool = False
-    port: Optional[int] = None
-    # Add other destination attributes as needed
-
-
-@dataclass
 class FirewallRuleTarget:
     """Used to represent a source or destination target for a firewall rule."""
 
