@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, asdict
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Literal
 from xml.etree.ElementTree import Element
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -239,12 +239,30 @@ class FirewallRuleTarget:
     """Used to represent a source or destination target for a firewall rule."""
 
     address: Optional[str]
-    network: Optional[str]
     port: Optional[str]
     any: bool = False
     invert: bool = False
 
+    @classmethod
+    def _from_ansible_params(
+        cls, target: Literal["source", "destination"], params: dict
+    ) -> "FirewallRuleTarget":
+        # if eg "source_ip" is "any" then we set the flag
+        ansible_any: bool = params[f"{target}_ip"] == "any"
+        ansible_address: Optional[str] = None if ansible_any else params[f"{target}_ip"]
 
+        ansible_invert: bool = params[f"{target}_invert"]
+        ansible_port: str = params[f"{target}_port"]
+
+        return cls(address=ansible_address, any=ansible_any, port=ansible_port, invert=ansible_invert)
+
+    @classmethod
+    def destination_from_ansible_params(cls, params: dict) -> "FirewallRuleTarget":
+        return cls._from_ansible_params("destination", params)
+
+    @classmethod
+    def source_from_ansible_params(cls, params: dict) -> "FirewallRuleTarget":
+        return cls._from_ansible_params("source", params)
 
 
 @dataclass
