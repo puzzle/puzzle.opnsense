@@ -113,12 +113,9 @@ def main():
 
     interface_assignment = Interface_assignment.from_ansible_module_params(module.params)
 
-    interface_assignment_state: str = module.params.get("state")
-
     with InterfacesSet() as interfaces_set:
 
-        if interface_assignment_state == "present":
-            interfaces_set.update(interface_assignment)
+        interfaces_set.update(interface_assignment)
 
         if interfaces_set.changed:
             result["diff"] = interfaces_set.diff
