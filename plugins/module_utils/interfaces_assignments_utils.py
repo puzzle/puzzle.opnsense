@@ -23,9 +23,9 @@ class OPNSenseInterfaceNotFoundError(Exception):
     """
 
 
-class OPNSenseInterfaceNotEnabledError(Exception):
+class OPNSenseDeviceNotFoundError(Exception):
     """
-    Exception raised when a not valid base32 api code is provided
+    Exception raised when a Device is not found.
     """
 
 
@@ -79,8 +79,43 @@ class Interface_assignment:
         SubElement(main_element, "if").text = interface_assignment_dict.get("device")
         SubElement(main_element, "descr").text = interface_assignment_dict.get("descr")
 
+        # handle special cases
+        if getattr(self, "alias-subnet", None):
+            interface_assignment_dict["extra_attrs"]["alias-subnet"] = getattr(
+                self, "alias-subnet", None
+            )
+
+            interface_assignment_dict["extra_attrs"]["alias-address"] = getattr(
+                self, "alias-address", None
+            )
+
         # Serialize extra attributes
         for key, value in interface_assignment_dict["extra_attrs"].items():
+            if (
+                key
+                in [
+                    "spoofmac",
+                    "alias-address",
+                    "alias-subnet",
+                    "adv_dhcp_pt_timeout",
+                    "adv_dhcp_pt_retry",
+                    "adv_dhcp_pt_select_timeout",
+                    "adv_dhcp_pt_reboot",
+                    "adv_dhcp_pt_backoff_cutoff",
+                    "adv_dhcp_pt_initial_interval",
+                    "adv_dhcp_pt_values",
+                    "adv_dhcp_send_options",
+                    "adv_dhcp_request_options",
+                    "adv_dhcp_required_options",
+                    "adv_dhcp_option_modifiers",
+                    "adv_dhcp_config_advanced",
+                    "adv_dhcp_config_file_override",
+                    "adv_dhcp_config_file_override_path",
+                    "dhcprejectfrom",
+                ]
+                and value is None
+            ):
+                sub_element = SubElement(main_element, key)
             if value is None and key not in exceptions:
                 continue
             sub_element = SubElement(main_element, key)
@@ -136,46 +171,70 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     def update(self, interface_assignment: Interface_assignment) -> None:
 
+        # Check if device exists first
+        if interface_assignment.device not in [
+            assignment.device for assignment in self._interfaces_assignments
+        ]:
+            raise OPNSenseDeviceNotFoundError("Device was not found on OpnSense Instance!")
+
         try:
+            # Find the interface to update
             interface_to_update: Optional[Interface_assignment] = next(
                 interface
                 for interface in self._interfaces_assignments
                 if interface.identifier == interface_assignment.identifier
             )
 
-            # merge extra_attrs
+            # Merge extra_attrs
             interface_assignment.extra_attrs.update(interface_to_update.extra_attrs)
 
-            # update the existing interface
+            # Update the existing interface
             interface_to_update.__dict__.update(interface_assignment.__dict__)
 
-        except StopIteration as exec:
+        except StopIteration as error_message:
             # Handle case where interface is not found
-            raise OPNSenseInterfaceNotFoundError("Interface not found for update")
+            raise OPNSenseInterfaceNotFoundError(
+                f"Interface not found for update error: {error_message}"
+            )
+
+    def find(self, **kwargs) -> Optional[Interface_assignment]:
+        """ """
+
+        for interface_assignment in self._interfaces_assignments:
+            match = all(
+                getattr(interface_assignment, key, None) == value for key, value in kwargs.items()
+            )
+            if match:
+                return interface_assignment
+        return None
 
     def save(self) -> bool:
-
         if not self.changed:
             return False
 
-        # Assuming self._config_maps["system_access_users"]["system"] gives you the path to the 'system' element
-        filter_element: Element = self._config_xml_tree.findall(
+        # Use 'find' to get the single parent element, not 'findall'
+        parent_element = self._config_xml_tree.find(
             self._config_maps["interfaces_assignments"]["interfaces"]
         )
 
-        for interface in filter_element:
-            filter_element.remove(interface)
+        # raise Exception(f"new: {[(element.tag, element.text) for element in parent_element[2]]}")
 
-        filter_element.extend(
+        # Assuming 'parent_element' correctly refers to the container of interface elements
+        for interface_element in list(parent_element):
+            parent_element.remove(interface_element)
+
+        # Now, add updated interface elements
+        parent_element.extend(
             [
-                Interface_assignment.to_etree()
-                for Interface_assignment in self._interfaces_assignments
+                interface_assignment.to_etree()
+                for interface_assignment in self._interfaces_assignments
             ]
         )
 
-        # Write the updated XML tree to the file
-        tree: ElementTree = ElementTree(self._config_xml_tree)
+        # raise Exception(f"new: {[(element.tag, element.text) for element in parent_element[2]]}")
 
+        # Write the updated XML tree to the file
+        tree = ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
 
         # Reload the configuration to reflect the updated changes
