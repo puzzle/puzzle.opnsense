@@ -31,6 +31,28 @@ class OPNSenseDeviceNotFoundError(Exception):
 
 @dataclass
 class Interface_assignment:
+    """
+    Represents a network interface assignment with optional description and additional attributes.
+
+    Attributes:
+        identifier (str): Unique identifier for the interface.
+        device (str): Device name or interface identifier.
+        descr (Optional[str]): Optional description of the interface.
+        extra_attrs (Dict[str, Any]): Additional attributes for extended configuration, not directly represented.
+
+    The class provides methods for initialization, XML conversion, and handling custom additional attributes.
+
+    Methods:
+        __init__(self, identifier: str, device: str, descr: Optional[str] = None, **kwargs):
+            Initializes the Interface_assignment instance with mandatory fields and any additional keyword arguments.
+        from_xml(element: Element) -> "Interface_assignment":
+            Static method to create an instance from an XML element.
+        to_etree(self) -> Element:
+            Serializes the instance to an XML Element, including handling for special cases and additional attributes.
+        from_ansible_module_params(cls, params: dict) -> "User":
+            Class method to create an instance from Ansible module parameters, considering only non-None values.
+    """
+
     identifier: str
     device: str
     descr: Optional[str] = None
@@ -89,6 +111,21 @@ class Interface_assignment:
                 self, "alias-address", None
             )
 
+        if getattr(self, "dhcp6-ia-pd-len", None):
+            interface_assignment_dict["extra_attrs"]["dhcp6-ia-pd-len"] = getattr(
+                self, "dhcp6-ia-pd-len", None
+            )
+
+        if getattr(self, "track6-interface", None):
+            interface_assignment_dict["extra_attrs"]["track6-interface"] = getattr(
+                self, "track6-interface", None
+            )
+
+        if getattr(self, "track6-prefix-id", None):
+            interface_assignment_dict["extra_attrs"]["track6-prefix-id"] = getattr(
+                self, "track6-prefix-id", None
+            )
+
         # Serialize extra attributes
         for key, value in interface_assignment_dict["extra_attrs"].items():
             if (
@@ -97,6 +134,7 @@ class Interface_assignment:
                     "spoofmac",
                     "alias-address",
                     "alias-subnet",
+                    "dhcp6-ia-pd-len",
                     "adv_dhcp_pt_timeout",
                     "adv_dhcp_pt_retry",
                     "adv_dhcp_pt_select_timeout",
@@ -112,6 +150,8 @@ class Interface_assignment:
                     "adv_dhcp_config_file_override",
                     "adv_dhcp_config_file_override_path",
                     "dhcprejectfrom",
+                    "track6-interface",
+                    "track6-prefix-id",
                 ]
                 and value is None
             ):
@@ -230,8 +270,6 @@ class InterfacesSet(OPNsenseModuleConfig):
                 for interface_assignment in self._interfaces_assignments
             ]
         )
-
-        # raise Exception(f"new: {[(element.tag, element.text) for element in parent_element[2]]}")
 
         # Write the updated XML tree to the file
         tree = ElementTree(self._config_xml_tree)
