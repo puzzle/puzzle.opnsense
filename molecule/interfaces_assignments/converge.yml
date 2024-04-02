@@ -3,13 +3,29 @@
   hosts: all
   become: true
   tasks:
-    - name: Assign Vagrant interface to device em4
-      puzzle.opnsense.interfaces_assignments:
-        identifier: "VAGRANT"
-        device: "em0"
-
-    - name: Create new assignment
+    - name: Test interface lan, device em2 description update
       puzzle.opnsense.interfaces_assignments:
         identifier: "lan"
-        device: "vtnet1"
+        device: "em1"
         description: "lan_interface"
+
+    - name: Test interface lan, device update from em1 to em2
+      puzzle.opnsense.interfaces_assignments:
+        identifier: "lan"
+        device: "em2"
+        description: "lan_interface"
+
+    - name: Test unknown interface unknown_identifier description update
+      puzzle.opnsense.interfaces_assignments:
+        identifier: "unknown_identifier"
+        device: "em2"
+        description: "unknown_identifier"
+      register: unknown_identifier_result
+      ignore_errors: yes
+
+    - name: "Verify that the description update failed due to non-existing identifier"
+      assert:
+        that:
+          - unknown_identifier_result is failed
+        fail_msg: "Description update should fail due to non-existing identifier"
+        success_msg: "Description update failed as expected due to non-existing identifier"
