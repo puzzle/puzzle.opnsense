@@ -9,11 +9,11 @@
         device: "em1"
         description: "lan_interface"
 
-    - name: Test interface lan, device update from em1 to em2
+    - name: Test interface wan, device update from em2 to em3
       puzzle.opnsense.interfaces_assignments:
-        identifier: "lan"
-        device: "em2"
-        description: "lan_interface"
+        identifier: "wan"
+        device: "em3"
+        description: "wan_interface"
 
     - name: Test unknown interface unknown_identifier description update
       puzzle.opnsense.interfaces_assignments:
