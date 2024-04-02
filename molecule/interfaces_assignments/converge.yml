@@ -3,7 +3,7 @@
   hosts: all
   become: true
   tasks:
-    - name: Test interface lan, device em2 description update
+    - name: Test interface lan, device em1 description update
       puzzle.opnsense.interfaces_assignments:
         identifier: "lan"
         device: "em1"
