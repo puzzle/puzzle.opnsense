@@ -77,55 +77,11 @@ opnsense_configure_output:
 '''
 # fmt: on
 
-import os
-import re
-
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
     InterfacesSet,
     Interface_assignment,
 )
-
-
-def is_interface(interface: str) -> bool:
-    """
-    Checks if interface exists on OPNsense
-
-    :param interface: A string containing the interface
-
-    :return: True if the provided interface is existing, False if it's not existing
-    """
-
-    return re.match(hostname_regex, hostname) is not None
-
-
-def is_domain(domain: str) -> bool:
-    """
-    Validates domain
-
-    :param hostname: A string containing the domain
-
-    :return: True if the provided domain is valid, False if it's invalid
-    """
-
-    # https://github.com/opnsense/core/blob/cbaf7cee1f0a6fabd1ec4c752a5d169c402976dc/src/etc/inc/util.inc#L716
-    domain_regex = (
-        r"^(?:(?:[a-z0-9]|[a-z0-9][a-z0-9\-]*"
-        r"[a-z0-9])\.)*(?:[a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$"
-    )
-    return re.match(domain_regex, domain) is not None
-
-
-def is_timezone(tz: str) -> bool:
-    """
-    Validates timezones
-
-    :param tz: A string containing the timezone
-
-    :return: True if the provided timezone is valid, False if it's invalid
-    """
-    tz_path = os.path.join("/usr/share/zoneinfo/", tz)
-    return os.path.isfile(tz_path)
 
 
 def main():
@@ -157,44 +113,27 @@ def main():
 
     interface_assignment = Interface_assignment.from_ansible_module_params(module.params)
 
+    interface_assignment_state: str = module.params.get("state")
+
     with InterfacesSet() as interfaces_set:
-        interfaces_set.update(interface_assignment)
+
+        if interface_assignment_state == "present":
+            interfaces_set.update(interface_assignment)
 
         if interfaces_set.changed:
-            interfaces_set.save()
-        # if not is_interface(identifier_param):
-        #    module.fail_json(msg="Invalid interface parameter specified")
-    #
-    # if hostname_param != config.get("hostname").text:
-    #    config.set(value=hostname_param, setting="hostname")
+            result["diff"] = interfaces_set.diff
+            result["changed"] = True
 
-    # if device_param:
-    #    if not is_domain(domain_param):
-    #        module.fail_json(msg="Invalid domain parameter specified")
-    #
-    #    if domain_param != config.get("domain").text:
-    #        config.set(value=domain_param, setting="domain")
-    #
-    # if description_param:
-    #    if not is_timezone(timezone_param):
-    #        module.fail_json(msg="Invalid timezone parameter specified")
-    #
-    #    if timezone_param != config.get("timezone").text:
-    #        config.set(value=timezone_param, setting="timezone")
-    #
-    # if config.changed:
-    #    result["diff"] = config.diff
-    #    result["changed"] = True
-    #
-    # if config.changed and not module.check_mode:
-    #    config.save()
-    #    result["opnsense_configure_output"] = config.apply_settings()
-    #    for cmd_result in result["opnsense_configure_output"]:
-    #        if cmd_result["rc"] != 0:
-    #            module.fail_json(
-    #                msg="Apply of the OPNsense settings failed",
-    #                details=cmd_result,
-    #            )
+        if interfaces_set.changed and not module.check_mode:
+            interfaces_set.save()
+            result["opnsense_configure_output"] = interfaces_set.apply_settings()
+
+            for cmd_result in result["opnsense_configure_output"]:
+                if cmd_result["rc"] != 0:
+                    module.fail_json(
+                        msg="Apply of the OPNsense settings failed",
+                        details=cmd_result,
+                    )
 
     # Return results
     module.exit_json(**result)
