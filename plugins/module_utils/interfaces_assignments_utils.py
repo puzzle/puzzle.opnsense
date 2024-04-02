@@ -213,6 +213,23 @@ class Interface_assignment:
 
 
 class InterfacesSet(OPNsenseModuleConfig):
+    """
+    Manages network interface assignments for OPNsense configurations.
+
+    Inherits from OPNsenseModuleConfig, offering methods for managing
+    interface assignments within an OPNsense config file.
+
+    Attributes:
+        _interfaces_assignments (List[Interface_assignment]): List of interface assignments.
+
+    Methods:
+        __init__(self, path="/conf/config.xml"): Initializes InterfacesSet and loads interfaces.
+        _load_interfaces() -> List["Interface_assignment"]: Loads interface assignments from config.
+        changed() -> bool: Checks if current assignments differ from the loaded ones.
+        update(interface_assignment: Interface_assignment): Updates an assignment, errors if not found.
+        find(**kwargs) -> Optional[Interface_assignment]: Finds an assignment matching specified attributes.
+        save() -> bool: Saves changes to the config file if there are modifications.
+    """
 
     _interfaces_assignments: List[Interface_assignment]
 
@@ -236,10 +253,45 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     @property
     def changed(self) -> bool:
+        """
+        Evaluates whether there have been changes to user or group configurations that are not yet
+        reflected in the saved system configuration. This property serves as a check to determine
+        if updates have been made in memory to the user or group lists that differ from what is
+        currently persisted in the system's configuration files.
+
+        Returns:
+            bool: True if there are changes to the user or group configurations that have not been
+                persisted yet; False otherwise.
+
+        The method works by comparing the current in-memory representations of users and groups
+        against the versions loaded from the system's configuration files. A difference in these
+        lists indicates that changes have been made in the session that have not been saved, thus
+        prompting the need for a save operation to update the system configuration accordingly.
+
+        Note:
+            This property should be consulted before performing a save operation to avoid
+            unnecessary writes to the system configuration when no changes have been made.
+        """
 
         return self._load_interfaces() != self._interfaces_assignments
 
     def update(self, interface_assignment: Interface_assignment) -> None:
+        """
+        Updates an interface assignment in the set.
+
+        First checks if the device exists within the current assignments. If not,
+        raises OPNSenseDeviceNotFoundError. Then, tries to find the matching interface
+        to update based on its identifier. If found, merges extra attributes and updates
+        the existing interface assignment. If the interface is not found, raises
+        OPNSenseInterfaceNotFoundError.
+
+        Args:
+            interface_assignment (Interface_assignment): The interface assignment to update.
+
+        Raises:
+            OPNSenseDeviceNotFoundError: If the device of the interface_assignment is not found.
+            OPNSenseInterfaceNotFoundError: If no matching interface is found for update.
+        """
 
         # Check if device exists first
         if interface_assignment.device not in [
@@ -268,7 +320,20 @@ class InterfacesSet(OPNsenseModuleConfig):
             )
 
     def find(self, **kwargs) -> Optional[Interface_assignment]:
-        """ """
+        """
+        Searches for an interface assignment that matches given criteria.
+
+        Iterates through the list of interface assignments, checking if each one
+        matches all provided keyword arguments. If a match is found, returns the
+        corresponding interface assignment. If no match is found, returns None.
+
+        Args:
+            **kwargs: Key-value pairs to match against attributes of interface assignments.
+
+        Returns:
+            Optional[Interface_assignment]: The first interface assignment that matches
+            the criteria, or None if no match is found.
+        """
 
         for interface_assignment in self._interfaces_assignments:
             match = all(
@@ -279,6 +344,23 @@ class InterfacesSet(OPNsenseModuleConfig):
         return None
 
     def save(self) -> bool:
+        """
+        Saves the current state of interface assignments to the OPNsense configuration file.
+
+        Checks if there have been changes to the interface assignments. If not, it
+        returns False indicating no need to save. It then locates the parent element
+        for interface assignments in the XML tree and replaces existing entries with
+        the updated set from memory. After updating, it writes the new XML tree to
+        the configuration file and reloads the configuration to reflect changes.
+
+        Returns:
+            bool: True if changes were saved successfully, False if no changes were detected.
+
+        Note:
+            This method assumes that 'parent_element' correctly refers to the container
+            of interface elements within the configuration file.
+        """
+
         if not self.changed:
             return False
 
