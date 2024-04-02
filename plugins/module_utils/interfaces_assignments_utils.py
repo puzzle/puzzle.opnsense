@@ -32,25 +32,19 @@ class OPNSenseDeviceNotFoundError(Exception):
 @dataclass
 class Interface_assignment:
     """
-    Represents a network interface assignment with optional description and additional attributes.
+    Represents a network interface with optional description and extra attributes.
 
     Attributes:
-        identifier (str): Unique identifier for the interface.
-        device (str): Device name or interface identifier.
-        descr (Optional[str]): Optional description of the interface.
-        extra_attrs (Dict[str, Any]): Additional attributes for extended configuration, not directly represented.
-
-    The class provides methods for initialization, XML conversion, and handling custom additional attributes.
+        identifier (str): Unique ID for the interface.
+        device (str): Device name.
+        descr (Optional[str]): Description of the interface.
+        extra_attrs (Dict[str, Any]): Additional attributes for configuration.
 
     Methods:
-        __init__(self, identifier: str, device: str, descr: Optional[str] = None, **kwargs):
-            Initializes the Interface_assignment instance with mandatory fields and any additional keyword arguments.
-        from_xml(element: Element) -> "Interface_assignment":
-            Static method to create an instance from an XML element.
-        to_etree(self) -> Element:
-            Serializes the instance to an XML Element, including handling for special cases and additional attributes.
-        from_ansible_module_params(cls, params: dict) -> "User":
-            Class method to create an instance from Ansible module parameters, considering only non-None values.
+        __init__: Initializes with ID, device, and optional description.
+        from_xml: Creates an instance from XML.
+        to_etree: Serializes instance to XML, handling special cases.
+        from_ansible_module_params: Creates from Ansible params.
     """
 
     identifier: str
@@ -75,6 +69,19 @@ class Interface_assignment:
 
     @staticmethod
     def from_xml(element: Element) -> "Interface_assignment":
+        """
+        Converts XML element to Interface_assignment instance.
+
+        Args:
+            element (Element): XML element representing an interface.
+
+        Returns:
+            Interface_assignment: An instance with attributes derived from the XML.
+
+        Processes XML to dict, assigning 'identifier' and 'device' from keys and
+        'if' element. Assumes single key processing.
+        """
+
         interface_assignment_dict: dict = xml_utils.etree_to_dict(element)
 
         for key, value in interface_assignment_dict.items():
@@ -89,6 +96,17 @@ class Interface_assignment:
         return Interface_assignment(**interface_assignment_dict.popitem()[1])
 
     def to_etree(self) -> Element:
+        """
+        Serializes the instance to an XML Element, including extra attributes.
+
+        Returns:
+            Element: XML representation of the instance.
+
+        Creates an XML element with identifier, device, and description. Handles
+        serialization of additional attributes, excluding specified exceptions and
+        handling specific attribute cases like alias and DHCP options. Assumes
+        boolean values translate to '1' for true.
+        """
 
         interface_assignment_dict: dict = asdict(self)
 
@@ -168,6 +186,18 @@ class Interface_assignment:
 
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "User":
+        """
+        Creates an instance from Ansible module parameters.
+
+        Args:
+            params (dict): Parameters from an Ansible module.
+
+        Returns:
+            User: An instance of Interface_assignment.
+
+        Filters out None values from the provided parameters and uses them to
+        instantiate the class, focusing on 'identifier', 'device', and 'descr'.
+        """
 
         interface_assignment_dict = {
             "identifier": params.get("identifier"),
