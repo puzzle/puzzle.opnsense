@@ -146,7 +146,56 @@ def test_simple_interface_assignment_from_xml():
     assert test_interface_assignment.descr == "DMZ"
 
 
-def test_simple_interface_assignment_to_etree():
+def test_wan_interface_assignment_to_etree():
+    test_interface_assignment: Interface_assignment = Interface_assignment(
+        identifier="wan",
+        device="em2",
+        descr="WAN",
+        ipaddr="dhcp",
+        dhcphostname=None,
+        mtu=None,
+        subnet=None,
+        gateway=None,
+        media=None,
+        mediaopt=None,
+        blockbogons=1,
+        blockpriv=1,
+        ipaddrv6="dhcp6",
+        lock=1,
+    )
+    setattr(test_interface_assignment, "dhcp6-ia-pd-len", "0")
+
+    test_element = test_interface_assignment.to_etree()
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_test_interface_assignment: Element = list(list(orig_etree)[0])[0]
+
+    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+
+
+def test_lan_interface_assignment_to_etree():
+    test_interface_assignment: Interface_assignment = Interface_assignment(
+        identifier="lan",
+        device="em1",
+        enable=1,
+        descr="LAN",
+        ipaddr="192.168.56.10",
+        spoofmac=None,
+        subnet="21",
+        blockbogons=1,
+        ipaddrv6="track6",
+        lock=1,
+    )
+    setattr(test_interface_assignment, "track6-interface", "wan")
+    setattr(test_interface_assignment, "track6-prefix-id", "0")
+
+    test_element = test_interface_assignment.to_etree()
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_test_interface_assignment: Element = list(list(orig_etree)[0])[1]
+
+    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+
+
+def test_opt1_interface_assignment_to_etree():
     test_interface_assignment: Interface_assignment = Interface_assignment(
         identifier="opt1", device="em3", descr="DMZ", spoofmac=None, lock=1
     )
@@ -157,7 +206,7 @@ def test_simple_interface_assignment_to_etree():
     assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
 
 
-def test_advanced_interface_assignment_to_etree():
+def test_opt2_interface_assignment_to_etree():
     test_interface_assignment: Interface_assignment = Interface_assignment(
         identifier="opt2",
         device="em0",
@@ -195,6 +244,29 @@ def test_advanced_interface_assignment_to_etree():
     assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
 
 
+def test_lo0_interface_assignment_to_etree():
+    test_interface_assignment: Interface_assignment = Interface_assignment(
+        internal_dynamic="1",
+        identifier="lo0",
+        device="lo0",
+        descr="Loopback",
+        enable=1,
+        ipaddr="127.0.0.1",
+        ipaddrv6="::1",
+        subnet="8",
+        subnetv6="128",
+        type="none",
+        virtual="1",
+    )
+
+    test_element = test_interface_assignment.to_etree()
+
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_test_interface_assignment: Element = list(list(orig_etree)[0])[4]
+
+    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+
+
 def test_simple_interface_assignment_from_ansible_module_params_simple(sample_config_path):
     test_params: dict = {
         "identifier": "wan",
@@ -218,8 +290,8 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
     mock_get_version, sample_config_path
 ):
     test_params: dict = {
-        "identifier": "wan",
-        "device": "em2",
+        "identifier": "lan",
+        "device": "em1",
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
@@ -231,9 +303,9 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
         interfaces_set.save()
 
     with InterfacesSet(sample_config_path) as new_interfaces_set:
-        new_test_interface_assignment = new_interfaces_set.find(identifier="wan")
-        assert new_test_interface_assignment.identifier == "wan"
-        assert new_test_interface_assignment.device == "em2"
+        new_test_interface_assignment = new_interfaces_set.find(identifier="lan")
+        assert new_test_interface_assignment.identifier == "lan"
+        assert new_test_interface_assignment.device == "em1"
         assert new_test_interface_assignment.descr == "test_interface"
         new_interfaces_set.save()
 
