@@ -207,36 +207,50 @@ options:
         required: false
         default: any
         type: str
-    source_invert:
-        description: Use this option to invert the sense of the match.
-        required: false
-        default: false
-        type: bool
-    source_ip:
-        description: CIDR notation of the source IP of the rule. Can either be a single host or a network.
-        required: false
-        default: any
-        type: str
-    source_port:
-        description: Source port, being a number from 0 to 65535 or any.
-        required: false
-        default: any
-        type: str
-    target_invert:
-        description: Use this option to invert the sense of the match.
-        required: false
-        default: false
-        type: bool
-    target_ip:
-        description: CIDR notation of the target IP of the rule. Can either be a single host or a network.
-        required: false
-        default: any
-        type: str
-    target_port:
-        description: Target port, being a number from 0 to 65535 or 'any'.
-        required: false
-        default: any
-        type: str
+    source:
+        description:
+          - Specifies the source configuration.
+        type: dict
+        suboptions:
+          address:
+            description:
+              - The IP address of the source.
+            type: str
+          network:
+            description:
+              - The network of the source.
+            type: str
+          port:
+            description:
+              - The port of the source.
+            type: str
+          invert:
+            description:
+              - Inverts the match logic.
+            default: false
+            type: bool
+    target:
+        description:
+          - Specifies the source configuration.
+        type: dict
+        suboptions:
+          address:
+            description:
+              - The IP address of the source.
+            type: str
+          network:
+            description:
+              - The network of the source.
+            type: str
+          port:
+            description:
+              - The port of the source.
+            type: str
+          invert:
+            description:
+              - Inverts the match logic.
+            default: false
+            type: bool
     log:
         description: |
           "Log packets that are handled by this rule. Hint: the firewall has limited local log space. Don't turn on logging for everything.
@@ -302,13 +316,11 @@ opnsense_configure_output:
 from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleSet,
     FirewallRule,
     FirewallRuleProtocol,
 )
-
 
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
@@ -334,12 +346,36 @@ def main():
             "default": "any",
             "choices": FirewallRuleProtocol.as_list(),
         },
-        "source_invert": {"type": "bool", "required": False, "default": False},
-        "source_ip": {"type": "str", "required": False, "default": "any"},
-        "source_port": {"type": "str", "required": False, "default": "any"},
-        "target_invert": {"type": "bool", "required": False, "default": False},
-        "target_ip": {"type": "str", "required": False, "default": "any"},
-        "target_port": {"type": "str", "required": False, "default": "any"},
+        "source": {
+            "type": "dict",
+            "options": {
+                "address": {
+                    "type": "str",
+                },
+                "network": {
+                    "type": "str",
+                },
+                "port": {
+                    "type": "str",
+                },
+                "invert": {"type": "bool", "default": False},
+            },
+        },
+        "target": {
+            "type": "dict",
+            "options": {
+                "address": {
+                    "type": "str",
+                },
+                "network": {
+                    "type": "str",
+                },
+                "port": {
+                    "type": "str",
+                },
+                "invert": {"type": "bool", "default": False},
+            },
+        },
         "log": {"type": "bool", "required": False, "default": False},
         "category": {"type": "str", "required": False},
         "description": {"type": "str", "required": False},

@@ -20,7 +20,7 @@ def test_from_ansible_module_params_correct_default_return():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "any"
@@ -40,12 +40,13 @@ def test_from_ansible_module_params_set_ip():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address == "192.168.0.1/24"
     assert source_target.port == "any"
     assert not source_target.any
     assert not source_target.invert
+
 
 def test_from_ansible_module_params_set_port():
     """
@@ -59,7 +60,7 @@ def test_from_ansible_module_params_set_port():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "8000-9000"
@@ -79,7 +80,7 @@ def test_from_ansible_module_params_set_invert():
         "source_invert": True,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "any"
@@ -99,7 +100,7 @@ def test_from_ansible_module_params_set_port():
         "source_invert": False,
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source",test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address is None
     assert source_target.port == "22"

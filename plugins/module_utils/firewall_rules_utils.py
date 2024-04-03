@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, asdict
 from enum import Enum
-from typing import List, Optional, Any, Literal
+from typing import List, Optional, Any
 from xml.etree.ElementTree import Element
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -228,9 +228,7 @@ class FirewallRuleTarget:
     invert: bool = False
 
     @classmethod
-    def from_ansible_params(
-        cls, target: Literal["source", "destination"], params: dict
-    ) -> "FirewallRuleTarget":
+    def from_ansible_params(cls, target: str, params: dict) -> "FirewallRuleTarget":
         # if eg "source_ip" is "any" then we set the flag
         ansible_any: bool = params[f"{target}_ip"] == "any"
         ansible_address: Optional[str] = None if ansible_any else params[f"{target}_ip"]
@@ -243,7 +241,7 @@ class FirewallRuleTarget:
         )
 
     @classmethod
-    def from_xml(cls, target: Literal["source", "destination"], element: Element) -> "FirewallRuleTarget":
+    def from_xml(cls, target: str, element: Element) -> "FirewallRuleTarget":
         target_data: dict = xml_utils.etree_to_dict(element)[target]
 
         return FirewallRuleTarget(
