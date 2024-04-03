@@ -120,7 +120,7 @@ def test_from_xml_basic_source():
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.any
     assert source_target.address is None
-    assert source_target.port is "any"
+    assert source_target.port == "any"
     assert not source_target.invert
 
 
@@ -137,7 +137,7 @@ def test_from_xml_test_not():
     assert isinstance(source_target, FirewallRuleTarget)
     assert not source_target.any
     assert source_target.address is None
-    assert source_target.port is "any"
+    assert source_target.port == "any"
     assert source_target.invert
 
 
@@ -154,7 +154,7 @@ def test_from_xml_test_address():
     assert isinstance(source_target, FirewallRuleTarget)
     assert not source_target.any
     assert source_target.address == "10.0.0.1/24"
-    assert source_target.port is "any"
+    assert source_target.port == "any"
     assert not source_target.invert
 
 
