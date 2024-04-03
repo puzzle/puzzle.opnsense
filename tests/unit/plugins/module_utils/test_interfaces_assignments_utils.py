@@ -11,7 +11,7 @@ import pytest
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
-    Interface_assignment,
+    InterfaceAssignment,
     InterfacesSet,
     OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
@@ -138,7 +138,7 @@ def sample_config_path(request):
 def test_simple_interface_assignment_from_xml():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
     test_etree_interface_assignment: Element = list(list(test_etree_opnsense)[0])[2]
-    test_interface_assignment: Interface_assignment = Interface_assignment.from_xml(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment.from_xml(
         test_etree_interface_assignment
     )
     assert test_interface_assignment.identifier == "opt1"
@@ -147,7 +147,7 @@ def test_simple_interface_assignment_from_xml():
 
 
 def test_wan_interface_assignment_to_etree():
-    test_interface_assignment: Interface_assignment = Interface_assignment(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
         identifier="wan",
         device="em2",
         descr="WAN",
@@ -173,7 +173,7 @@ def test_wan_interface_assignment_to_etree():
 
 
 def test_lan_interface_assignment_to_etree():
-    test_interface_assignment: Interface_assignment = Interface_assignment(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
         identifier="lan",
         device="em1",
         enable=1,
@@ -196,7 +196,7 @@ def test_lan_interface_assignment_to_etree():
 
 
 def test_opt1_interface_assignment_to_etree():
-    test_interface_assignment: Interface_assignment = Interface_assignment(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
         identifier="opt1", device="em3", descr="DMZ", spoofmac=None, lock=1
     )
     test_element = test_interface_assignment.to_etree()
@@ -207,7 +207,7 @@ def test_opt1_interface_assignment_to_etree():
 
 
 def test_opt2_interface_assignment_to_etree():
-    test_interface_assignment: Interface_assignment = Interface_assignment(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
         identifier="opt2",
         device="em0",
         descr="VAGRANT",
@@ -245,7 +245,7 @@ def test_opt2_interface_assignment_to_etree():
 
 
 def test_lo0_interface_assignment_to_etree():
-    test_interface_assignment: Interface_assignment = Interface_assignment(
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
         internal_dynamic="1",
         identifier="lo0",
         device="lo0",
@@ -273,8 +273,8 @@ def test_simple_interface_assignment_from_ansible_module_params_simple(sample_co
         "device": "vtnet1",
         "description": "lan_interface",
     }
-    test_interface_assignment: Interface_assignment = (
-        Interface_assignment.from_ansible_module_params(test_params)
+    test_interface_assignment: InterfaceAssignment = InterfaceAssignment.from_ansible_module_params(
+        test_params
     )
     assert test_interface_assignment.identifier == "wan"
     assert test_interface_assignment.device == "vtnet1"
@@ -295,8 +295,8 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: Interface_assignment = (
-            Interface_assignment.from_ansible_module_params(test_params)
+        test_interface_assignment: InterfaceAssignment = (
+            InterfaceAssignment.from_ansible_module_params(test_params)
         )
         interfaces_set.update(test_interface_assignment)
         assert interfaces_set.changed
@@ -324,8 +324,8 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: Interface_assignment = (
-            Interface_assignment.from_ansible_module_params(test_params)
+        test_interface_assignment: InterfaInterfaceAssignmentce_assignment = (
+            InterfaceAssignment.from_ansible_module_params(test_params)
         )
         interfaces_set.update(test_interface_assignment)
         assert interfaces_set.changed
@@ -354,8 +354,8 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_devic
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseDeviceNotFoundError) as excinfo:
-            test_interface_assignment: Interface_assignment = (
-                Interface_assignment.from_ansible_module_params(test_params)
+            test_interface_assignment: InterfaceAssignment = (
+                InterfaceAssignment.from_ansible_module_params(test_params)
             )
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
@@ -377,8 +377,8 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_inter
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseInterfaceNotFoundError) as excinfo:
-            test_interface_assignment: Interface_assignment = (
-                Interface_assignment.from_ansible_module_params(test_params)
+            test_interface_assignment: InterfaceAssignment = (
+                InterfaceAssignment.from_ansible_module_params(test_params)
             )
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
