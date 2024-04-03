@@ -80,7 +80,7 @@ opnsense_configure_output:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
     InterfacesSet,
-    Interface_assignment,
+    InterfaceAssignment,
 )
 
 

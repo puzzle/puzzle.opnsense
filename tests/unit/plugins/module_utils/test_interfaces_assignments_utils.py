@@ -324,7 +324,7 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: InterfaInterfaceAssignmentce_assignment = (
+        test_interface_assignment: InterfaceAssignment = (
             InterfaceAssignment.from_ansible_module_params(test_params)
         )
         interfaces_set.update(test_interface_assignment)
