@@ -111,7 +111,7 @@ def main():
         "diff": None,
     }
 
-    interface_assignment = Interface_assignment.from_ansible_module_params(module.params)
+    interface_assignment = InterfaceAssignment.from_ansible_module_params(module.params)
 
     with InterfacesSet() as interfaces_set:
 
