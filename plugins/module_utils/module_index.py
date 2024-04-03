@@ -426,6 +426,7 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
                 "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/head.inc",
             ],
             "configure_functions": {
                 "system_timezone_configure": {
@@ -538,7 +539,7 @@ VERSION_MAP = {
                 },
                 "rrd_configure": {
                     "name": "rrd_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
             },
         },

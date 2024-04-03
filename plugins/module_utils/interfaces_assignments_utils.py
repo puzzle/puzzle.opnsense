@@ -1,8 +1,11 @@
 #  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+"""
+interfaces_assignments_utils module_utils: Module_utils to configure OPNsense interface settings
+"""
+
 from dataclasses import dataclass, asdict, field
-from enum import Enum
 from typing import List, Optional, Dict, Any
 
 
@@ -10,7 +13,6 @@ from xml.etree.ElementTree import Element, ElementTree, SubElement
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
-    opnsense_utils,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
@@ -30,7 +32,7 @@ class OPNSenseDeviceNotFoundError(Exception):
 
 
 @dataclass
-class Interface_assignment:
+class InterfaceAssignment:
     """
     Represents a network interface with optional description and extra attributes.
 
@@ -68,15 +70,15 @@ class Interface_assignment:
         self.extra_attrs = kwargs
 
     @staticmethod
-    def from_xml(element: Element) -> "Interface_assignment":
+    def from_xml(element: Element) -> "InterfaceAssignment":
         """
-        Converts XML element to Interface_assignment instance.
+        Converts XML element to InterfaceAssignment instance.
 
         Args:
             element (Element): XML element representing an interface.
 
         Returns:
-            Interface_assignment: An instance with attributes derived from the XML.
+            InterfaceAssignment: An instance with attributes derived from the XML.
 
         Processes XML to dict, assigning 'identifier' and 'device' from keys and
         'if' element. Assumes single key processing.
@@ -93,7 +95,7 @@ class Interface_assignment:
             break  # Only process the first key, assuming there's only one
 
         # Return only the content of the dictionary without the key
-        return Interface_assignment(**interface_assignment_dict.popitem()[1])
+        return InterfaceAssignment(**interface_assignment_dict.popitem()[1])
 
     def to_etree(self) -> Element:
         """
@@ -193,7 +195,7 @@ class Interface_assignment:
             params (dict): Parameters from an Ansible module.
 
         Returns:
-            User: An instance of Interface_assignment.
+            User: An instance of InterfaceAssignment.
 
         Filters out None values from the provided parameters and uses them to
         instantiate the class, focusing on 'identifier', 'device', and 'descr'.
@@ -220,18 +222,20 @@ class InterfacesSet(OPNsenseModuleConfig):
     interface assignments within an OPNsense config file.
 
     Attributes:
-        _interfaces_assignments (List[Interface_assignment]): List of interface assignments.
+        _interfaces_assignments (List[InterfaceAssignment]): List of interface assignments.
 
     Methods:
         __init__(self, path="/conf/config.xml"): Initializes InterfacesSet and loads interfaces.
         _load_interfaces() -> List["Interface_assignment"]: Loads interface assignments from config.
         changed() -> bool: Checks if current assignments differ from the loaded ones.
-        update(interface_assignment: Interface_assignment): Updates an assignment, errors if not found.
-        find(**kwargs) -> Optional[Interface_assignment]: Finds an assignment matching specified attributes.
+        update(InterfaceAssignment: InterfaceAssignment): Updates an assignment,
+        errors if not found.
+        find(**kwargs) -> Optional[InterfaceAssignment]: Finds an assignment matching
+        specified attributes.
         save() -> bool: Saves changes to the config file if there are modifications.
     """
 
-    _interfaces_assignments: List[Interface_assignment]
+    _interfaces_assignments: List[InterfaceAssignment]
 
     def __init__(self, path: str = "/conf/config.xml"):
         super().__init__(
@@ -240,14 +244,15 @@ class InterfacesSet(OPNsenseModuleConfig):
             path=path,
         )
 
+        self._config_xml_tree = self._load_config()
         self._interfaces_assignments = self._load_interfaces()
 
-    def _load_interfaces(self) -> List["Interface_assignment"]:
+    def _load_interfaces(self) -> List["InterfaceAssignment"]:
 
         element_tree_interfaces: Element = self.get("interfaces")
 
         return [
-            Interface_assignment.from_xml(element_tree_interface)
+            InterfaceAssignment.from_xml(element_tree_interface)
             for element_tree_interface in element_tree_interfaces
         ]
 
@@ -275,7 +280,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         return self._load_interfaces() != self._interfaces_assignments
 
-    def update(self, interface_assignment: Interface_assignment) -> None:
+    def update(self, interface_assignment: InterfaceAssignment) -> None:
         """
         Updates an interface assignment in the set.
 
@@ -286,7 +291,7 @@ class InterfacesSet(OPNsenseModuleConfig):
         OPNSenseInterfaceNotFoundError.
 
         Args:
-            interface_assignment (Interface_assignment): The interface assignment to update.
+            interface_assignment (InterfaceAssignment): The interface assignment to update.
 
         Raises:
             OPNSenseDeviceNotFoundError: If the device of the interface_assignment is not found.
@@ -301,7 +306,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         try:
             # Find the interface to update
-            interface_to_update: Optional[Interface_assignment] = next(
+            interface_to_update: Optional[InterfaceAssignment] = next(
                 interface
                 for interface in self._interfaces_assignments
                 if interface.identifier == interface_assignment.identifier
@@ -317,9 +322,9 @@ class InterfacesSet(OPNsenseModuleConfig):
             # Handle case where interface is not found
             raise OPNSenseInterfaceNotFoundError(
                 f"Interface not found for update error: {error_message}"
-            )
+            ) from error_message
 
-    def find(self, **kwargs) -> Optional[Interface_assignment]:
+    def find(self, **kwargs) -> Optional[InterfaceAssignment]:
         """
         Searches for an interface assignment that matches given criteria.
 
@@ -331,7 +336,7 @@ class InterfacesSet(OPNsenseModuleConfig):
             **kwargs: Key-value pairs to match against attributes of interface assignments.
 
         Returns:
-            Optional[Interface_assignment]: The first interface assignment that matches
+            Optional[InterfaceAssignment]: The first interface assignment that matches
             the criteria, or None if no match is found.
         """
 
@@ -364,12 +369,10 @@ class InterfacesSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        # Use 'find' to get the single parent element, not 'findall'
+        # Use 'find' to get the single parent element
         parent_element = self._config_xml_tree.find(
             self._config_maps["interfaces_assignments"]["interfaces"]
         )
-
-        # raise Exception(f"new: {[(element.tag, element.text) for element in parent_element[2]]}")
 
         # Assuming 'parent_element' correctly refers to the container of interface elements
         for interface_element in list(parent_element):

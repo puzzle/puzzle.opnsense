@@ -7,7 +7,7 @@
       puzzle.opnsense.interfaces_assignments:
         identifier: "lan"
         device: "em1"
-        description: "lan_interface"
+        description: "LAN1"
 
     - name: Test interface wan, device update from em2 to em3
       puzzle.opnsense.interfaces_assignments:
@@ -18,7 +18,7 @@
     - name: Test unknown interface unknown_identifier description update
       puzzle.opnsense.interfaces_assignments:
         identifier: "unknown_identifier"
-        device: "em2"
+        device: "em1"
         description: "unknown_identifier"
       register: unknown_identifier_result
       ignore_errors: yes
