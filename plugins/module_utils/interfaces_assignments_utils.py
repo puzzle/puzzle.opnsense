@@ -263,22 +263,19 @@ class InterfacesSet(OPNsenseModuleConfig):
         reflected in the saved system configuration. This property serves as a check to determine
         if updates have been made in memory to the user or group lists that differ from what is
         currently persisted in the system's configuration files.
-
-        Returns:
+            Returns:
             bool: True if there are changes to the user or group configurations that have not been
                 persisted yet; False otherwise.
-
-        The method works by comparing the current in-memory representations of users and groups
+            The method works by comparing the current in-memory representations of users and groups
         against the versions loaded from the system's configuration files. A difference in these
         lists indicates that changes have been made in the session that have not been saved, thus
         prompting the need for a save operation to update the system configuration accordingly.
-
-        Note:
+            Note:
             This property should be consulted before performing a save operation to avoid
             unnecessary writes to the system configuration when no changes have been made.
         """
 
-        return self._load_interfaces() != self._interfaces_assignments
+        return bool(str(self._interfaces_assignments) != str(self._load_interfaces()))
 
     def update(self, interface_assignment: InterfaceAssignment) -> None:
         """
@@ -389,8 +386,5 @@ class InterfacesSet(OPNsenseModuleConfig):
         # Write the updated XML tree to the file
         tree = ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-
-        # Reload the configuration to reflect the updated changes
-        self._config_xml_tree = self._load_config()
 
         return True
