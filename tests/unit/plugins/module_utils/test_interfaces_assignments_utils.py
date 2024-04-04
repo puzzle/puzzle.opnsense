@@ -32,6 +32,7 @@ TEST_VERSION_MAP = {
     }
 }
 
+# pylint: disable=C0301
 TEST_XML: str = """<?xml version="1.0"?>
                 <opnsense>
                 <lastchange/>
