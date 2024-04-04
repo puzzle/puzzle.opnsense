@@ -229,7 +229,7 @@ options:
               - Inverts the match logic.
             default: false
             type: bool
-    target:
+    destination:
         description:
           - Specifies the source configuration.
         type: dict
@@ -327,19 +327,21 @@ ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 def main():
     module_args = {
+        "interface": {"type": "str", "required": True},
         "action": {
             "type": "str",
             "choices": ["pass", "block", "reject"],
             "default": "pass",
         },
-        "disabled": {"type": "bool", "default": False},
-        "quick": {"type": "bool", "default": True},
-        "interface": {"type": "str", "required": True},
+        "description": {"type": "str", "required": False},
+        "category": {"type": "str", "required": False},
         "direction": {
             "type": "str",
             "default": "in",
             "choices": ["in", "out"],
         },
+        "disabled": {"type": "bool", "default": False},
+        "quick": {"type": "bool", "default": False},
         "ipprotocol": {"type": "str", "default": "inet", "choices": ["inet", "inet6", "inet46"]},
         "protocol": {
             "type": "str",
@@ -349,36 +351,22 @@ def main():
         "source": {
             "type": "dict",
             "options": {
-                "address": {
-                    "type": "str",
-                },
-                "network": {
-                    "type": "str",
-                },
-                "port": {
-                    "type": "str",
-                },
+                "address": {"type": "str", "default": "any"},
+                "network": {"type": "str", "default": "any"},
+                "port": {"type": "str", "default": "any"},
                 "invert": {"type": "bool", "default": False},
             },
         },
-        "target": {
+        "destination": {
             "type": "dict",
             "options": {
-                "address": {
-                    "type": "str",
-                },
-                "network": {
-                    "type": "str",
-                },
-                "port": {
-                    "type": "str",
-                },
+                "address": {"type": "str", "default": "any"},
+                "network": {"type": "str", "default": "any"},
+                "port": {"type": "str", "default": "any"},
                 "invert": {"type": "bool", "default": False},
             },
         },
         "log": {"type": "bool", "required": False, "default": False},
-        "category": {"type": "str", "required": False},
-        "description": {"type": "str", "required": False},
         "state": {
             "type": "str",
             "required": False,

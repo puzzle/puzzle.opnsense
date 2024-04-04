@@ -173,7 +173,7 @@ class OPNsenseModuleConfig:
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
-    def save(self) -> bool:
+    def save(self, override_changed: bool = False) -> bool:
         """
         Saves the config to the file if changes have been made.
 
@@ -181,14 +181,12 @@ class OPNsenseModuleConfig:
         - bool: True if changes were saved, False if no changes were detected.
         """
 
-        if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(
-                self._config_xml_tree
-            )
-            tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-            self._config_xml_tree = self._load_config()
-            return True
-        return False
+        if not self.changed and not override_changed:
+            return False
+        tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
+        tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+        self._config_xml_tree = self._load_config()
+        return True
 
     @property
     def changed(self) -> bool:
@@ -404,9 +402,7 @@ class OPNsenseModuleConfig:
                 xpath = cfg_map.get(setting)
 
         if xpath is None:
-            raise ModuleMisconfigurationError(
-                f"Could not access given setting {setting}"
-            )
+            raise ModuleMisconfigurationError(f"Could not access given setting {setting}")
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 

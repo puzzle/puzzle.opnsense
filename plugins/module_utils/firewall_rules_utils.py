@@ -1,9 +1,10 @@
 #  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional
+from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -222,35 +223,60 @@ class FirewallRuleTarget:
     """Used to represent a source or destination target for a firewall rule."""
 
     target: str
-    address: Optional[str]
-    port: Optional[str]
-    any: bool = False
+    address: str = "any"
+    network: str = "any"
+    port: str = "any"
     invert: bool = False
 
     @classmethod
     def from_ansible_params(cls, target: str, params: dict) -> "FirewallRuleTarget":
         # if eg "source_ip" is "any" then we set the flag
-        ansible_any: bool = params[f"{target}_ip"] == "any"
-        ansible_address: Optional[str] = None if ansible_any else params[f"{target}_ip"]
+        ansible_address: Optional[str] = params["address"]
+        ansible_network: Optional[str] = params["network"]
 
-        ansible_invert: bool = params[f"{target}_invert"]
-        ansible_port: str = params[f"{target}_port"]
+        ansible_invert: bool = params["invert"]
+        ansible_port: str = params["port"]
 
         return cls(
-            target=target, address=ansible_address, any=ansible_any, port=ansible_port, invert=ansible_invert
+            target=target,
+            address=ansible_address,
+            network=ansible_network,
+            port=ansible_port,
+            invert=ansible_invert,
         )
 
     @classmethod
     def from_xml(cls, target: str, element: Element) -> "FirewallRuleTarget":
         target_data: dict = xml_utils.etree_to_dict(element)[target]
 
+        _any: bool = {"any": None} in target_data.values()
+
+        address: str = "any" if _any else target_data.get("address", "any")
+        network: str = "any" if _any else target_data.get("network", "any")
         return FirewallRuleTarget(
             target=target,
-            address=target_data.get("address", None),
+            address=address,
+            network=network,
             port=target_data.get("port", "any"),
-            any="any" in target_data and not target_data["any"],
             invert="not" in target_data and not target_data["not"],
         )
+
+    def as_etree_dict(self) -> dict:
+        data: dict = dict()
+
+        if self.invert:
+            data["not"] = self.invert
+
+        for net_target in ["address", "network"]:
+            if getattr(self, net_target) != "any":
+                data[net_target] = getattr(self, net_target)
+
+        if "address" not in data and "network" not in data:
+            data["any"] = None
+
+        if self.port != "any":
+            data["port"] = self.port
+        return data
 
 
 @dataclass
@@ -265,16 +291,8 @@ class FirewallRule:
     ipprotocol: IPProtocol = IPProtocol.IPv4
     direction: Optional[FirewallRuleDirection] = None
     protocol: FirewallRuleProtocol = FirewallRuleProtocol.ANY
-    source_address: Optional[str] = None
-    source_network: Optional[str] = None
-    source_port: Optional[str] = None
-    source_any: bool = False
-    source_not: bool = False
-    destination_address: Optional[str] = None
-    destination_network: Optional[str] = None
-    destination_port: Optional[str] = None
-    destination_any: bool = False
-    destination_not: bool = True
+    source: FirewallRuleTarget = field(default_factory=lambda: FirewallRuleTarget("source"))
+    destination: FirewallRuleTarget = field(default_factory=lambda: FirewallRuleTarget("destination"))
     disabled: bool = False
     log: bool = False
     category: Optional[str] = None
@@ -337,28 +355,15 @@ class FirewallRule:
         rule_dict: dict = asdict(self)
         del rule_dict["uuid"]
 
-        for direction in ["source", "destination"]:
-
-            if rule_dict.get(direction, None) is None:
-                rule_dict[direction] = {}
-
-            for key in ["address", "network", "port", "any", "not"]:
-                current_val: Optional[Any] = rule_dict.get(f"{direction}_{key}")  # source_not = None
-                if current_val is not None:
-
-                    # s/d_network
-                    if isinstance(current_val, bool):
-                        if current_val:
-                            rule_dict[direction][key] = None
-                    else:
-                        rule_dict[direction][key] = current_val
-                del rule_dict[f"{direction}_{key}"]
         for rule_key, rule_val in rule_dict.copy().items():
             if rule_key == "quick":
                 if rule_val:
                     del rule_dict[rule_key]
                     continue
                 rule_dict[rule_key] = "0"
+            elif rule_key in ["source", "destination"]:
+                rule_val.pop("target")
+                rule_dict[rule_key] = getattr(self, rule_key).as_etree_dict()
             elif rule_val in [None, False]:
                 del rule_dict[rule_key]
             elif issubclass(type(rule_val), ListEnum):
@@ -390,9 +395,7 @@ class FirewallRule:
 
         Parameters:
         params (dict): A dictionary containing Ansible module parameters. Expected keys include
-        'interface', 'action', 'description', 'quick', 'ipprotocol', 'direction', 'protocol',
-        'source_invert', 'source_ip', 'source_port', 'destination_invert', 'destination_ip',
-        'destination_port', 'log', 'category', and 'disabled'.
+        all module params documented in firewall_rules.py:DOCUMENTATION
 
         Returns:
         FirewallRule: An instance of FirewallRule initialized with the provided parameters.
@@ -402,9 +405,12 @@ class FirewallRule:
         params = {
             "interface": "eth0",
             "action": "block",
-            "source_ip": "any",
-            "destination_ip": "192.168.1.1",
-            "destination_port": 22,
+            "source": {
+                ...
+            },
+            "destination": {
+                ...
+            },
             # ... other parameters ...
         }
         rule = FirewallRule.from_ansible_module_params(params)
@@ -419,14 +425,8 @@ class FirewallRule:
             "ipprotocol": params.get("ipprotocol"),
             "direction": params.get("direction"),
             "protocol": params.get("protocol"),
-            "source_not": params.get("source_invert"),
-            "source_address": params.get("source_ip") if params.get("source_ip") != "any" else None,
-            "source_any": params.get("source_ip") is None or params.get("source_ip") == "any",
-            "source_port": params.get("source_port"),
-            "destination_not": params.get("target_invert"),
-            "destination_address": (params.get("target_ip") if params.get("target_ip") != "any" else None),
-            "destination_any": params.get("target_ip") is None or params.get("target_ip") == "any",
-            "destination_port": params.get("target_port"),
+            "source": FirewallRuleTarget("source", **params.get("source")),
+            "destination": FirewallRuleTarget("destination", **params.get("destination")),
             "log": params.get("log"),
             "category": params.get("category"),
             "disabled": params.get("disabled"),
@@ -472,25 +472,9 @@ class FirewallRule:
 
         rule_dict: dict = xml_utils.etree_to_dict(element)["rule"]
 
-        for direction in ["source", "destination"]:
-            for key in ["address", "network", "port"]:
-                rule_dict[f"{direction}_{key}"] = rule_dict[direction].get(key)
-
-            rule_dict[f"{direction}_any"] = rule_dict[direction].get("any") in [
-                "1",
-                True,
-                None,
-            ]
-            rule_dict[f"{direction}_not"] = rule_dict[direction].get("not") in [
-                "1",
-                True,
-                None,
-            ]
-            del rule_dict[direction]
-
         rule_dict.update(
             disabled=rule_dict.get("disabled", "0") == "1",
-            quick=0 if "quick" in rule_dict else None,
+            quick=True if "quick" not in rule_dict else False,
             log=rule_dict.get("log", "0") == "1",
             uuid=element.attrib.get("uuid"),
         )
@@ -499,7 +483,14 @@ class FirewallRule:
         rule_dict.pop("updated", None)
         rule_dict.pop("created", None)
 
-        return FirewallRule(**rule_dict)
+        rule_dict.pop("source")
+        rule_dict.pop("destination")
+        source: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", element.find("./source"))
+        destination: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+            "destination", element.find("./destination")
+        )
+
+        return FirewallRule(source=source, destination=destination, **rule_dict)
 
 
 class FirewallRuleSet(OPNsenseModuleConfig):
@@ -637,5 +628,4 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         filter_element.clear()
         filter_element.extend([rule.to_etree() for rule in self._rules])
         self._config_xml_tree.append(filter_element)
-
-        return super().save()
+        return super().save(override_changed=True)

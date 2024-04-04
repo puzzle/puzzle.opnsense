@@ -15,16 +15,16 @@ def test_from_ansible_module_params_correct_default_return():
     # These are the default ansible module params as specified
     # in the module DOCUMENTATION
     test_params: dict = {
-        "source_ip": "any",
-        "source_port": "any",
-        "source_invert": False,
+        "source": {"address": "any", "port": "any", "network": "any", "invert": False},
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
+        "source", test_params["source"]
+    )
     assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.address is None
     assert source_target.port == "any"
-    assert source_target.any
+    assert source_target.network == "any"
+    assert source_target.address == "any"
     assert not source_target.invert
 
 
@@ -35,36 +35,36 @@ def test_from_ansible_module_params_set_ip():
     :return:
     """
     test_params: dict = {
-        "source_ip": "192.168.0.1/24",
-        "source_port": "any",
-        "source_invert": False,
+        "source": {"address": "192.168.0.1/24", "network": "any", "port": "any", "invert": False},
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
+        "source", test_params["source"]
+    )
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address == "192.168.0.1/24"
+    assert source_target.network == "any"  # TODO should be None
     assert source_target.port == "any"
-    assert not source_target.any
     assert not source_target.invert
 
 
 def test_from_ansible_module_params_set_port():
     """
-    Given an IP in the source param 'source_ip' it is expected
-    to be assigned to the FirewallRuleTarget.address instance attribute.
+    Given a port input ("source_port" == "22"), the FirewallRuleTarget.port
+    attribute must be '22' as well.
     :return:
     """
     test_params: dict = {
-        "source_ip": "any",
-        "source_port": "8000-9000",
-        "source_invert": False,
+        "source": {"address": "any", "network": "any", "port": "8000-9000", "invert": False},
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
+        "source", test_params["source"]
+    )
     assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.address is None
     assert source_target.port == "8000-9000"
-    assert source_target.any
+    assert source_target.network == "any"
+    assert source_target.address == "any"
     assert not source_target.invert
 
 
@@ -75,37 +75,17 @@ def test_from_ansible_module_params_set_invert():
     :return:
     """
     test_params: dict = {
-        "source_ip": "any",
-        "source_port": "any",
-        "source_invert": True,
+        "source": {"address": "any", "network": "any", "port": "any", "invert": True},
     }
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
+        "source", test_params["source"]
+    )
     assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.address is None
+    assert source_target.address == "any"
     assert source_target.port == "any"
-    assert source_target.any
+    assert source_target.network == "any"
     assert source_target.invert
-
-
-def test_from_ansible_module_params_set_port():
-    """
-    Given a port input ("source_port" == "22"), the FirewallRuleTarget.port
-    attribute must be '22' as well.
-    :return:
-    """
-    test_params: dict = {
-        "source_ip": "any",
-        "source_port": "22",
-        "source_invert": False,
-    }
-
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params("source", test_params)
-    assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.address is None
-    assert source_target.port == "22"
-    assert source_target.any
-    assert not source_target.invert
 
 
 def test_from_xml_basic_source():
@@ -119,8 +99,8 @@ def test_from_xml_basic_source():
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.any
-    assert source_target.address is None
+    assert source_target.network == "any"
+    assert source_target.address == "any"
     assert source_target.port == "any"
     assert not source_target.invert
 
@@ -136,8 +116,8 @@ def test_from_xml_test_not():
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
-    assert not source_target.any
-    assert source_target.address is None
+    assert source_target.network == "any"
+    assert source_target.address == "any"
     assert source_target.port == "any"
     assert source_target.invert
 
@@ -153,7 +133,7 @@ def test_from_xml_test_address():
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
-    assert not source_target.any
+    assert source_target.network == "any"
     assert source_target.address == "10.0.0.1/24"
     assert source_target.port == "any"
     assert not source_target.invert
@@ -170,7 +150,7 @@ def test_from_xml_test_port():
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
 
     assert isinstance(source_target, FirewallRuleTarget)
-    assert not source_target.any
-    assert source_target.address is None
+    assert source_target.network == "any"
+    assert source_target.address == "any"
     assert source_target.port == "22"
     assert not source_target.invert
