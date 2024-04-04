@@ -56,7 +56,7 @@ opnsense_configure_output:
     returned: always
     type: list
     sample:
-      - function: interfaces_assignments
+      - function: filter_configure
         params:
           - 'true'
         rc: 0
@@ -65,15 +65,15 @@ opnsense_configure_output:
         stdout: 'Assigning interface: lan' # ToDo
         stdout_lines:
           - 'Assigning interface: lan' # ToDo
-      - function: system_trust_configure
+      - function: rrd_configure
         params:
           - 'true'
         rc: 0
         stderr: ''
         stderr_lines: []
-        stdout: Writing trust files...done.
+        stdout: Generating RRD graphs...done.
         stdout_lines:
-          - Writing trust files...done.
+          - Generating RRD graphs...done.
 '''
 # fmt: on
 
