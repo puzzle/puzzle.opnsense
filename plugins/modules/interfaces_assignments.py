@@ -62,9 +62,9 @@ opnsense_configure_output:
         rc: 0
         stderr: ''
         stderr_lines: []
-        stdout: 'Assigning interface: lan' # ToDo
-        stdout_lines:
-          - 'Assigning interface: lan' # ToDo
+        stdout: ''
+        stdout_lines: []
+
       - function: rrd_configure
         params:
           - 'true'
