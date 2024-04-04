@@ -1099,7 +1099,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <laggs version="1.0.0"/>
                 <vlans version="1.0.0"/>
                 </opnsense>
-    """
+    """  # noqa: E501
 
 
 @pytest.fixture(scope="function")
