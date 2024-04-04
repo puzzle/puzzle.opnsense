@@ -215,14 +215,17 @@ options:
           address:
             description:
               - The IP address of the source.
+            default: any
             type: str
           network:
             description:
               - The network of the source.
+            default: any
             type: str
           port:
             description:
               - The port of the source.
+            default: any
             type: str
           invert:
             description:
@@ -238,14 +241,17 @@ options:
             description:
               - The IP address of the source.
             type: str
+            default: any
           network:
             description:
               - The network of the source.
             type: str
+            default: any
           port:
             description:
               - The port of the source.
             type: str
+            default: any
           invert:
             description:
               - Inverts the match logic.
@@ -316,6 +322,7 @@ opnsense_configure_output:
 from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleSet,
     FirewallRule,
@@ -341,7 +348,7 @@ def main():
             "choices": ["in", "out"],
         },
         "disabled": {"type": "bool", "default": False},
-        "quick": {"type": "bool", "default": False},
+        "quick": {"type": "bool", "default": True},
         "ipprotocol": {"type": "str", "default": "inet", "choices": ["inet", "inet6", "inet46"]},
         "protocol": {
             "type": "str",

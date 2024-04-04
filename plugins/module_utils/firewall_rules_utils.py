@@ -4,7 +4,6 @@
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from typing import List, Optional
-from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
