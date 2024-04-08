@@ -16,9 +16,7 @@ __metaclass__ = type
 ###############################
 
 
-def dict_to_etree(
-    tag: str, data: Optional[Union[int, str, list, dict]]
-) -> Optional[List[Element]]:
+def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> Optional[List[Element]]:
     """
     Converts a Python dictionary to an ElementTree.Element structure.
 
@@ -42,7 +40,10 @@ def dict_to_etree(
     if return_value is not None:
         return return_value
 
-    raise ValueError("Only values of type int, str, dict or list are supported.")
+    raise ValueError(
+        f"You provided an unsupported data type {type(data)}."
+        "Only values of type int, str, dict or list are supported."
+    )
 
 
 def _create_element(tag: str, data: Optional[Union[int, str]]) -> Element:
@@ -120,9 +121,7 @@ def _process_list(tag: str, data: list) -> List[Element]:
     return new_elements
 
 
-def _process_dict_list(
-    tag: str, input_dict: dict, root: Optional[Element]
-) -> Optional[Element]:
+def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> Optional[Element]:
     """
     Processes a dictionary within a list, converting its key-value pairs to ElementTree.Element.
 
