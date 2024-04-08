@@ -330,16 +330,12 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
-        assert any(
-            list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"]))
-        )
+        assert any(list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"])))
 
 
 @pytest.mark.parametrize(
     "etree_root",
-    [
-        "<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"
-    ],
+    ["<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"],
     indirect=True,
 )
 def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
@@ -384,3 +380,66 @@ def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
         assert child_dict["bob"] is not None
         assert "cat" in list(child_dict.keys())
         assert child_dict["cat"] is not None
+
+
+def test_elements_equal_without_children():
+    """
+    Tests elements_equal function with elements having the same tag and text content.
+
+    eg: <test>test text</test> == <test>test text</test>
+    """
+    e1 = Element("test")
+    e1.text = "test text"
+    e2 = Element("test")
+    e2.text = "test text"
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_without_children_whitespace_matches():
+    """
+    Test that elements_equal function considers a whitespace only text the same as a NoneType text.
+
+    eg:
+    <test/> == <test>   </test>
+    """
+    e1 = Element("test")
+    e1.text = None
+    e2 = Element("test")
+    e2.text = "            "
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_without_children_none_and_1():
+    """
+    Tests elements_equal function matches a boolean flag "1" the same as an empty element.
+
+    eg:
+    <test/> == <test>1</test>
+    """
+    e1 = Element("test")
+    e1.text = "1"
+    e2 = Element("test")
+    e2.text = None
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_equal_with_children():
+    """
+    Tests elements_equal function matches recursively equal elements.
+    """
+    e1 = Element("test")
+    e1c1 = Element("child_1")
+    e1c1.text = "some_text"
+    e1c2 = Element("child_2")
+    e1c2.text = "some_text_as_well"
+    e1.extend([e1c1, e1c2])
+    e2 = Element("test")
+    e2c1 = Element("child_1")
+    e2c1.text = "some_text     \n"
+    e2c2 = Element("child_2")
+    e2c2.text = "\n   some_text     \n"
+    e2.extend([e2c1, e2c2])
+    assert xml_utils.elements_equal(e1, e2)
