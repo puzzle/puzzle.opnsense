@@ -101,6 +101,10 @@ TEST_XML: str = """<?xml version="1.0"?>
         </system>
         <syslog>
         </syslog>
+        <settings>
+            <one>1</one>
+            <two>2</two>
+        </settings>
     </opnsense>
     """
 
