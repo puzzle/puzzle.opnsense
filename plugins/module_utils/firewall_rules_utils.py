@@ -417,6 +417,10 @@ class FirewallRule:
         ```
         """
 
+        source_dict: dict = params.get("source") if params.get("source") is not None else {}
+        destination_dict: dict = (
+            params.get("destination", {}) if params.get("destination") is not None else {}
+        )
         rule_dict = {
             "interface": params.get("interface"),
             "type": params.get("action"),
@@ -425,8 +429,8 @@ class FirewallRule:
             "ipprotocol": params.get("ipprotocol"),
             "direction": params.get("direction"),
             "protocol": params.get("protocol"),
-            "source": FirewallRuleTarget("source", **params.get("source")),
-            "destination": FirewallRuleTarget("destination", **params.get("destination")),
+            "source": FirewallRuleTarget("source", **source_dict),
+            "destination": FirewallRuleTarget("destination", **destination_dict),
             "log": params.get("log"),
             "category": params.get("category"),
             "disabled": params.get("disabled"),
