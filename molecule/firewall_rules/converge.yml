@@ -9,6 +9,8 @@
         interface: 'lan'
         action: 'pass'
         description: "New Test pass Rule"
+        source:
+        destination:
 
     - name: "Action: Test block action"
       puzzle.opnsense.firewall_rules:
@@ -1038,85 +1040,97 @@
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test source/invert enabled rule"
-        source_invert: true
+        source:
+          invert: true
 
       # Source IP: Test Source IP Field
     - name: "Source IP: Test Source IP Field with address"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP Field with address"
-        source_ip: "192.168.0.0/24"
+        source:
+          address: "192.168.0.0/24"
 
     - name: "Source IP: Test Source IP Field with host"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP Field with host"
-        source_ip: "8.8.8.8"
+        source:
+          address: "8.8.8.8"
 
       # Source IP and Source Port: Test Source IP and Source Port Field
     - name: "Source IP and Source Port: Test Source IP Field with address and Port any"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP and Source Port Field with address and Port any"
-        source_ip: "192.168.0.0/24"
-        source_port: "any"
+        source:
+          address: "192.168.0.0/24"
+          port: "any"
 
     - name: "Source IP and Source Port: Test Source IP Field with address and specific Port"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP and Source Port Field with address and specific Port"
-        source_ip: "192.168.0.0/24"
-        source_port: "1921"
+        source:
+          address: "192.168.0.0/24"
+          port: "1921"
 
     - name: "Source IP and Source Port: Test Source IP and Source Port Field with host and Port any"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP Field with host"
-        source_ip: "8.8.8.8"
-        source_port: "any"
+        source:
+          address: "8.8.8.8"
+          port: "any"
 
     - name: "Source IP and Source Port: Test Source IP Field with address and specific Port"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Source IP and Source Port Field with address and specific Port"
-        source_ip: "8.8.8.8"
-        source_port: "1921"
+        source:
+          address: "8.8.8.8"
+          port: "1921"
 
       # Target / Invert: Test basic functionality of the target/invert button
     - name: "Target / Invert: Test basic functionality of the target/invert button"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test target/invert enabled rule"
-        target_invert: true
+        destination:
+          invert: true
 
       # Target IP and Target Port: Test Target IP and Target Port Field
     - name: "Target IP and Target Port:Test Target IP Field with address and Port any"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Target IP and Target Port Field with address and Port any"
-        target_ip: "192.168.0.0/24"
-        target_port: "any"
+        destination:
+          address: "192.168.0.0/24"
+          port: "any"
 
     - name: "Target IP and Target Port: Test Target IP Field with address and specific Port"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Target IP and Target Port Field with address and specific Port"
-        target_ip: "192.168.0.0/24"
-        target_port: "1921"
+        destination:
+          address: "192.168.0.0/24"
+          port: "1921"
 
     - name: "Target IP and Target Port: Test Target IP and Target Port Field with host and Port any"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Target IP Field with host"
-        target_ip: "8.8.8.8"
-        target_port: "any"
+        destination:
+          address: "8.8.8.8"
+          port: "any"
 
     - name: "Target IP and Target Port: Test Target IP Field with address and specific Port"
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         description: "New Test Target IP and Target Port Field with address and specific Port"
-        target_ip: "8.8.8.8"
-        target_port: "1921"
+        destination:
+          address: "8.8.8.8"
+          port: "1921"
 
       # Test basic functionality of the log button
     - name: "Log: Test pass action"
@@ -1143,13 +1157,15 @@
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         action: 'pass'
-        source_ip: '192.168.0.0/16'
+        source:
+          address: '192.168.0.0/16'
       register: first_apply
     - name: Re-apply same rule
       puzzle.opnsense.firewall_rules:
         interface: 'lan'
         action: 'pass'
-        source_ip: '192.168.0.0/16'
+        source:
+          address: '192.168.0.0/16'
       register: second_apply
     - name: Assert no change on second apply
       assert:
