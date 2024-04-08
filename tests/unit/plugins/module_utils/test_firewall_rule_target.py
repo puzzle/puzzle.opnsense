@@ -154,3 +154,37 @@ def test_from_xml_test_port():
     assert source_target.address == "any"
     assert source_target.port == "22"
     assert not source_target.invert
+
+
+def test_from_xml_test_invert_empty():
+    basic_source_xml: str = """
+    <source>
+        <not/>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert source_target.network == "any"
+    assert source_target.address == "any"
+    assert source_target.port == "any"
+    assert source_target.invert
+
+
+def test_from_xml_test_invert_1():
+    basic_source_xml: str = """
+    <source>
+        <not>1</not>
+    </source>
+    """
+    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
+
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+
+    assert isinstance(source_target, FirewallRuleTarget)
+    assert source_target.network == "any"
+    assert source_target.address == "any"
+    assert source_target.port == "any"
+    assert source_target.invert
