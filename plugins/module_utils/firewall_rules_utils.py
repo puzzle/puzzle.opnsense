@@ -252,19 +252,20 @@ class FirewallRuleTarget:
 
         address: str = "any" if _any else target_data.get("address", "any")
         network: str = "any" if _any else target_data.get("network", "any")
+        invert: bool = "not" in target_data and target_data["not"] in ["1", None]
         return FirewallRuleTarget(
             target=target,
             address=address,
             network=network,
             port=target_data.get("port", "any"),
-            invert="not" in target_data and not target_data["not"],
+            invert=invert,
         )
 
     def as_etree_dict(self) -> dict:
         data: dict = dict()
 
         if self.invert:
-            data["not"] = self.invert
+            data["not"] = "1"
 
         for net_target in ["address", "network"]:
             if getattr(self, net_target) != "any":
