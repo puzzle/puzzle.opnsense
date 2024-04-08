@@ -295,8 +295,9 @@ class OPNsenseModuleConfig:
             if configure_functions is None:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no configure_functions defined in "
-                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self.opnsense_version}'."
+                    "the ansible_collections.puzzle.opnsense.plugins.module_utils."
+                    "module_index.VERSION_MAP for given OPNsense version "
+                    f"'{self.opnsense_version}'."
                 )
 
             # ensure configure_functions are defined as a list
