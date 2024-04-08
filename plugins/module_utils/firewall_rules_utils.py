@@ -566,7 +566,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         else:
             self._rules.append(rule)
 
-    def delete(self, rule: FirewallRule) -> None:
+    def delete(self, rule: FirewallRule) -> bool:
         """
         Removes a specified firewall rule from the ruleset.
 
@@ -578,10 +578,13 @@ class FirewallRuleSet(OPNsenseModuleConfig):
             rule (FirewallRule): The firewall rule to be removed from the ruleset.
 
         Returns:
-            None: This method does not return anything.
+            bool: True if rule was deleted, False if rule was already not present
         """
 
-        self._rules.remove(rule)
+        if rule in self._rules:
+            self._rules.remove(rule)
+            return True
+        return False
 
     def find(self, **kwargs) -> Optional[FirewallRule]:
         """
