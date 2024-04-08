@@ -330,12 +330,16 @@ def test_etree_to_dict__simple_tree(etree_root: Element) -> None:
 
     input_children: List[Element] = list(etree_root)
     for child in input_children:
-        assert any(list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"])))
+        assert any(
+            list(filter(lambda i, c=child: c.tag in list(i.keys()), output_dict["foo"]))
+        )
 
 
 @pytest.mark.parametrize(
     "etree_root",
-    ["<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"],
+    [
+        "<foo><bar><bob>1</bob><cat>2</cat></bar><john><bob>3</bob><cat>4</cat></john></foo>"
+    ],
     indirect=True,
 )
 def test_etree_to_dict__multiple_nested_dicts(etree_root: Element) -> None:
