@@ -209,7 +209,7 @@ def elements_equal(e1, e2) -> bool:
         return False
 
     # Leaf elements with no children
-    if not e1 and not e2:
+    if len(e1) == 0 and len(e2) == 0:
         # 1. Check if texts are exactly the same (ignoring whitespaces and None)
         # 2. or check if one text is '1' and the other is None with no children
         return (
