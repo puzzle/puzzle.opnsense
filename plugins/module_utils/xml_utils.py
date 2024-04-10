@@ -42,7 +42,10 @@ def dict_to_etree(
     if return_value is not None:
         return return_value
 
-    raise ValueError("Only values of type int, str, dict or list are supported.")
+    raise ValueError(
+        f"You provided an unsupported data type {type(data)}."
+        "Only values of type int, str, dict or list are supported."
+    )
 
 
 def _create_element(tag: str, data: Optional[Union[int, str]]) -> Element:
@@ -182,3 +185,47 @@ def etree_to_dict(input_etree: Element) -> dict:
                 result[key] = value
 
     return {input_etree.tag: result}
+
+
+def _is_whitespace_or_none(text) -> bool:
+    """
+    Checks if a given string is a string of whitespace characters or None.
+    Args:
+        text: the string to perform the check on.
+    Returns:
+        bool: True if the 'text' string is None or a whitespace string.
+    """
+    return text is None or text.strip() == ""
+
+
+def elements_equal(e1, e2) -> bool:
+    """
+    Compare two XML elements for equality.
+    Args:
+        e1 (Element): The first XML element.
+        e2 (Element): The second XML element.
+    Returns:
+        bool: True if the elements are equal, False otherwise.
+    """
+
+    # Check basic attributes for equality
+    if len(e1) != len(e2) or e1.attrib != e2.attrib or e1.tag != e2.tag:
+        return False
+
+    # Leaf elements with no children
+    if len(e1) == 0 and len(e2) == 0:
+        # 1. Check if texts are exactly the same (ignoring whitespaces and None)
+        # 2. or check if one text is '1' and the other is None with no children
+        return (
+            (_is_whitespace_or_none(e1.text) == _is_whitespace_or_none(e2.text))
+            or (e1.text == "1" and not e2.text and not e2)
+            or (e2.text == "1" and not e1.text and not e1)
+        )
+
+    # Tags have children
+    return all(
+        elements_equal(c1, c2)
+        for c1, c2 in zip(
+            sorted(e1, key=lambda x: x.tag), sorted(e2, key=lambda x: x.tag)
+        )
+    )
