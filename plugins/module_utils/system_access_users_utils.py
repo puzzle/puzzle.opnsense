@@ -6,6 +6,8 @@ from enum import Enum
 from typing import List, Optional
 import base64
 import os
+import binascii
+import crypt
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -24,7 +26,7 @@ class OPNSenseGroupNotFoundError(Exception):
     """
 
 
-class OPNSenseNotValidBase32APIKeyError(Exception):
+class OPNSenseNotValidBase64APIKeyError(Exception):
     """
     Exception raised when a not valid base32 api code is provided
     """
@@ -300,18 +302,21 @@ class User:
 
         # Check if apikeys is None or contains an empty string
         if apikeys is None or "" in apikeys:
-            key = base64.b32encode(os.urandom(60)).decode("utf-8")
-            secret = base64.b32encode(os.urandom(60)).decode("utf-8")
-            api_keys.append({"key": key, "secret": secret})
+            key = base64.b64encode(os.urandom(60)).decode("utf-8")
+            salt = crypt.mksalt(crypt.METHOD_SHA512)
+            secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+            api_keys.append({"key": key, "secret": crypt.crypt(secret, salt)})
         else:
             for api_key in apikeys:
-                if len(api_key) >= 80:
-                    secret = base64.b32encode(os.urandom(60)).decode("utf-8")
-                    api_keys.append({"key": api_key, "secret": secret})
-                else:
-                    raise OPNSenseNotValidBase32APIKeyError(
+                secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+                salt = crypt.mksalt(crypt.METHOD_SHA512)
+                try:
+                    base64.b64decode(api_key)
+                    api_keys.append({"key": api_key, "secret": crypt.crypt(secret, salt)})
+                except binascii.Error as e:
+                    raise OPNSenseNotValidBase64APIKeyError(
                         f"The API key: {api_key} is not a valid string. Must be >= 80 characters."
-                    )
+                    ) from e
 
         return api_keys
 
