@@ -92,6 +92,25 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -154,6 +173,25 @@ VERSION_MAP = {
                     "name": "system_syslog_start",
                     "configure_params": ["true"],
                 },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     },
@@ -220,6 +258,25 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+            },
+        },
     },
     "24.1": {
         "system_settings_general": {
@@ -283,6 +340,25 @@ VERSION_MAP = {
                     "name": "system_syslog_start",
                     "configure_params": ["true"],
                 },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
             },
         },
     },
