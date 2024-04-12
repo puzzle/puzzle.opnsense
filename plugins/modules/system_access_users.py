@@ -136,14 +136,7 @@ opnsense_configure_output:
     returned: always
     type: list
     sample:
-      - function: "system_cron_configure"
-        params: []
-        rc: 0
-        stderr: ""
-        stderr_lines: []
-        stdout: ""
-        stdout_lines: []
-      - function: "filter_configure"
+      - function: "opnsense_configure_output"
         params: []
         rc: 0
         stderr: ""
