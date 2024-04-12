@@ -95,7 +95,7 @@ class Group:
 
     The Group class is designed to represent group entities with various attributes commonly used
     in system configurations. It provides methods for creating from XML, converting to XML,
-    checking if a user is in the group, and adding a user to the group.
+    checking if a user is in the group, and adding/removing a user to/from the group.
     """
 
     name: str
