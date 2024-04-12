@@ -1,4 +1,4 @@
-#  Copyright: (c) 2024, Puzzle ITC
+# Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 import os
 from tempfile import NamedTemporaryFile
