@@ -315,7 +315,7 @@ class User:
 
         return api_keys
 
-    def set_authorizedkeys(self, authorizedkeys: str = None) -> str:
+    def set_authorizedkeys(self, authorizedkeys: str = None) -> Optional[str]:
         """
         Encodes the authorized SSH keys as base32.
 
