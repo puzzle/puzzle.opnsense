@@ -89,6 +89,7 @@ class Group:
     Methods:
         from_xml(element: Element): Creates a Group instance from an XML Element.
         to_etree(self): Converts the Group instance to an XML Element.
+        remove_user(self): Removes a user from the group.
         check_if_user_in_group(self, user: "User"): Checks if a user is already in the group.
         add_user(self, user: "User"): Adds a user to the group.
 
