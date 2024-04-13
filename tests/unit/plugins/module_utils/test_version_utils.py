@@ -14,8 +14,27 @@ from unittest.mock import patch, MagicMock
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import version_utils
 
+TEST_VERSION: str = """{
+    "product_abi": "23.1",
+    "product_arch": "amd64",
+    "product_copyright_owner": "Deciso B.V.",
+    "product_copyright_url": "https://www.deciso.com/",
+    "product_copyright_years": "2014-2023",
+    "product_email": "project@opnsense.org",
+    "product_flavour": "OpenSSL",
+    "product_hash": "b2937eb0b",
+    "product_id": "opnsense",
+    "product_name": "OPNsense",
+    "product_nickname": "Quintessential Quail",
+    "product_series": "23.1",
+    "product_tier": "1",
+    "product_version": "23.1",
+    "product_website": "https://opnsense.org/"
+    }
+    """
 
-@patch("subprocess.check_output", return_value=" OPNsense 23.1 ")
+
+@patch("subprocess.check_output", return_value=TEST_VERSION)
 def test_version_utils(mock_object: MagicMock):
     """
     Test the retrieval of the OPNsense version using the version_utils module.
@@ -34,11 +53,11 @@ def test_version_utils(mock_object: MagicMock):
       executing the actual command line call during testing.
 
     Assertions:
-    - Asserts that the `get_opnsense_version` function returns "OPNsense 23.1" exactly, ensuring
+    - Asserts that the `get_opnsense_version` function returns "23.1" exactly, ensuring
       that any preprocessing of the output is handled correctly.
 
     Raises:
     - AssertionError: If the `get_opnsense_version` does not return the expected version string.
     """
 
-    assert version_utils.get_opnsense_version() == "OPNsense 23.1"
+    assert version_utils.get_opnsense_version() == "23.1"

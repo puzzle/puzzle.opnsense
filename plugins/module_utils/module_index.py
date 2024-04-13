@@ -29,7 +29,7 @@ provides a centralized definition for various configurations across different OP
 """
 
 VERSION_MAP = {
-    "OPNsense 22.7 (amd64/OpenSSL)": {
+    "22.7": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -78,7 +78,7 @@ VERSION_MAP = {
             },
         }
     },
-    "OPNsense 23.1": {
+    "23.1": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -127,7 +127,7 @@ VERSION_MAP = {
             },
         },
     },
-    "OPNsense 23.7": {
+    "23.7": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -176,7 +176,7 @@ VERSION_MAP = {
             },
         },
     },
-    "OPNsense 24.1": {
+    "24.1": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
