@@ -40,7 +40,15 @@ class ModuleMisconfigurationError(Exception):
     """
     Exception raised when module configurations are not in the expected format as defined in the
     ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP.
+
+    Attributes:
+        opnsense_version (str): The OPNsense version
     """
+
+    def __init__(self, message, opnsense_version):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+        self.opnsense_version = opnsense_version
 
 
 class UnsupportedOPNsenseVersion(Exception):
@@ -241,9 +249,10 @@ class OPNsenseModuleConfig:
             # ensure php_requirements are defined as a list
             if not isinstance(php_requirements, list):
                 raise ModuleMisconfigurationError(
-                    f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
-                    "not provided as a list in the VERSION_MAP using OPNsense version"
-                    f"'{self._opnsense_version}'."
+                    message="PHP requirements (php_requirements) for the module "
+                    f"'{self._module_name}' are not provided as a list in the "
+                    f"VERSION_MAP using OPNsense version '{self._opnsense_version}'.",
+                    opnsense_version=self._opnsense_version,
                 )
 
             all_php_requirements.extend(php_requirements)
@@ -295,10 +304,11 @@ class OPNsenseModuleConfig:
             # ensure configure_functions are defined as a list
             if not isinstance(configure_functions, dict):
                 raise ModuleMisconfigurationError(
-                    "Configure functions (configure_functions) for the module "
+                    message="Configure functions (configure_functions) for the module "
                     f"'{self._module_name}' are "
                     "not provided as a list in the VERSION_MAP using OPNsense version "
-                    f"'{self._opnsense_version}'."
+                    f"'{self._opnsense_version}'.",
+                    opnsense_version=self._opnsense_version,
                 )
 
             all_configure_functions.update(configure_functions)
@@ -396,7 +406,8 @@ class OPNsenseModuleConfig:
 
         if xpath is None:
             raise ModuleMisconfigurationError(
-                f"Could not access given setting {setting}"
+                message=f"Could not access given setting {setting}",
+                opnsense_version=self._opnsense_version,
             )
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
