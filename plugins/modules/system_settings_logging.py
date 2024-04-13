@@ -68,6 +68,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     ModuleMisconfigurationError,
 )
 
+
 def is_positive_int(number: int) -> bool:
     """
     Validates number is positive int
@@ -79,6 +80,7 @@ def is_positive_int(number: int) -> bool:
 
     # https://github.com/opnsense/core/blob/24.1/src/www/diag_logs_settings.php#L80
     return isinstance(number, int) and number > 0
+
 
 def main():
     """
@@ -112,7 +114,6 @@ def main():
         check_mode=module.check_mode,
     ) as config:
         if preserve_logs_param:
-
             if not is_positive_int(preserve_logs_param):
                 module.fail_json(msg="Preserve logs must be a positive integer value")
 
@@ -123,16 +124,20 @@ def main():
             if not is_positive_int(max_log_file_size_mb_param):
                 module.fail_json(msg="Max file size must be a positive integer value")
 
-            if max_log_file_size_mb_param != int(config.get("max_log_file_size_mb").text):
+            if max_log_file_size_mb_param != int(
+                config.get("max_log_file_size_mb").text
+            ):
                 try:
-                    config.set(value=str(max_log_file_size_mb_param), setting="max_log_file_size_mb")
+                    config.set(
+                        value=str(max_log_file_size_mb_param),
+                        setting="max_log_file_size_mb",
+                    )
                 except ModuleMisconfigurationError as exc:
                     module.fail_json(
                         msg=f"Parameter max_log_file_size_mb is not supported in {exc.opnsense_version}"
                     )
 
         if config.changed:
-
             result["diff"] = config.diff
             result["changed"] = True
         if config.changed and not module.check_mode:
