@@ -65,6 +65,7 @@ opnsense_configure_output:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
+    ModuleMisconfigurationError,
 )
 
 def is_positive_int(number: int) -> bool:
