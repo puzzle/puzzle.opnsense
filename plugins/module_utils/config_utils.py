@@ -19,6 +19,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     version_utils,
     opnsense_utils,
     module_index,
+    xml_utils,
 )
 
 
@@ -401,7 +402,27 @@ class OPNsenseModuleConfig:
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 
-        if _setting.text in [None, "", " "]:
+        # there are conditions where a config option is not present in
+        # the XML unless it's configured. In that case _settings will be
+        # None at this point. If it is, we will have to create the new
+        # element first to be able to set it's .text value.
+        if _setting is None:
+            # get parent of new element
+            _setting_parent: Element = self._config_xml_tree.find(
+                "/".join(xpath.split("/")[:-1])
+            )
+
+            # create new empty element
+            element: Element = xml_utils.dict_to_etree(xpath.split("/")[-1], {})
+
+            # append the new element to it's parent
+            _setting_parent.extend(element)
+
+            # rediscover the element
+            _setting: Element = self._config_xml_tree.find(xpath)
+
+        # If the element is present we will verify it's .text value
+        elif _setting.text in [None, "", " "]:
             raise NotImplementedError("Currently only text settings supported")
 
         _setting.text = value
@@ -431,10 +452,25 @@ class OPNsenseModuleConfig:
                     continue
 
                 # Find the setting in the file-based configuration
-                config_diff_before.update({xpath: file_config.find(xpath).text})
+                file_config_element = file_config.find(xpath)
+
+                # there are conditions where a config option is not present in
+                # the XML unless it's configured. In that case file_config_element will be
+                # None at this point. If it is, we will set it's current value to an empty string
+                if file_config_element is None:
+                    config_diff_before.update({xpath: ""})
+                else:
+                    config_diff_before.update({xpath: file_config_element.text})
+
                 # Find the setting in the in-memory configuration
-                config_diff_after.update(
-                    {xpath: self._config_xml_tree.find(xpath).text}
-                )
+                in_memory_element = self._config_xml_tree.find(xpath)
+
+                # there are conditions where a config option is not present in
+                # the XML unless it's configured. In that case in_memory_element will be
+                # None at this point. If it is, we will set it's current value to an empty string
+                if in_memory_element is None:
+                    config_diff_after.update({xpath: ""})
+                else:
+                    config_diff_after.update({xpath: in_memory_element.text})
 
         return {"before": config_diff_before, "after": config_diff_after}
