@@ -152,6 +152,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     User,
     UserSet,
+    OPNSenseGroupNotFoundError,
+    OPNSenseNotValidBase64APIKeyError,
 )
 
 
@@ -208,36 +210,43 @@ def main():
     # since description matches the full_name in GUI
     module.params["full_name"] = description
 
-    ansible_user: User = User.from_ansible_module_params(module.params)
+    try:
 
-    ansible_user_state: str = module.params.get("state")
+        ansible_user: User = User.from_ansible_module_params(module.params)
 
-    with UserSet() as user_set:
-        if ansible_user_state == "present":
-            user_set.add_or_update(ansible_user)
-        elif ansible_user_state == "absent":
-            user_set.delete(ansible_user)
+        ansible_user_state: str = module.params.get("state")
 
-        if user_set.changed:
-            result["diff"] = user_set.diff
-            result["changed"] = True
+        with UserSet() as user_set:
+            if ansible_user_state == "present":
+                user_set.add_or_update(ansible_user)
+            elif ansible_user_state == "absent":
+                user_set.delete(ansible_user)
 
-        if user_set.changed and not module.check_mode:
-            user_set.save()
-            result["opnsense_configure_output"] = user_set.apply_settings()
+            if user_set.changed:
+                result["diff"] = user_set.diff
+                result["changed"] = True
 
-            if ansible_user.apikeys:
-                result["generated_apikeys"] = []
-                for new_generated_api_key in ansible_user.apikeys:
-                    result["generated_apikeys"].append(new_generated_api_key["key"])
+            if user_set.changed and not module.check_mode:
+                user_set.save()
+                result["opnsense_configure_output"] = user_set.apply_settings()
 
-            for cmd_result in result["opnsense_configure_output"]:
-                if cmd_result["rc"] != 0:
-                    module.fail_json(
-                        msg="Apply of the OPNsense settings failed",
-                        details=cmd_result,
-                    )
-    module.exit_json(**result)
+                if ansible_user.apikeys:
+                    result["generated_apikeys"] = []
+                    for new_generated_api_key in ansible_user.apikeys:
+                        result["generated_apikeys"].append(new_generated_api_key["key"])
+
+                for cmd_result in result["opnsense_configure_output"]:
+                    if cmd_result["rc"] != 0:
+                        module.fail_json(
+                            msg="Apply of the OPNsense settings failed",
+                            details=cmd_result,
+                        )
+        module.exit_json(**result)
+
+    except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
+        module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
+    except OPNSenseNotValidBase64APIKeyError as opnsense_not_valid_base64_apikey_error_message:
+        module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
 
 if __name__ == "__main__":
