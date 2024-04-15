@@ -161,6 +161,9 @@ ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 
 def main():
+    """
+    Main function of the system_access_users module
+    """
     module_args = {
         "username": {
             "type": "str",
