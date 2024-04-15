@@ -249,9 +249,7 @@ def main():
 
     except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
-    except (
-        OPNSenseNotValidBase64APIKeyError
-    ) as opnsense_not_valid_base64_apikey_error_message:
+    except OPNSenseNotValidBase64APIKeyError as opnsense_not_valid_base64_apikey_error_message:
         module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
 
