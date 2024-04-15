@@ -32,6 +32,8 @@ from typing import List, Optional
 import base64
 import os
 import binascii
+
+# pylint: disable=deprecated-module
 import crypt
 
 from xml.etree.ElementTree import Element, ElementTree
