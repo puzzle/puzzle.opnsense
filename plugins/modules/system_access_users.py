@@ -181,7 +181,12 @@ def main():
         "otp_seed": {"type": "str", "required": False},
         "authorizedkeys": {"type": "str", "required": False, "no_log": True},
         "groups": {"type": "list", "required": False, "elements": "str"},
-        "apikeys": {"type": "list", "required": False, "elements": "str", "no_log": False},
+        "apikeys": {
+            "type": "list",
+            "required": False,
+            "elements": "str",
+            "no_log": False,
+        },
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {
@@ -249,7 +254,9 @@ def main():
 
     except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
-    except OPNSenseNotValidBase64APIKeyError as opnsense_not_valid_base64_apikey_error_message:
+    except (
+        OPNSenseNotValidBase64APIKeyError
+    ) as opnsense_not_valid_base64_apikey_error_message:
         module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
 
