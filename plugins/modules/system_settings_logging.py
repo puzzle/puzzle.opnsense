@@ -66,6 +66,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
     ModuleMisconfigurationError,
+    UnsupportedModuleSettingError,
 )
 
 
@@ -117,26 +118,37 @@ def main():
             if not is_positive_int(preserve_logs_param):
                 module.fail_json(msg="Preserve logs must be a positive integer value")
 
-            if preserve_logs_param != int(config.get("preserve_logs").text):
+            # if the current preserve_los value is not set in the config XML
+            # config.get("preserve_logs") will be None
+            if config.get("preserve_logs") is not None:
+                current_preserve_logs_setting = int(config.get("preserve_logs").text)
+            else:
+                current_preserve_logs_setting = ""
+            if preserve_logs_param != current_preserve_logs_setting:
                 config.set(value=str(preserve_logs_param), setting="preserve_logs")
 
         if max_log_file_size_mb_param:
             if not is_positive_int(max_log_file_size_mb_param):
                 module.fail_json(msg="Max file size must be a positive integer value")
 
-            if max_log_file_size_mb_param != int(
-                config.get("max_log_file_size_mb").text
-            ):
-                try:
+            # if the current max_log_file_size_mb value is not set in the config XML
+            # config.get("max_log_file_size_mb") will be None
+            try:
+                if config.get("max_log_file_size_mb") is not None:
+                    current_max_log_file_size_mb = int(config.get("max_log_file_size_mb").text)
+                else:
+                    current_max_log_file_size_mb = ""
+                if max_log_file_size_mb_param != current_max_log_file_size_mb:
                     config.set(
                         value=str(max_log_file_size_mb_param),
                         setting="max_log_file_size_mb",
                     )
-                except ModuleMisconfigurationError as exc:
-                    module.fail_json(
-                        msg="Parameter max_log_file_size_mb is not"
-                            f"supported in {exc.opnsense_version}"
-                    )
+            except (UnsupportedModuleSettingError, ModuleMisconfigurationError) as exc:
+                module.fail_json(
+                    msg="Parameter max_log_file_size_mb is not"
+                        f"supported in {exc.opnsense_version}"
+                )
+
 
         if config.changed:
             result["diff"] = config.diff
