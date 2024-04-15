@@ -137,7 +137,9 @@ def main():
             # config.get("max_log_file_size_mb") will be None
             try:
                 if config.get("max_log_file_size_mb") is not None:
-                    current_max_log_file_size_mb = int(config.get("max_log_file_size_mb").text)
+                    current_max_log_file_size_mb = int(
+                        config.get("max_log_file_size_mb").text
+                    )
                 else:
                     current_max_log_file_size_mb = ""
                 if max_log_file_size_mb_param != current_max_log_file_size_mb:
@@ -148,7 +150,7 @@ def main():
             except (UnsupportedModuleSettingError, ModuleMisconfigurationError) as exc:
                 module.fail_json(
                     msg="Parameter max_log_file_size_mb is not"
-                        f"supported in {exc.opnsense_version}"
+                    f"supported in {exc.opnsense_version}"
                 )
 
         if config.changed:
