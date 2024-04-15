@@ -539,7 +539,7 @@ VERSION_MAP = {
                 },
                 "rrd_configure": {
                     "name": "rrd_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
