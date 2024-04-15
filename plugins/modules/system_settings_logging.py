@@ -6,10 +6,12 @@
 
 """system_settings_logging module: Module to configure opnsense logging"""
 
+# pylint: disable=duplicate-code
 __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
+# pylint: disable=duplicate-code
 DOCUMENTATION = r'''
 ---
 author:
@@ -148,7 +150,6 @@ def main():
                     msg="Parameter max_log_file_size_mb is not"
                         f"supported in {exc.opnsense_version}"
                 )
-
 
         if config.changed:
             result["diff"] = config.diff

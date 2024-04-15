@@ -6,10 +6,12 @@
 
 """system_settings_general module: Module to configure general OPNsense system settings"""
 
+# pylint: disable=duplicate-code
 __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
+# pylint: disable=duplicate-code
 DOCUMENTATION = r'''
 ---
 author:
