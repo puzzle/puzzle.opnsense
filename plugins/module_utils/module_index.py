@@ -389,6 +389,8 @@ VERSION_MAP = {
                 "filter_configure": {
                     "name": "filter_configure",
                 },
+            },
+        },
         "interfaces_assignments": {
             "interfaces": "interfaces",
             # Add other mappings here.
