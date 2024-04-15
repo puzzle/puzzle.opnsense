@@ -2,7 +2,7 @@
 scenario:
     name: system_settings_logging
     test_sequence:
-        # - dependency not relevant uless we have requirements
+        # - dependency not relevant unless we have requirements
         - destroy
         - syntax
         - create
