@@ -71,21 +71,21 @@ class OPNsenseModuleConfig:
     PHP requirements and configure functions based on the OPNsense version and module name.
 
     Attributes:
+        opnsense_version (str): The OPNsense version.
         _config_xml_tree (Element): The XML tree of the configuration file.
         _config_path (str): The file path of the configuration.
         _config_maps (List[str]): The mappings of settings and their XPath in the XML tree.
         _config_contexts (dict): List of required config_contexts
         _module_name (str): The name of the module.
-        _opnsense_version (str): The OPNsense version.
         _check_mode (bool): If the module is run in check_mode or not
     """
 
+    opnsense_version: str
     _config_xml_tree: Element
     _config_path: str
     _module_name: str
     _config_maps: Dict[str, dict] = {}
     _config_contexts: List[str]
-    _opnsense_version: str
     _check_mode: bool
 
     def __init__(
@@ -107,13 +107,13 @@ class OPNsenseModuleConfig:
         self._config_contexts = config_context_names
         self._config_path = path
         self._config_xml_tree = self._load_config()
-        self._opnsense_version = version_utils.get_opnsense_version()
+        self.opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
         try:
-            version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
+            version_map: dict = module_index.VERSION_MAP[self.opnsense_version]
         except KeyError as ke:
             raise UnsupportedOPNsenseVersion(
-                f"OPNsense version '{self._opnsense_version}' not supported "
+                f"OPNsense version '{self.opnsense_version}' not supported "
                 "by puzzle.opnsense collection.\n"
                 f"Supported versions are {list(module_index.VERSION_MAP.keys())}"
             ) from ke
@@ -121,7 +121,7 @@ class OPNsenseModuleConfig:
             if config_context_name not in version_map:
                 raise UnsupportedVersionForModule(
                     f"Config context '{config_context_name}' not supported "
-                    f"for OPNsense version '{self._opnsense_version}'.\n"
+                    f"for OPNsense version '{self.opnsense_version}'.\n"
                     f"Supported config contexts are {list(version_map.keys())}"
                 )
 
@@ -208,7 +208,7 @@ class OPNsenseModuleConfig:
             supported_settings.extend(cfg_map.keys())
         raise UnsupportedModuleSettingError(
             f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
-            f"for OPNsense version '{self._opnsense_version}'."
+            f"for OPNsense version '{self.opnsense_version}'."
             f"Supported settings are {supported_settings}"
         )
 
@@ -235,7 +235,7 @@ class OPNsenseModuleConfig:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no php_requirements defined in "
                     f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self._opnsense_version}'."
+                    f"OPNsense version '{self.opnsense_version}'."
                 )
 
             # ensure php_requirements are defined as a list
@@ -243,7 +243,7 @@ class OPNsenseModuleConfig:
                 raise ModuleMisconfigurationError(
                     f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
                     "not provided as a list in the VERSION_MAP using OPNsense version"
-                    f"'{self._opnsense_version}'."
+                    f"'{self.opnsense_version}'."
                 )
 
             all_php_requirements.extend(php_requirements)
@@ -289,7 +289,7 @@ class OPNsenseModuleConfig:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no configure_functions defined in "
                     f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self._opnsense_version}'."
+                    f"OPNsense version '{self.opnsense_version}'."
                 )
 
             # ensure configure_functions are defined as a list
@@ -298,7 +298,7 @@ class OPNsenseModuleConfig:
                     "Configure functions (configure_functions) for the module "
                     f"'{self._module_name}' are "
                     "not provided as a list in the VERSION_MAP using OPNsense version "
-                    f"'{self._opnsense_version}'."
+                    f"'{self.opnsense_version}'."
                 )
 
             all_configure_functions.update(configure_functions)
