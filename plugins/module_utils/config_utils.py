@@ -45,10 +45,11 @@ class ModuleMisconfigurationError(Exception):
         opnsense_version (str): The OPNsense version
     """
 
-    def __init__(self, message, opnsense_version):
+    def __init__(self, message, opnsense_version=None):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
-        self.opnsense_version = opnsense_version
+        if opnsense_version is not None:
+            self.opnsense_version = opnsense_version
 
 
 class UnsupportedOPNsenseVersion(Exception):
