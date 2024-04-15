@@ -254,7 +254,9 @@ class User:
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
     otp_seed: Optional[str] = None
-    shell: Optional[UserLoginShell] = None
+    shell: Optional[UserLoginShell] = (
+        UserLoginShell if not UserLoginShell else UserLoginShell.NOLOGIN
+    )
     uid: Optional[str] = None
     disabled: bool = False
     full_name: Optional[str] = None
