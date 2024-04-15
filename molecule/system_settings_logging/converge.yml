@@ -1,0 +1,54 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Converge - Get OPNsense version
+      ansible.builtin.command: opnsense-version -O
+      register: opnsense_version_cmd
+
+    - name: Converge - Set OPNsense version fact
+      ansible.builtin.set_fact:
+        opnsense_version: "{{ opnsense_version_cmd.stdout | from_json }}"
+
+    - name: Converge - Set preserve logs
+      puzzle.opnsense.system_settings_logging:
+        preserve_logs: 11
+
+    - name: Converge - Set max log file size on supported opnsense versions
+      puzzle.opnsense.system_settings_logging:
+        max_log_file_size_mb: 15
+      when: opnsense_version["product_version"] is version('24.1', '>=')
+
+    - name: Converge - Set max log file size on unsupported opnsense versions
+      puzzle.opnsense.system_settings_logging:
+        max_log_file_size_mb: 15
+      when: opnsense_version["product_version"] is version('24.1', '<')
+      register: test_unsupported_max_log_file_size_mb
+      ignore_errors: yes
+
+    - name: Verify that setting max_log_file_size_mb failed to to unsupported OPNsense version
+      ansible.builtin.assert:
+        that:
+          - test_unsupported_max_log_file_size_mb is failed
+        fail_msg: "Setting max_log_file_size_mb should fail on unsupported OPNsense versions"
+        success_msg: "Setting max_log_file_size_mb failed as expected due to unsupported OPNsense version"
+      when: opnsense_version["product_version"] is version('24.1', '<')
+
+    # we have no alternative way to compare the values
+    # other than getting them from the config
+    # see https://github.com/opnsense/core/blob/24.1/src/opnsense/scripts/syslog/log_archive#L36
+    - name: Get current config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Compare preserve logs
+      ansible.builtin.assert:
+        that: "'<preservelogs>11</preservelogs>' in ( current_config.content | b64decode )"
+
+    - name: Compare max log file size
+      ansible.builtin.assert:
+        that: "'<maxfilesize>15</maxfilesize>' in ( current_config.content | b64decode )"
+      when: opnsense_version["product_version"] is version('24.1', '>=')
