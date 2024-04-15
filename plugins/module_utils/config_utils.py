@@ -70,6 +70,12 @@ class UnsupportedModuleSettingError(Exception):
     unsupported setting in a Module.
     """
 
+    def __init__(self, message, opnsense_version=None):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+        if opnsense_version is not None:
+            self.opnsense_version = opnsense_version
+
 
 class OPNsenseModuleConfig:
     """
@@ -216,9 +222,10 @@ class OPNsenseModuleConfig:
         for cfg_map in self._config_maps.values():
             supported_settings.extend(cfg_map.keys())
         raise UnsupportedModuleSettingError(
-            f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
+            message=f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
             f"for OPNsense version '{self._opnsense_version}'."
-            f"Supported settings are {supported_settings}"
+            f"Supported settings are {supported_settings}",
+            opnsense_version=self._opnsense_version,
         )
 
     def _get_php_requirements(self) -> list:
