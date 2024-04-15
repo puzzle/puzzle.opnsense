@@ -1,6 +1,31 @@
 #  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+"""
+This module manages user and group configurations within an OPNsense system. It provides
+functionalities for handling user attributes and group memberships, utilizing data classes and
+XML manipulation. Key features include creation, update, and deletion of user records,
+secure password management, API key generation, and comprehensive error handling.
+
+Classes:
+- `User`: Manages individual user accounts with functionalities such as XML serialization and
+  initialization from Ansible module parameters.
+- `Group`: Manages group attributes and membership operations with XML interaction capabilities.
+- `UserSet`: Handles bulk operations on users and groups, ensuring consistent state across the
+  system configuration.
+
+Exceptions are defined for handling specific group and API key validation errors, enhancing
+the module's robustness in configuration management tasks.
+
+Designed for Ansible integration, specifically targeting the OPNsense firewall system, this
+module provides a structured approach to system access management.
+
+Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
+Licensed under the GNU General Public License v3.0+
+(see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt).
+"""
+
+
 from dataclasses import dataclass, asdict, fields
 from enum import Enum
 from typing import List, Optional
@@ -179,6 +204,7 @@ class Group:
             self.member.remove(user.uid)
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class User:
     """
@@ -232,7 +258,7 @@ class User:
     landing_page: Optional[str] = None
     expires: Optional[str] = None
     authorizedkeys: Optional[str] = None
-    cert: Optional[str] = None  # TODO is in another xml path
+    cert: Optional[str] = None  # will be handled in seperate module
     apikeys: Optional[List[str]] = None
     groupname: Optional[List[str]] = None
 
@@ -241,12 +267,7 @@ class User:
             return False
 
         for field in fields(self):
-            if (
-                field.name != "password"
-                and field.name != "uid"
-                and field.name != "otp_seed"
-                and field.name != "apikeys"
-            ):
+            if field.name not in ["password", "uid", "otp_seed", "apikeys"]:
                 if getattr(self, field.name) != getattr(other, field.name):
                     return False
 
@@ -534,6 +555,7 @@ class UserSet(OPNsenseModuleConfig):
         )
         self._users = self._load_users()
         self._groups = self._load_groups()
+        self._config_xml_tree = self._load_config()
 
     def _load_users(self) -> List[User]:
         """
@@ -833,7 +855,8 @@ class UserSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        # Assuming self._config_maps["system_access_users"]["system"] gives you the path to the 'system' element
+        # Assuming self._config_maps["system_access_users"]["system"]
+        # gives you the path to the 'system' element
         filter_element: Element = self._config_xml_tree.find(
             self._config_maps["system_access_users"]["system"]
         )

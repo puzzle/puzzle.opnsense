@@ -7,6 +7,7 @@
 
 """system_access_users module: Read, write, edit operations for OPNsense Users """
 
+# pylint: disable=duplicate-code
 __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
