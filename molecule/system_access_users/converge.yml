@@ -121,7 +121,7 @@
       ignore_errors: yes
 
     - name: "Verify that the user creation failed due to non-existing group"
-      assert:
+      ansible.builtin.assert:
         that:
           - test_user_14_result is failed
         fail_msg: "User creation should fail due to non-existing group"
@@ -178,7 +178,7 @@
       ignore_errors: yes
 
     - name: "Verify that the user creation failed due to too short api key"
-      assert:
+      ansible.builtin.assert:
         that:
           - test_user_20_result is failed
         fail_msg: "The API key: TEST_API_KEY is not a valid string. Must be >= 80 characters."
