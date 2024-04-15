@@ -313,10 +313,11 @@ class User:
                 try:
                     base64.b64decode(api_key)
                     api_keys.append({"key": api_key, "secret": crypt.crypt(secret, salt)})
-                except binascii.Error as e:
+                except binascii.Error as binascii_error_message:
                     raise OPNSenseNotValidBase64APIKeyError(
-                        f"The API key: {api_key} is not a valid string. Must be >= 80 characters."
-                    ) from e
+                        f"The API key: {api_key} is not a valid base64 string. "
+                        f"Must be >= 80 characters. Error: {str(binascii_error_message)}"
+                    ) from binascii_error_message
 
         return api_keys
 
