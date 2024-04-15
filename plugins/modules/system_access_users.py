@@ -181,7 +181,7 @@ def main():
         "otp_seed": {"type": "str", "required": False},
         "authorizedkeys": {"type": "str", "required": False, "no_log": True},
         "groups": {"type": "list", "required": False, "elements": "str"},
-        "apikeys": {"type": "list", "required": False, "elements": "str"},
+        "apikeys": {"type": "list", "required": False, "elements": "str", "no_log": False},
         "scope": {"type": "str", "required": False},
         "uid": {"type": "str", "required": False},
         "state": {
