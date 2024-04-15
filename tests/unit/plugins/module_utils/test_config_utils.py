@@ -291,7 +291,7 @@ def test_php_requirements_must_be_list(sample_config_path):
             ModuleMisconfigurationError,
             match=(
                 r"PHP requirements \(php_requirements\) for the module 'invalid_php_requirements' "
-                r"are not provided as a list in the VERSION_MAP using OPNsense version"
+                r"are not provided as a list in the VERSION_MAP using OPNsense version "
                 r"'OPNsense Test'."
             ),
         ):
