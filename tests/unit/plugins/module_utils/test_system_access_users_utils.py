@@ -41,7 +41,11 @@ TEST_VERSION_MAP = {
             ],
             "configure_functions": {
                 "name": "echo password_hash",
-                "configure_params": ["'password'", "PASSWORD_BCRYPT", "[ 'cost' => 11 ]"],
+                "configure_params": [
+                    "'password'",
+                    "PASSWORD_BCRYPT",
+                    "[ 'cost' => 11 ]",
+                ],
             },
         },
     }
@@ -141,7 +145,10 @@ def test_user_from_xml():
     test_user: User = User.from_xml(test_etree_user)
 
     assert test_user.name == "vagrant"
-    assert test_user.password == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
+    assert (
+        test_user.password
+        == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
+    )
     assert test_user.scope == "user"
     assert test_user.descr == "vagrant box management"
     assert test_user.expires is None
@@ -177,7 +184,10 @@ def test_user_with_api_key_from_xml():
     test_user: User = User.from_xml(test_etree_user)
 
     assert test_user.name == "test_user_1"
-    assert test_user.password == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
+    assert (
+        test_user.password
+        == "$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O"
+    )
     assert test_user.scope == "user"
     assert test_user.descr == "test_user_1"
     assert (
@@ -257,7 +267,16 @@ def test_group_from_xml():
     assert test_group.name == "admins"
     assert test_group.description == "System Administrators"
     assert test_group.scope == "system"
-    assert test_group.member == ["0", "1000", "2004", "2005", "2006", "2009", "2010", "2014"]
+    assert test_group.member == [
+        "0",
+        "1000",
+        "2004",
+        "2005",
+        "2006",
+        "2009",
+        "2010",
+        "2014",
+    ]
     assert test_group.gid == "1999"
 
 
@@ -394,7 +413,10 @@ def test_user_from_ansible_module_params_with_multiple_groups_as_list(
 
         # Adjust the assertions based on the actual implementation of your User and UserSet classes
 
-        assert "admins" in new_test_user.groupname and "test_group" in new_test_user.groupname
+        assert (
+            "admins" in new_test_user.groupname
+            and "test_group" in new_test_user.groupname
+        )
 
         new_user_set.save()
 
