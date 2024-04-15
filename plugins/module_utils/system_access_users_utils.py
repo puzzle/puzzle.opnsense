@@ -254,9 +254,7 @@ class User:
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
     otp_seed: Optional[str] = None
-    shell: Optional[UserLoginShell] = (
-        UserLoginShell if not UserLoginShell else UserLoginShell.NOLOGIN
-    )
+    shell: Optional[UserLoginShell] = UserLoginShell.NOLOGIN
     uid: Optional[str] = None
     disabled: bool = False
     full_name: Optional[str] = None
@@ -346,7 +344,7 @@ class User:
                 except binascii.Error as binascii_error_message:
                     raise OPNSenseNotValidBase64APIKeyError(
                         f"The API key: {api_key} is not a valid base64 string. "
-                        f"Must be >= 80 characters. Error: {str(binascii_error_message)}"
+                        f"Error: {str(binascii_error_message)}"
                     ) from binascii_error_message
 
         return api_keys
