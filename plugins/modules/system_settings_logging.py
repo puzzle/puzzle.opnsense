@@ -150,7 +150,8 @@ def main():
             except (UnsupportedModuleSettingError, ModuleMisconfigurationError) as exc:
                 module.fail_json(
                     msg="Parameter max_log_file_size_mb is not "
-                    f"supported in {exc.opnsense_version}"
+                    f"supported in OPNsense {config.opnsense_version}",
+                    details=str(exc),
                 )
 
         if config.changed:
