@@ -278,7 +278,7 @@ class User:
 
         return True
 
-    def __post_init__(self):
+    def __post_init__(self): -> None
         # Manually define the fields and their expected types
         enum_fields = {
             "shell": UserLoginShell,
