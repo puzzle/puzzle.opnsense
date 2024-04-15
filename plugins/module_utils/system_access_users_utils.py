@@ -234,11 +234,14 @@ class User:
         groupname (Optional[list[str]]): List of group names the user belongs to, if any.
 
     Methods:
-        __eq__(self, other): Compares two User objects for equality, excluding 'password' and 'uid'.
-        to_etree(self): Converts the User instance to an XML Element.
-        from_ansible_module_params(cls, params: dict): Creates a User instance from Ansible module
-        parameters.
-        from_xml(element: Element): Creates a User instance from an XML Element.
+        __eq__(self, other): Compare two User objects, excluding sensitive fields.
+        to_etree(self): Convert User instance to an XML Element.
+        from_ansible_module_params(cls, params): Create a User from Ansible module parameters.
+        from_xml(element): Create a User from an XML Element.
+        __post_init__(self): Process post-initialization tasks.
+        set_otp_seed(self, otp_seed=None): Generate or encode OTP seed.
+        set_apikeys(self, apikeys=None): Generate or set API keys.
+        set_authorizedkeys(self, authorizedkeys=None): Encode authorized SSH keys.
 
     The User class is designed to represent user entities with various attributes commonly used in
     system configurations. It provides methods for comparing, converting to XML, creating from
@@ -335,9 +338,7 @@ class User:
                 salt = crypt.mksalt(crypt.METHOD_SHA512)
                 try:
                     base64.b64decode(api_key)
-                    api_keys.append(
-                        {"key": api_key, "secret": crypt.crypt(secret, salt)}
-                    )
+                    api_keys.append({"key": api_key, "secret": crypt.crypt(secret, salt)})
                 except binascii.Error as binascii_error_message:
                     raise OPNSenseNotValidBase64APIKeyError(
                         f"The API key: {api_key} is not a valid base64 string. "
@@ -469,9 +470,7 @@ class User:
             ),
         }
 
-        user_dict = {
-            key: value for key, value in user_dict.items() if value is not None
-        }
+        user_dict = {key: value for key, value in user_dict.items() if value is not None}
 
         return cls(**user_dict)
 
@@ -685,9 +684,7 @@ class UserSet(OPNsenseModuleConfig):
             return  # Exit the method after removing the user from all groups.
 
         # Convert groupname to a list if it's not already.
-        group_names = (
-            user.groupname if isinstance(user.groupname, list) else [user.groupname]
-        )
+        group_names = user.groupname if isinstance(user.groupname, list) else [user.groupname]
 
         for group_name in group_names:
             group_found = False
@@ -701,9 +698,7 @@ class UserSet(OPNsenseModuleConfig):
 
             if not group_found:
                 # Group was not found, raise an exception
-                raise OPNSenseGroupNotFoundError(
-                    f"Group '{group_name}' not found on Instance"
-                )
+                raise OPNSenseGroupNotFoundError(f"Group '{group_name}' not found on Instance")
 
     def set_user_password(self, user: User) -> None:
         """
@@ -712,20 +707,12 @@ class UserSet(OPNsenseModuleConfig):
 
         # load requirements
         php_requirements = self._config_maps["password"]["php_requirements"]
-        configure_function = self._config_maps["password"]["configure_functions"][
-            "name"
-        ]
-        configure_params = self._config_maps["password"]["configure_functions"][
-            "configure_params"
-        ]
+        configure_function = self._config_maps["password"]["configure_functions"]["name"]
+        configure_params = self._config_maps["password"]["configure_functions"]["configure_params"]
 
         # format parameters
         formatted_params = [
-            (
-                param.replace("'password'", f"'{user.password}'")
-                if "password" in param
-                else param
-            )
+            (param.replace("'password'", f"'{user.password}'") if "password" in param else param)
             for param in configure_params
         ]
 
@@ -767,9 +754,7 @@ class UserSet(OPNsenseModuleConfig):
                 modify the specified user's information.
         """
 
-        existing_user: Optional[User] = next(
-            (u for u in self._users if u.name == user.name), None
-        )
+        existing_user: Optional[User] = next((u for u in self._users if u.name == user.name), None)
         next_uid: Element = self.get("uid")
 
         # since the current password of an user cannot not be compared with the new one,
@@ -845,9 +830,7 @@ class UserSet(OPNsenseModuleConfig):
         """
 
         for user in self._users:
-            match = all(
-                getattr(user, key, None) == value for key, value in kwargs.items()
-            )
+            match = all(getattr(user, key, None) == value for key, value in kwargs.items())
             if match:
                 return user
         return None
