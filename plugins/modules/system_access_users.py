@@ -220,7 +220,6 @@ def main():
     module.params["full_name"] = description
 
     try:
-
         ansible_user: User = User.from_ansible_module_params(module.params)
 
         ansible_user_state: str = module.params.get("state")

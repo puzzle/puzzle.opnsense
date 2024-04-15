@@ -292,7 +292,6 @@ def test_group_from_xml():
 def test_user_set_add_group(
     mocked_version_utils: MagicMock, mock_set_password: MagicMock, sample_config_path
 ):
-
     with UserSet(sample_config_path) as user_set:
         test_user: User = user_set.find(name="vagrant")
         test_user.groupname = ["admins"]

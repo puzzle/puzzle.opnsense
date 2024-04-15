@@ -398,7 +398,6 @@ class User:
             ]:
                 continue
             if isinstance(user_val, list) and user_key == "apikeys":
-
                 items_list = [{"item": val} for val in user_val]
 
                 # If user_key already exists, and it's a list, add to it
@@ -780,7 +779,6 @@ class UserSet(OPNsenseModuleConfig):
         self.set_user_password(user)
 
         if existing_user:
-
             # Update groups if needed
             self._update_user_groups(user, existing_user)
 
