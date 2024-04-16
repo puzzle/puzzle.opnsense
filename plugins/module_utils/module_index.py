@@ -118,9 +118,11 @@ VERSION_MAP = {
         "firewall_rules": {
             "rules": "filter",
             "php_requirements": [
-                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/interfaces.inc",
             ],
             "configure_functions": {
                 "system_cron_configure": {
@@ -416,6 +418,9 @@ VERSION_MAP = {
             "rules": "filter",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
                 "/usr/local/etc/inc/filter.inc",
             ],
             "configure_functions": {
