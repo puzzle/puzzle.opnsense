@@ -32,7 +32,6 @@ from typing import List, Optional
 import base64
 import os
 import binascii
-import hashlib
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -417,8 +416,7 @@ class User:
                         "item": {
                             key_name: (
                                 self._generate_hashed_secret(secret_value)
-                                if key_name == "secret"
-                                and not secret_value.startswith("$6$")
+                                if key_name == "secret" and not secret_value.startswith("$6$")
                                 else secret_value
                             )
                             for key_name, secret_value in api_key_dict.items()
@@ -491,9 +489,7 @@ class User:
             ),
         }
 
-        user_dict = {
-            key: value for key, value in user_dict.items() if value is not None
-        }
+        user_dict = {key: value for key, value in user_dict.items() if value is not None}
 
         return cls(**user_dict)
 
@@ -707,9 +703,7 @@ class UserSet(OPNsenseModuleConfig):
             return  # Exit the method after removing the user from all groups.
 
         # Convert groupname to a list if it's not already.
-        group_names = (
-            user.groupname if isinstance(user.groupname, list) else [user.groupname]
-        )
+        group_names = user.groupname if isinstance(user.groupname, list) else [user.groupname]
 
         for group_name in group_names:
             group_found = False
@@ -723,9 +717,7 @@ class UserSet(OPNsenseModuleConfig):
 
             if not group_found:
                 # Group was not found, raise an exception
-                raise OPNSenseGroupNotFoundError(
-                    f"Group '{group_name}' not found on Instance"
-                )
+                raise OPNSenseGroupNotFoundError(f"Group '{group_name}' not found on Instance")
 
     def set_user_password(self, user: User) -> None:
         """
@@ -734,20 +726,12 @@ class UserSet(OPNsenseModuleConfig):
 
         # load requirements
         php_requirements = self._config_maps["password"]["php_requirements"]
-        configure_function = self._config_maps["password"]["configure_functions"][
-            "name"
-        ]
-        configure_params = self._config_maps["password"]["configure_functions"][
-            "configure_params"
-        ]
+        configure_function = self._config_maps["password"]["configure_functions"]["name"]
+        configure_params = self._config_maps["password"]["configure_functions"]["configure_params"]
 
         # format parameters
         formatted_params = [
-            (
-                param.replace("'password'", f"'{user.password}'")
-                if "password" in param
-                else param
-            )
+            (param.replace("'password'", f"'{user.password}'") if "password" in param else param)
             for param in configure_params
         ]
 
@@ -789,9 +773,7 @@ class UserSet(OPNsenseModuleConfig):
                 modify the specified user's information.
         """
 
-        existing_user: Optional[User] = next(
-            (u for u in self._users if u.name == user.name), None
-        )
+        existing_user: Optional[User] = next((u for u in self._users if u.name == user.name), None)
         next_uid: Element = self.get("uid")
 
         # since the current password of an user cannot not be compared with the new one,
@@ -866,9 +848,7 @@ class UserSet(OPNsenseModuleConfig):
         """
 
         for user in self._users:
-            match = all(
-                getattr(user, key, None) == value for key, value in kwargs.items()
-            )
+            match = all(getattr(user, key, None) == value for key, value in kwargs.items())
             if match:
                 return user
         return None

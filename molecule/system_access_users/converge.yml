@@ -207,5 +207,3 @@
       when:
         - "'generated_apikeys' in api_keys_result"
         - api_keys_result.generated_apikeys | length > 0
-
-
