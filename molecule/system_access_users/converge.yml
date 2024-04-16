@@ -166,6 +166,14 @@
           password: test_password_19
           apikeys: ""
           full_name: "Test User 19: Test User Creation with empty api_keys"
+      register: api_keys_result
+
+    - name: Return the created apikeys and secret of Test User 19
+      ansible.builtin.debug:
+        msg: "The following api_keys were created {{ api_keys_result.generated_apikeys }}"
+      when:
+        - "'generated_apikeys' in api_keys_result"
+        - api_keys_result.generated_apikeys | length > 0
 
       # Test User with too short api_keys
     - name: "Test User 20: Test User Creation with too short api_keys"
@@ -191,3 +199,13 @@
           password: test_password_21
           apikeys: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu9xc"
           full_name: "Test User 21: Test User Creation with valid api_keys"
+      register: api_keys_result
+
+    - name: Return the created apikeys and secret of Test User 21
+      ansible.builtin.debug:
+        msg: "The following api_keys were created {{ api_keys_result.generated_apikeys }}"
+      when:
+        - "'generated_apikeys' in api_keys_result"
+        - api_keys_result.generated_apikeys | length > 0
+
+
