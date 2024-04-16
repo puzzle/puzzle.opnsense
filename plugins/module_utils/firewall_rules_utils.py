@@ -1,6 +1,8 @@
-#  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>
+#  Copyright: (c) 2024, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+"""
+Utilities for firewall_rules module related operations.
+"""
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from typing import List, Optional
@@ -199,6 +201,7 @@ class FirewallRuleProtocol(ListEnum):
     DIVERT = "divert"
 
 
+# pylint: disable=invalid-name
 class IPProtocol(ListEnum):
     """Represents the IPProtocol."""
 
@@ -207,6 +210,7 @@ class IPProtocol(ListEnum):
     IPv4_IPv6 = "inet46"
 
 
+# pylint: disable=fixme
 class FirewallRuleStateType(ListEnum):
     """Represents the FirewallRuleStateType."""  # TODO not yet in the ansible parameters
 
@@ -229,6 +233,13 @@ class FirewallRuleTarget:
 
     @classmethod
     def from_ansible_params(cls, target: str, params: dict) -> "FirewallRuleTarget":
+        """
+        Class method to build a FirewallRuleTarget instance from ansible
+        module parameters.
+        :param target: Target name as in "source" or "destination".
+        :param params: Ansible module parameters.
+        :return: FirewallRuleTarget instance.
+        """
         # if eg "source_ip" is "any" then we set the flag
         ansible_address: Optional[str] = params["address"]
         ansible_network: Optional[str] = params["network"]
@@ -246,6 +257,13 @@ class FirewallRuleTarget:
 
     @classmethod
     def from_xml(cls, target: str, element: Element) -> "FirewallRuleTarget":
+        """
+        Class method to build a FirewallRuleTarget from a given ElementTree
+        XML element.
+        :param target: Target name as in "source" or "destination".
+        :param element: The ElementTree element to parse from.
+        :return: FirewallRuleTarget instance.
+        """
         target_data: dict = xml_utils.etree_to_dict(element)[target]
 
         _any: bool = {"any": None} in target_data.values()
@@ -262,7 +280,12 @@ class FirewallRuleTarget:
         )
 
     def as_etree_dict(self) -> dict:
-        data: dict = dict()
+        """
+        Returns the instance in a dictionary serialized form ready
+        for conversion to ElementTree elements.
+        :return: serialized dictionary from instance.
+        """
+        data: dict = {}
 
         if self.invert:
             data["not"] = "1"
@@ -279,6 +302,7 @@ class FirewallRuleTarget:
         return data
 
 
+# pylint: disable=too-many-instance-attributes, fixme
 @dataclass
 class FirewallRule:
     """Used to represent a firewall rule."""
@@ -490,7 +514,7 @@ class FirewallRule:
 
         rule_dict.update(
             disabled=rule_dict.get("disabled", "0") == "1",
-            quick=True if "quick" not in rule_dict else False,
+            quick="quick" not in rule_dict,
             log=rule_dict.get("log", "0") == "1",
             uuid=element.attrib.get("uuid"),
         )
@@ -551,11 +575,13 @@ class FirewallRuleSet(OPNsenseModuleConfig):
     @property
     def changed(self) -> bool:
         """
-        Checks if the current set of firewall rules has changed compared to the loaded configuration.
+        Checks if the current set of firewall rules has changed compared to the
+        loaded configuration.
 
-        This property compares the current set of `FirewallRule` objects in `_rules` with the set
-        loaded from the configuration file. It returns True if there are differences, indicating
-        that changes have been made to the ruleset which are not yet saved to the configuration file.
+        This property compares the current set of `FirewallRule` objects in `_rules`
+        with the set loaded from the configuration file. It returns True if there are
+        differences, indicating that changes have been made to the ruleset which are
+        not yet saved to the configuration file.
 
         Returns:
             bool: True if the ruleset has changed, False otherwise.
@@ -566,10 +592,11 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         """
         Adds a new firewall rule to the ruleset or updates an existing one.
 
-        This method checks if the provided `rule` already exists in the ruleset. If it does,
-        the existing rule is updated with the properties of the provided `rule`. If it does not exist,
-        the new rule is appended to the ruleset. The comparison to check if a rule exists is based on
-        the equality condition defined in the `FirewallRule` class.
+        This method checks if the provided `rule` already exists in the ruleset. If it
+        does, the existing rule is updated with the properties of the provided `rule`.
+        If it does not exist, the new rule is appended to the ruleset. The comparison
+        to check if a rule exists is based on the equality condition defined in the
+        `FirewallRule` class.
 
         Parameters:
             rule (FirewallRule): The firewall rule to be added or updated in the ruleset.
@@ -620,7 +647,7 @@ class FirewallRuleSet(OPNsenseModuleConfig):
                     should correspond to an attribute of the `FirewallRule` class.
 
         Returns:
-            Optional[FirewallRule]: The first matching `FirewallRule` object, or None if no match is found.
+            Optional[FirewallRule]: The first matching rule object, or None if no match is found.
         """
 
         for rule in self._rules:

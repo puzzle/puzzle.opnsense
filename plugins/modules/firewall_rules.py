@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#  Copyright: (c) 2023, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>, Kilian Soltermann <soltermann@puzzle.ch>
+# Copyright: (c) 2024, Puzzle ITC, Fabio Bertagna <bertagna@puzzle.ch>,
+#            Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
@@ -337,6 +338,8 @@ ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 
 def main():
+    """Main module execution entry point."""
+
     module_args = {
         "interface": {"type": "str", "required": True},
         "action": {
@@ -413,19 +416,17 @@ def main():
 
     module.params["description"] = description
 
-    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(
-        module.params
-    )  # TODO
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(module.params)
 
     ansible_rule_state: str = module.params.get("state")
 
     with FirewallRuleSet() as rule_set:
         if ansible_rule_state == "present":
             rule_set.add_or_update(ansible_rule)
-        elif ansible_rule_state == "absent":
-            rule_set.delete(ansible_rule)
         else:
-            raise ValueError("TEMP")  # TODO
+            # ansible_rule_state == "absent" since it is the only
+            # alternative allowed in the module params
+            rule_set.delete(ansible_rule)
 
         if rule_set.changed:
             result["diff"] = rule_set.diff

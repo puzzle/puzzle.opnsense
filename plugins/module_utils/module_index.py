@@ -27,7 +27,7 @@ For example, the 'system_settings_general' module for "OPNsense 22.7 (amd64/Open
 This map is essential for dynamically configuring modules based on the OPNsense version and
 provides a centralized definition for various configurations across different OPNsense versions.
 """
-
+# pylint: disable=duplicate-code; Since this is rewritten in some tests.
 VERSION_MAP = {
     "22.7": {
         "system_settings_general": {
