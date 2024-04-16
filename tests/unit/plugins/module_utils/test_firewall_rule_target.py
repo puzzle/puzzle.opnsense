@@ -3,7 +3,9 @@
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import FirewallRuleTarget
+from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
+    FirewallRuleTarget,
+)
 
 
 def test_from_ansible_module_params_correct_default_return():
@@ -35,7 +37,12 @@ def test_from_ansible_module_params_set_ip():
     :return:
     """
     test_params: dict = {
-        "source": {"address": "192.168.0.1/24", "network": "any", "port": "any", "invert": False},
+        "source": {
+            "address": "192.168.0.1/24",
+            "network": "any",
+            "port": "any",
+            "invert": False,
+        },
     }
 
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
@@ -55,7 +62,12 @@ def test_from_ansible_module_params_set_port():
     :return:
     """
     test_params: dict = {
-        "source": {"address": "any", "network": "any", "port": "8000-9000", "invert": False},
+        "source": {
+            "address": "any",
+            "network": "any",
+            "port": "8000-9000",
+            "invert": False,
+        },
     }
 
     source_target: FirewallRuleTarget = FirewallRuleTarget.from_ansible_params(
@@ -96,7 +108,9 @@ def test_from_xml_basic_source():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"
@@ -113,7 +127,9 @@ def test_from_xml_test_not():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"
@@ -130,7 +146,9 @@ def test_from_xml_test_address():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"
@@ -147,7 +165,9 @@ def test_from_xml_test_port():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"
@@ -164,7 +184,9 @@ def test_from_xml_test_invert_empty():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"
@@ -181,7 +203,9 @@ def test_from_xml_test_invert_1():
     """
     test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
 
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", test_etree_source)
+    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        "source", test_etree_source
+    )
 
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.network == "any"

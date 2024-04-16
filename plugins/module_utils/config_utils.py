@@ -403,7 +403,9 @@ class OPNsenseModuleConfig:
                 xpath = cfg_map.get(setting)
 
         if xpath is None:
-            raise ModuleMisconfigurationError(f"Could not access given setting {setting}")
+            raise ModuleMisconfigurationError(
+                f"Could not access given setting {setting}"
+            )
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 

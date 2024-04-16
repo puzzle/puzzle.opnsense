@@ -19,7 +19,8 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_uti
     IPProtocol,
     FirewallRuleProtocol,
     FirewallRuleStateType,
-    FirewallRuleDirection, FirewallRuleTarget,
+    FirewallRuleDirection,
+    FirewallRuleTarget,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -216,8 +217,10 @@ def test_firewall_rule_to_etree():
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
     orig_rule: Element = list(list(orig_etree)[0])[0]
 
-    assert elements_equal(test_element, orig_rule), (f"{xml_utils.etree_to_dict(test_element)}\n"
-                                                     f"{xml_utils.etree_to_dict(orig_rule)}")
+    assert elements_equal(test_element, orig_rule), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_rule)}"
+    )
 
 
 def test_firewall_rule_from_ansible_module_params_simple():
@@ -228,7 +231,12 @@ def test_firewall_rule_from_ansible_module_params_simple():
         "description": "Allow SSH access",
         "protocol": "tcp",
         "source": {"address": "any", "network": "any", "port": "any", "invert": False},
-        "destination": {"address": "any", "network": "any", "port": "22", "invert": False},
+        "destination": {
+            "address": "any",
+            "network": "any",
+            "port": "22",
+            "invert": False,
+        },
         "disabled": False,
     }
 
@@ -254,7 +262,9 @@ def test_firewall_rule_from_ansible_module_params_simple():
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_load_simple_rules(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_load_simple_rules(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     with FirewallRuleSet(sample_config_path) as rule_set:
         assert len(rule_set._rules) == 4
         rule_set.save()
@@ -282,7 +292,9 @@ def test_rule_set_write_rules_back(mocked_version_utils: MagicMock, sample_confi
             ElementTree.tostring(element=e1, **es_args).decode().replace("\n", ""),
         )
 
-        assert elements_equal(e1, e2), f"Firewall rules not same:\n" f"{e1s}\n" f"{e2s}\n"
+        assert elements_equal(e1, e2), (
+            f"Firewall rules not same:\n" f"{e1s}\n" f"{e2s}\n"
+        )
         rule_set.save()
 
 
@@ -291,7 +303,9 @@ def test_rule_set_write_rules_back(mocked_version_utils: MagicMock, sample_confi
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_change_rule_description(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     with FirewallRuleSet(sample_config_path) as rule_set:
         ssh_rule: FirewallRule = rule_set.find(descr="Allow SSH access")
         ssh_rule.descr = "TEST TEST"
@@ -313,7 +327,9 @@ def test_rule_set_change_rule_description(mocked_version_utils: MagicMock, sampl
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
 
     with FirewallRuleSet(sample_config_path) as rule_set:
@@ -324,7 +340,9 @@ def test_rule_set_create_new_simple_rule(mocked_version_utils: MagicMock, sample
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"
@@ -336,7 +354,9 @@ def test_rule_set_create_new_simple_rule(mocked_version_utils: MagicMock, sample
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_not_changed_after_save(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_not_changed_after_save(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
 
     with FirewallRuleSet(sample_config_path) as rule_set:
@@ -353,7 +373,9 @@ def test_rule_set_not_changed_after_save(mocked_version_utils: MagicMock, sample
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_not_changed_after_duplicate_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_not_changed_after_duplicate_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
 
     with FirewallRuleSet(sample_config_path) as rule_set:
@@ -373,7 +395,9 @@ def test_rule_set_not_changed_after_duplicate_rule(mocked_version_utils: MagicMo
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_fw_rule_from_ansible_is_same_as_default(mocked_version_utils: MagicMock, sample_config_path):
+def test_fw_rule_from_ansible_is_same_as_default(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     mock_ansible_module_params: dict = {
         "interface": "wan",
         "action": "pass",
@@ -385,11 +409,18 @@ def test_fw_rule_from_ansible_is_same_as_default(mocked_version_utils: MagicMock
         "ipprotocol": "inet",
         "protocol": "any",
         "source": {"address": "any", "network": "any", "port": "any", "invert": False},
-        "destination": {"address": "any", "network": "any", "port": "any", "invert": False},
+        "destination": {
+            "address": "any",
+            "network": "any",
+            "port": "any",
+            "invert": False,
+        },
         "log": False,
         "state": "present",
     }
-    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(mock_ansible_module_params)
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(
+        mock_ansible_module_params
+    )
 
     new_test_rule = FirewallRule(interface="wan", descr="New Test Rule")
 
@@ -419,7 +450,9 @@ def test_rule_set_create_new_simple_rule_with_unsupported_action(
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_disabled_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(
         interface="wan",
         descr="New Test Rule",
@@ -435,7 +468,9 @@ def test_rule_set_create_new_simple_disabled_rule(mocked_version_utils: MagicMoc
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"
@@ -448,7 +483,9 @@ def test_rule_set_create_new_simple_disabled_rule(mocked_version_utils: MagicMoc
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_quick_disabled_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_quick_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(
         interface="wan",
         descr="New Test Rule",
@@ -464,7 +501,9 @@ def test_rule_set_create_new_simple_quick_disabled_rule(mocked_version_utils: Ma
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"
@@ -477,7 +516,9 @@ def test_rule_set_create_new_simple_quick_disabled_rule(mocked_version_utils: Ma
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_quick_enabled_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_quick_enabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(
         interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, quick=True
     )
@@ -490,7 +531,9 @@ def test_rule_set_create_new_simple_quick_enabled_rule(mocked_version_utils: Mag
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"
@@ -503,7 +546,9 @@ def test_rule_set_create_new_simple_quick_enabled_rule(mocked_version_utils: Mag
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_log_enabled_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_log_enabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(
         interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, log=True
     )
@@ -516,7 +561,9 @@ def test_rule_set_create_new_simple_log_enabled_rule(mocked_version_utils: Magic
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"
@@ -530,7 +577,9 @@ def test_rule_set_create_new_simple_log_enabled_rule(mocked_version_utils: Magic
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_rule_set_create_new_simple_log_disabled_rule(mocked_version_utils: MagicMock, sample_config_path):
+def test_rule_set_create_new_simple_log_disabled_rule(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     new_test_rule = FirewallRule(
         interface="wan", descr="New Test Rule", type=FirewallRuleAction.PASS, log=False
     )
@@ -543,7 +592,9 @@ def test_rule_set_create_new_simple_log_disabled_rule(mocked_version_utils: Magi
         rule_set.save()
 
     with FirewallRuleSet(sample_config_path) as new_rule_set:
-        new_rule: Optional[FirewallRule] = new_rule_set.find(interface="wan", descr="New Test Rule")
+        new_rule: Optional[FirewallRule] = new_rule_set.find(
+            interface="wan", descr="New Test Rule"
+        )
 
         assert new_rule is not None
         assert new_rule.interface == "wan"

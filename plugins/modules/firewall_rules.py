@@ -353,7 +353,11 @@ def main():
         },
         "disabled": {"type": "bool", "default": False},
         "quick": {"type": "bool", "default": True},
-        "ipprotocol": {"type": "str", "default": "inet", "choices": ["inet", "inet6", "inet46"]},
+        "ipprotocol": {
+            "type": "str",
+            "default": "inet",
+            "choices": ["inet", "inet6", "inet46"],
+        },
         "protocol": {
             "type": "str",
             "default": "any",
@@ -409,7 +413,9 @@ def main():
 
     module.params["description"] = description
 
-    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(module.params)  # TODO
+    ansible_rule: FirewallRule = FirewallRule.from_ansible_module_params(
+        module.params
+    )  # TODO
 
     ansible_rule_state: str = module.params.get("state")
 

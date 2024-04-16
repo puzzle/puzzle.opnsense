@@ -287,12 +287,18 @@ class FirewallRule:
     uuid: Optional[str] = None
     type: FirewallRuleAction = FirewallRuleAction.PASS
     descr: Optional[str] = None
-    quick: bool = True  # If the quick tag is not present, the tag is interpreted as true
+    quick: bool = (
+        True  # If the quick tag is not present, the tag is interpreted as true
+    )
     ipprotocol: IPProtocol = IPProtocol.IPv4
     direction: Optional[FirewallRuleDirection] = None
     protocol: FirewallRuleProtocol = FirewallRuleProtocol.ANY
-    source: FirewallRuleTarget = field(default_factory=lambda: FirewallRuleTarget("source"))
-    destination: FirewallRuleTarget = field(default_factory=lambda: FirewallRuleTarget("destination"))
+    source: FirewallRuleTarget = field(
+        default_factory=lambda: FirewallRuleTarget("source")
+    )
+    destination: FirewallRuleTarget = field(
+        default_factory=lambda: FirewallRuleTarget("destination")
+    )
     disabled: bool = False
     log: bool = False
     category: Optional[str] = None
@@ -417,9 +423,13 @@ class FirewallRule:
         ```
         """
 
-        source_dict: dict = params.get("source") if params.get("source") is not None else {}
+        source_dict: dict = (
+            params.get("source") if params.get("source") is not None else {}
+        )
         destination_dict: dict = (
-            params.get("destination", {}) if params.get("destination") is not None else {}
+            params.get("destination", {})
+            if params.get("destination") is not None
+            else {}
         )
         rule_dict = {
             "interface": params.get("interface"),
@@ -436,7 +446,9 @@ class FirewallRule:
             "disabled": params.get("disabled"),
         }
 
-        rule_dict = {key: value for key, value in rule_dict.items() if value is not None}
+        rule_dict = {
+            key: value for key, value in rule_dict.items() if value is not None
+        }
 
         return cls(**rule_dict)
 
@@ -489,7 +501,9 @@ class FirewallRule:
 
         rule_dict.pop("source")
         rule_dict.pop("destination")
-        source: FirewallRuleTarget = FirewallRuleTarget.from_xml("source", element.find("./source"))
+        source: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+            "source", element.find("./source")
+        )
         destination: FirewallRuleTarget = FirewallRuleTarget.from_xml(
             "destination", element.find("./destination")
         )
@@ -521,7 +535,11 @@ class FirewallRuleSet(OPNsenseModuleConfig):
     _rules: List[FirewallRule]
 
     def __init__(self, path: str = "/conf/config.xml"):
-        super().__init__(module_name="firewall_rules", config_context_names=["firewall_rules"], path=path)
+        super().__init__(
+            module_name="firewall_rules",
+            config_context_names=["firewall_rules"],
+            path=path,
+        )
         self._rules = self._load_rules()
 
     def _load_rules(self) -> List[FirewallRule]:
@@ -560,7 +578,9 @@ class FirewallRuleSet(OPNsenseModuleConfig):
             None: This method does not return anything.
         """
 
-        existing_rule: Optional[FirewallRule] = next((r for r in self._rules if r == rule), None)
+        existing_rule: Optional[FirewallRule] = next(
+            (r for r in self._rules if r == rule), None
+        )
         if existing_rule:
             existing_rule.__dict__.update(rule.__dict__)
         else:
@@ -604,7 +624,9 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         """
 
         for rule in self._rules:
-            match = all(getattr(rule, key, None) == value for key, value in kwargs.items())
+            match = all(
+                getattr(rule, key, None) == value for key, value in kwargs.items()
+            )
             if match:
                 return rule
         return None
@@ -629,7 +651,9 @@ class FirewallRuleSet(OPNsenseModuleConfig):
         if not self.changed:
             return False
 
-        filter_element: Element = self._config_xml_tree.find(self._config_maps[self._module_name]["rules"])
+        filter_element: Element = self._config_xml_tree.find(
+            self._config_maps[self._module_name]["rules"]
+        )
 
         self._config_xml_tree.remove(filter_element)
         filter_element.clear()
