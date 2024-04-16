@@ -32,9 +32,7 @@ from typing import List, Optional
 import base64
 import os
 import binascii
-
-# pylint: disable=deprecated-module
-import crypt
+import hashlib
 
 from xml.etree.ElementTree import Element, ElementTree
 
@@ -315,8 +313,17 @@ class User:
         function to generate hashed secrets using crypt
         """
 
-        salt = crypt.mksalt(crypt.METHOD_SHA512)
-        return crypt.crypt(secret, salt)
+        # load requirements
+        php_requirements = []
+        configure_function = "echo crypt"
+        configure_params = [f"'{secret}'", "'$6$'"]
+
+        # set user password
+        return opnsense_utils.run_function(
+            php_requirements=php_requirements,
+            configure_function=configure_function,
+            configure_params=configure_params,
+        ).get("stdout")
 
     def set_apikeys(self, apikeys: list = None) -> list:
         """
