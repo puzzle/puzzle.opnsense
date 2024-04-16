@@ -1,5 +1,8 @@
 #  Copyright: (c) 2024, Puzzle ITC
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+"""
+Test suite for the FirewallRuleTarget class.
+"""
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
@@ -50,7 +53,7 @@ def test_from_ansible_module_params_set_ip():
     )
     assert isinstance(source_target, FirewallRuleTarget)
     assert source_target.address == "192.168.0.1/24"
-    assert source_target.network == "any"  # TODO should be None
+    assert source_target.network == "any"
     assert source_target.port == "any"
     assert not source_target.invert
 
@@ -101,6 +104,10 @@ def test_from_ansible_module_params_set_invert():
 
 
 def test_from_xml_basic_source():
+    """
+    Given a basic source target from the XML test all defaults from the dataclass.
+    :return:
+    """
     basic_source_xml: str = """
     <source>
         <any/>
@@ -120,6 +127,10 @@ def test_from_xml_basic_source():
 
 
 def test_from_xml_test_not():
+    """
+    Ensure an inverted target is correctly set when loaded from XML.
+    :return:
+    """
     basic_source_xml: str = """
     <source>
         <not/>
@@ -139,6 +150,10 @@ def test_from_xml_test_not():
 
 
 def test_from_xml_test_address():
+    """
+    Ensure the address is correctly set when loaded from XML.
+    :return:
+    """
     basic_source_xml: str = """
     <source>
         <address>10.0.0.1/24</address>
@@ -158,6 +173,10 @@ def test_from_xml_test_address():
 
 
 def test_from_xml_test_port():
+    """
+    Ensure the port is correctly set when loaded from XML.
+    :return:
+    """
     basic_source_xml: str = """
     <source>
         <port>22</port>
@@ -176,26 +195,11 @@ def test_from_xml_test_port():
     assert not source_target.invert
 
 
-def test_from_xml_test_invert_empty():
-    basic_source_xml: str = """
-    <source>
-        <not/>
-    </source>
-    """
-    test_etree_source: Element = ElementTree.fromstring(basic_source_xml)
-
-    source_target: FirewallRuleTarget = FirewallRuleTarget.from_xml(
-        "source", test_etree_source
-    )
-
-    assert isinstance(source_target, FirewallRuleTarget)
-    assert source_target.network == "any"
-    assert source_target.address == "any"
-    assert source_target.port == "any"
-    assert source_target.invert
-
-
 def test_from_xml_test_invert_1():
+    """
+    Ensure the target inversion is correctly set when loaded from XML and is set as bool.
+    :return:
+    """
     basic_source_xml: str = """
     <source>
         <not>1</not>
