@@ -241,7 +241,9 @@ def main():
                 if ansible_user.apikeys:
                     result["generated_apikeys"] = []
                     for new_generated_api_key in ansible_user.apikeys:
-                        result["generated_apikeys"].append(f"key={new_generated_api_key['key']}")
+                        result["generated_apikeys"].append(
+                            f"key={new_generated_api_key['key']}"
+                        )
                         result["generated_apikeys"].append(
                             f"secret={new_generated_api_key['secret']}"
                         )
@@ -256,7 +258,9 @@ def main():
 
     except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
-    except OPNSenseNotValidBase64APIKeyError as opnsense_not_valid_base64_apikey_error_message:
+    except (
+        OPNSenseNotValidBase64APIKeyError
+    ) as opnsense_not_valid_base64_apikey_error_message:
         module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
 
