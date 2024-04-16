@@ -1,4 +1,0 @@
-plugins/modules/system_access_users.py import-3.11 # OPNsense Core depends on crypt functionality
-plugins/modules/system_access_users.py import-3.12 # OPNsense Core depends on crypt functionality
-plugins/module_utils/system_access_users_utils.py import-3.11 # OPNsense Core depends on crypt functionality
-plugins/module_utils/system_access_users_utils.py import-3.12 # OPNsense Core depends on crypt functionality
