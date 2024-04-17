@@ -136,9 +136,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface + "/enable",
-            "range_from": interface + "/range/from",
-            "range_to": interface + "/range/to",
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -258,9 +258,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface + "/enable",
-            "range_from": interface + "/range/from",
-            "range_to": interface + "/range/to",
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -380,9 +380,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface + "/enable",
-            "range_from": interface + "/range/from",
-            "range_to": interface + "/range/to",
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
@@ -503,9 +503,9 @@ VERSION_MAP = {
             },
         },
         "services_dhcpv4": {
-            "enable": interface + "/enable",
-            "range_from": interface + "/range/from",
-            "range_to": interface + "/range/to",
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
             # Add other mappings here.
             "php_requirements": [
                 "",
