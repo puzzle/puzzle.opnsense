@@ -1402,7 +1402,7 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_ident
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
         assert (
-            "This device is already assigned, please assign this unassign this device first"
+            "This device is already assigned, please unassign this device first"
             in str(excinfo.value)
         )
 
@@ -1465,6 +1465,6 @@ def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
         assert (
-            "This device is already assigned, please assign this unassign this device first"
+            "This device is already assigned, please unassign this device first"
             in str(excinfo.value)
         )
