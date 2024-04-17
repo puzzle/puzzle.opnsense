@@ -71,8 +71,8 @@ opnsense_configure_output:
 # fmt: on
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
-    OPNsenseModuleConfig,
+from ansible_collections.puzzle.opnsense.plugins.module_utils.service_dhcpv4 import (
+    DHCPv4Set,
 )
 
 
@@ -104,9 +104,10 @@ def main():
     range_from = module.params.get("range_from")
     range_to = module.params.get("range_to")
 
-    with OPNsenseModuleConfig(
+    with DHCPv4Set(
         module_name="services_dhcpv4",
         config_context_names=["services_dhcpv4"],
+        interface=interface,
         check_mode=module.check_mode,
     ) as config:
         if enable != config.get("enable").text:
