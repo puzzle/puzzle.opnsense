@@ -4,7 +4,6 @@
 Utilities for firewall_rules module related operations.
 """
 from dataclasses import dataclass, asdict, field
-from enum import Enum
 from typing import List, Optional
 from xml.etree.ElementTree import Element
 
@@ -13,41 +12,10 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     OPNsenseModuleConfig,
 )
 
-
-class ListEnum(Enum):
-    """Enum class with some handy utility functions."""
-
-    @classmethod
-    def as_list(cls) -> List[str]:
-        """
-        Return a list
-        Returns
-        -------
-
-        """
-        return [entry.value for entry in cls]
-
-    @classmethod
-    def from_string(cls, value: str) -> "ListEnum":
-        """
-        Returns Enum value, from a given String.
-        If no enum value can be mapped to the input string,
-        ValueError is raised.
-        Parameters
-        ----------
-        value: `str`
-            String to be mapped to enum value
-
-        Returns
-        -------
-        Enum value
-        """
-        for _key, _value in cls.__members__.items():
-            if value in (_key, _value.value):
-                return _value
-        raise ValueError(f"'{cls.__name__}' enum not found for '{value}'")
+from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
+# pylint: disable=too-few-public-methods
 class FirewallRuleAction(ListEnum):
     """Represents the rule filter policy."""
 
@@ -56,6 +24,7 @@ class FirewallRuleAction(ListEnum):
     REJECT = "reject"
 
 
+# pylint: disable=too-few-public-methods
 class FirewallRuleDirection(ListEnum):
     """Represents the rule direction."""
 
@@ -63,6 +32,7 @@ class FirewallRuleDirection(ListEnum):
     OUT = "out"
 
 
+# pylint: disable=too-few-public-methods
 class FirewallRuleProtocol(ListEnum):
     """Represents the protocol to filter in a rule."""
 
@@ -201,7 +171,7 @@ class FirewallRuleProtocol(ListEnum):
     DIVERT = "divert"
 
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-few-public-methods
 class IPProtocol(ListEnum):
     """Represents the IPProtocol."""
 
@@ -210,7 +180,7 @@ class IPProtocol(ListEnum):
     IPv4_IPv6 = "inet46"
 
 
-# pylint: disable=fixme
+# pylint: disable=too-few-public-methods,fixme
 class FirewallRuleStateType(ListEnum):
     """Represents the FirewallRuleStateType."""  # TODO not yet in the ansible parameters
 
