@@ -292,7 +292,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         return bool(str(self._interfaces_assignments) != str(self._load_interfaces()))
 
-    def get_interfaces(self) -> list[InterfaceAssignment]:
+    def get_interfaces(self) -> List[InterfaceAssignment]:
         """
         Retrieves a list of interface assignments from an OPNSense device via a PHP function.
 
