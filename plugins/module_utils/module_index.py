@@ -127,7 +127,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "system_cron_configure": {
                     "name": "system_cron_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
                 "filter_configure": {
                     "name": "filter_configure",
@@ -234,7 +234,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "system_cron_configure": {
                     "name": "system_cron_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
                 "filter_configure": {
                     "name": "filter_configure",
@@ -318,7 +318,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "system_cron_configure": {
                     "name": "system_cron_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
                 "filter_configure": {
                     "name": "filter_configure",
@@ -426,7 +426,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "system_cron_configure": {
                     "name": "system_cron_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
                 "filter_configure": {
                     "name": "filter_configure",
