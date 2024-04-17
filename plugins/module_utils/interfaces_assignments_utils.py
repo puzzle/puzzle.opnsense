@@ -7,12 +7,15 @@ interfaces_assignments_utils module_utils: Module_utils to configure OPNsense in
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict, Any
+from collections import Counter
+import subprocess
 
 
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
+    opnsense_utils,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
@@ -28,6 +31,18 @@ class OPNSenseInterfaceNotFoundError(Exception):
 class OPNSenseDeviceNotFoundError(Exception):
     """
     Exception raised when a Device is not found.
+    """
+
+
+class OPNSenseDeviceAlreadyAssignedError(Exception):
+    """
+    Exception raised when a Device is already assigned to an Interface
+    """
+
+
+class OPNSenseGetInterfacesError(Exception):
+    """
+    Exception raised if the function can't query the local device
     """
 
 
@@ -208,7 +223,9 @@ class InterfaceAssignment:
         }
 
         interface_assignment_dict = {
-            key: value for key, value in interface_assignment_dict.items() if value is not None
+            key: value
+            for key, value in interface_assignment_dict.items()
+            if value is not None
         }
 
         return cls(**interface_assignment_dict)
@@ -240,7 +257,7 @@ class InterfacesSet(OPNsenseModuleConfig):
     def __init__(self, path: str = "/conf/config.xml"):
         super().__init__(
             module_name="interfaces_assignments",
-            config_context_names=["interfaces_assignments"],
+            config_context_names=["interfaces_assignments", "interfaces_list"],
             path=path,
         )
 
@@ -277,49 +294,133 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         return bool(str(self._interfaces_assignments) != str(self._load_interfaces()))
 
+    def get_interfaces(self) -> list[InterfaceAssignment]:
+        """
+        Retrieves a list of interface assignments from an OPNSense device via a PHP function.
+
+        The function queries the device using specified PHP requirements and configuration functions.
+        It processes the standard output, extracts interface data, and handles errors.
+
+        Returns:
+            list[InterfaceAssignment]: A list of interface assignments parsed from the PHP function's output.
+
+        Raises:
+            OPNSenseGetInterfacesError: If an error occurs during the retrieval or parsing process,
+                                        or if no interfaces are found.
+        """
+
+        # load requirements
+        php_requirements = self._config_maps["interfaces_list"]["php_requirements"]
+        configure_function = self._config_maps["interfaces_list"][
+            "configure_functions"
+        ]["name"]
+        configure_params = self._config_maps["interfaces_list"]["configure_functions"][
+            "configure_params"
+        ]
+
+        # run php function
+        result = opnsense_utils.run_function(
+            php_requirements=php_requirements,
+            configure_function=configure_function,
+            configure_params=configure_params,
+        ).get("stdout")
+
+        # check for stderr
+        if result.stderr:
+            raise OPNSenseGetInterfacesError(
+                "error encounterd while getting interfaces"
+            )
+
+        # parse list
+        interface_list: list[str] = [
+            item.strip()
+            for item in result.split(",")
+            if item.strip() and item.strip() != "None"
+        ]
+
+        # check parsed list length
+        if len(interface_list) < 1:
+            raise OPNSenseGetInterfacesError(
+                "error encounterd while getting interfaces, less than one interface available"
+            )
+
+        return interface_list
+
     def update(self, interface_assignment: InterfaceAssignment) -> None:
         """
         Updates an interface assignment in the set.
 
-        First checks if the device exists within the current assignments. If not,
-        raises OPNSenseDeviceNotFoundError. Then, tries to find the matching interface
-        to update based on its identifier. If found, merges extra attributes and updates
-        the existing interface assignment. If the interface is not found, raises
-        OPNSenseInterfaceNotFoundError.
+        Checks for device existence and updates or raises errors accordingly.
 
         Args:
             interface_assignment (InterfaceAssignment): The interface assignment to update.
 
         Raises:
-            OPNSenseDeviceNotFoundError: If the device of the interface_assignment is not found.
+            OPNSenseDeviceNotFoundError: If device is not found.
             OPNSenseInterfaceNotFoundError: If no matching interface is found for update.
         """
 
-        # Check if device exists first
-        if interface_assignment.device not in [
-            assignment.device for assignment in self._interfaces_assignments
-        ]:
-            raise OPNSenseDeviceNotFoundError("Device was not found on OpnSense Instance!")
+        device_list_set: set = set(
+            [assignment.device for assignment in self._interfaces_assignments]
+        )
 
-        try:
-            # Find the interface to update
-            interface_to_update: Optional[InterfaceAssignment] = next(
-                interface
-                for interface in self._interfaces_assignments
-                if interface.identifier == interface_assignment.identifier
+        identifier_list_set: set = set(
+            [assignment.identifier for assignment in self._interfaces_assignments]
+        )
+        device_interfaces_set: set = set(self.get_interfaces())
+
+        free_interfaces = device_interfaces_set - device_list_set
+
+        if interface_assignment.device not in device_interfaces_set:
+            raise OPNSenseDeviceNotFoundError(
+                "Device was not found on OpnSense Instance!"
             )
 
-            # Merge extra_attrs
-            interface_assignment.extra_attrs.update(interface_to_update.extra_attrs)
+        interface_to_update: Optional[InterfaceAssignment] = next(
+            (
+                interface
+                for interface in self._interfaces_assignments
+                if interface.device == interface_assignment.device
+                or interface.identifier == interface_assignment.identifier
+            ),
+            None,
+        )
 
-            # Update the existing interface
-            interface_to_update.__dict__.update(interface_assignment.__dict__)
+        if interface_to_update:
 
-        except StopIteration as error_message:
-            # Handle case where interface is not found
-            raise OPNSenseInterfaceNotFoundError(
-                f"Interface not found for update error: {error_message}"
-            ) from error_message
+            if (
+                interface_assignment.device in free_interfaces
+                or interface_assignment.device == interface_to_update.device
+            ):
+
+                if interface_assignment.identifier in identifier_list_set:
+
+                    # Merge extra_attrs
+                    interface_assignment.extra_attrs.update(
+                        interface_to_update.extra_attrs
+                    )
+
+                    # Update the existing interface
+                    interface_to_update.__dict__.update(interface_assignment.__dict__)
+
+                else:
+                    raise OPNSenseDeviceAlreadyAssignedError(
+                        "This device is already assigned, please unassign this device first"
+                    )
+
+            else:
+                raise OPNSenseDeviceAlreadyAssignedError(
+                    "This device is already assigned, please unassign this device first"
+                )
+        else:
+
+            interface_to_create: InterfaceAssignment = InterfaceAssignment(
+                identifier=interface_assignment.identifier,
+                device=interface_assignment.device,
+                descr=interface_assignment.descr,
+            )
+
+            self._interfaces_assignments.append(interface_to_create)
 
     def find(self, **kwargs) -> Optional[InterfaceAssignment]:
         """
@@ -339,7 +440,8 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         for interface_assignment in self._interfaces_assignments:
             match = all(
-                getattr(interface_assignment, key, None) == value for key, value in kwargs.items()
+                getattr(interface_assignment, key, None) == value
+                for key, value in kwargs.items()
             )
             if match:
                 return interface_assignment
