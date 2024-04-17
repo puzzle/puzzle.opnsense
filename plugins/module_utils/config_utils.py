@@ -102,6 +102,7 @@ class OPNsenseModuleConfig:
         Args:
             module_name (str): The name of the module.
             check_mode (bool): Check mode
+            config_context_names (List[str]): Names of required config contexts.
             path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
         self._module_name = module_name
@@ -172,7 +173,7 @@ class OPNsenseModuleConfig:
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
-    def save(self) -> bool:
+    def save(self, override_changed: bool = False) -> bool:
         """
         Saves the config to the file if changes have been made.
 
@@ -180,14 +181,12 @@ class OPNsenseModuleConfig:
         - bool: True if changes were saved, False if no changes were detected.
         """
 
-        if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(
-                self._config_xml_tree
-            )
-            tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-            self._config_xml_tree = self._load_config()
-            return True
-        return False
+        if not self.changed and not override_changed:
+            return False
+        tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
+        tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+        self._config_xml_tree = self._load_config()
+        return True
 
     @property
     def changed(self) -> bool:
@@ -296,8 +295,9 @@ class OPNsenseModuleConfig:
             if configure_functions is None:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no configure_functions defined in "
-                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self.opnsense_version}'."
+                    "the ansible_collections.puzzle.opnsense.plugins.module_utils."
+                    "module_index.VERSION_MAP for given OPNsense version "
+                    f"'{self.opnsense_version}'."
                 )
 
             # ensure configure_functions are defined as a list
