@@ -24,7 +24,7 @@ options:
     description:
       - "Technical identifier of the interface, used by hasync for example"
     type: str
-    required: False
+    required: true
   device:
     description:
       - Physical Device Name eg. vtnet0, ipsec1000 etc,.
