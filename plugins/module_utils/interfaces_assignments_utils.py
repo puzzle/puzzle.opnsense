@@ -7,8 +7,6 @@ interfaces_assignments_utils module_utils: Module_utils to configure OPNsense in
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict, Any
-from collections import Counter
-import subprocess
 
 
 from xml.etree.ElementTree import Element, ElementTree, SubElement
@@ -298,14 +296,16 @@ class InterfacesSet(OPNsenseModuleConfig):
         """
         Retrieves a list of interface assignments from an OPNSense device via a PHP function.
 
-        The function queries the device using specified PHP requirements and configuration functions.
-        It processes the standard output, extracts interface data, and handles errors.
+        The function queries the device using specified PHP requirements and config functions.
+        It processes the stdout, extracts interface data, and handles errors.
 
         Returns:
-            list[InterfaceAssignment]: A list of interface assignments parsed from the PHP function's output.
+            list[InterfaceAssignment]: A list of interface assignments parsed
+                                       from the PHP function's output.
 
         Raises:
-            OPNSenseGetInterfacesError: If an error occurs during the retrieval or parsing process,
+            OPNSenseGetInterfacesError: If an error occurs during the retrieval
+                                        or parsing process,
                                         or if no interfaces are found.
         """
 
@@ -360,13 +360,13 @@ class InterfacesSet(OPNsenseModuleConfig):
             OPNSenseInterfaceNotFoundError: If no matching interface is found for update.
         """
 
-        device_list_set: set = set(
-            [assignment.device for assignment in self._interfaces_assignments]
-        )
+        device_list_set: set = {
+            assignment.device for assignment in self._interfaces_assignments
+        }
+        identifier_list_set: set = {
+            assignment.identifier for assignment in self._interfaces_assignments
+        }
 
-        identifier_list_set: set = set(
-            [assignment.identifier for assignment in self._interfaces_assignments]
-        )
         device_interfaces_set: set = set(self.get_interfaces())
 
         free_interfaces = device_interfaces_set - device_list_set
