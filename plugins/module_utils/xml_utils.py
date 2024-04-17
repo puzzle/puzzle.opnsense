@@ -16,7 +16,9 @@ __metaclass__ = type
 ###############################
 
 
-def dict_to_etree(tag: str, data: Optional[Union[int, str, list, dict]]) -> Optional[List[Element]]:
+def dict_to_etree(
+    tag: str, data: Optional[Union[int, str, list, dict]]
+) -> Optional[List[Element]]:
     """
     Converts a Python dictionary to an ElementTree.Element structure.
 
@@ -121,7 +123,9 @@ def _process_list(tag: str, data: list) -> List[Element]:
     return new_elements
 
 
-def _process_dict_list(tag: str, input_dict: dict, root: Optional[Element]) -> Optional[Element]:
+def _process_dict_list(
+    tag: str, input_dict: dict, root: Optional[Element]
+) -> Optional[Element]:
     """
     Processes a dictionary within a list, converting its key-value pairs to ElementTree.Element.
 
@@ -221,5 +225,7 @@ def elements_equal(e1, e2) -> bool:
     # Tags have children
     return all(
         elements_equal(c1, c2)
-        for c1, c2 in zip(sorted(e1, key=lambda x: x.tag), sorted(e2, key=lambda x: x.tag))
+        for c1, c2 in zip(
+            sorted(e1, key=lambda x: x.tag), sorted(e2, key=lambda x: x.tag)
+        )
     )
