@@ -157,6 +157,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_list": {
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "name": """
+                foreach (get_interface_list() as $key => $item) {
+                    echo $key.',';
+                }
+                """,
+                "configure_params": [],
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -283,6 +301,24 @@ VERSION_MAP = {
                     "name": "rrd_configure",
                     "configure_params": [],
                 },
+            },
+        },
+        "interfaces_list": {
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "name": """
+                foreach (get_interface_list() as $key => $item) {
+                    echo $key.',';
+                }
+                """,
+                "configure_params": [],
             },
         },
     },
@@ -413,6 +449,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_list": {
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "name": """
+                foreach (get_interface_list() as $key => $item) {
+                    echo $key.',';
+                }
+                """,
+                "configure_params": [],
+            },
+        },
     },
     "24.1": {
         "system_settings_general": {
@@ -541,6 +595,24 @@ VERSION_MAP = {
                     "name": "rrd_configure",
                     "configure_params": [],
                 },
+            },
+        },
+        "interfaces_list": {
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "name": """
+                foreach (get_interface_list() as $key => $item) {
+                    echo $key.',';
+                }
+                """,
+                "configure_params": [],
             },
         },
     },
