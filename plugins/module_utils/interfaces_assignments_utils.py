@@ -323,10 +323,10 @@ class InterfacesSet(OPNsenseModuleConfig):
             php_requirements=php_requirements,
             configure_function=configure_function,
             configure_params=configure_params,
-        ).get("stdout")
+        )
 
         # check for stderr
-        if result.stderr:
+        if result.get("stderr"):
             raise OPNSenseGetInterfacesError(
                 "error encounterd while getting interfaces"
             )
@@ -334,7 +334,7 @@ class InterfacesSet(OPNsenseModuleConfig):
         # parse list
         interface_list: list[str] = [
             item.strip()
-            for item in result.split(",")
+            for item in result.get("stdout").split(",")
             if item.strip() and item.strip() != "None"
         ]
 
@@ -360,12 +360,13 @@ class InterfacesSet(OPNsenseModuleConfig):
             OPNSenseInterfaceNotFoundError: If no matching interface is found for update.
         """
 
-        device_list_set: set = {
-            assignment.device for assignment in self._interfaces_assignments
-        }
-        identifier_list_set: set = {
-            assignment.identifier for assignment in self._interfaces_assignments
-        }
+        device_list_set: set = set(  # pylint: disable=R1718
+            [assignment.device for assignment in self._interfaces_assignments]
+        )
+
+        identifier_list_set: set = set(  # pylint: disable=R1718
+            [assignment.identifier for assignment in self._interfaces_assignments]
+        )
 
         device_interfaces_set: set = set(self.get_interfaces())
 
