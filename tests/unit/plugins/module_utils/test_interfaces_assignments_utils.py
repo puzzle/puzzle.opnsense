@@ -16,6 +16,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignm
     InterfacesSet,
     OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
+    OPNSenseDeviceAlreadyAssignedError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -1265,14 +1266,16 @@ def test_lo0_interface_assignment_to_etree():
     assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
 
 
-def test_simple_interface_assignment_from_ansible_module_params_simple(sample_config_path):
+def test_simple_interface_assignment_from_ansible_module_params_simple(
+    sample_config_path,
+):
     test_params: dict = {
         "identifier": "wan",
         "device": "vtnet1",
         "description": "lan_interface",
     }
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment.from_ansible_module_params(
-        test_params
+    test_interface_assignment: InterfaceAssignment = (
+        InterfaceAssignment.from_ansible_module_params(test_params)
     )
     assert test_interface_assignment.identifier == "wan"
     assert test_interface_assignment.device == "vtnet1"
@@ -1283,9 +1286,13 @@ def test_simple_interface_assignment_from_ansible_module_params_simple(sample_co
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em1", "em2", "em3", "em4"],
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_interface_assignment_from_ansible_module_params_with_description_update(
-    mock_get_version, sample_config_path
+    mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "lan",
@@ -1314,13 +1321,17 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em0", "em1", "em2", "em3", "em4"],
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_interface_assignment_from_ansible_module_params_with_device_update(
-    mock_get_version, sample_config_path
+    mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "wan",
-        "device": "em0",
+        "device": "em4",
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
@@ -1334,7 +1345,7 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
     with InterfacesSet(sample_config_path) as new_interfaces_set:
         new_test_interface_assignment = new_interfaces_set.find(identifier="wan")
         assert new_test_interface_assignment.identifier == "wan"
-        assert new_test_interface_assignment.device == "em0"
+        assert new_test_interface_assignment.device == "em4"
         assert new_test_interface_assignment.descr == "test_interface"
         new_interfaces_set.save()
 
@@ -1343,9 +1354,13 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em0", "em1", "em2", "em3", "em4"],
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_interface_assignment_from_ansible_module_params_with_not_existing_device(
-    mock_get_version, sample_config_path
+    mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "wan",
@@ -1366,9 +1381,13 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_devic
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em0", "em1", "em2", "em3", "em4"],
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_not_existing_interface(
-    mock_get_version, sample_config_path
+def test_interface_assignment_from_ansible_module_params_with_not_existing_identifier_and_used_device(
+    mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "test",
@@ -1376,10 +1395,76 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_inter
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        with pytest.raises(OPNSenseInterfaceNotFoundError) as excinfo:
+        with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
             test_interface_assignment: InterfaceAssignment = (
                 InterfaceAssignment.from_ansible_module_params(test_params)
             )
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
-        assert "Interface not found for update error:" in str(excinfo.value)
+        assert (
+            "This device is already assigned, please assign this unassign this device first"
+            in str(excinfo.value)
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em0", "em1", "em2", "em3", "em4"],
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_interface_assignment_from_ansible_module_params_with_not_existing_identifier_and_not_used_device(
+    mock_get_version, mock_get_interfaces, sample_config_path
+):
+    test_params: dict = {
+        "identifier": "test",
+        "device": "em4",
+        "description": "test_interface",
+    }
+    with InterfacesSet(sample_config_path) as interfaces_set:
+        test_interface_assignment: InterfaceAssignment = (
+            InterfaceAssignment.from_ansible_module_params(test_params)
+        )
+        interfaces_set.update(test_interface_assignment)
+        assert interfaces_set.changed
+        interfaces_set.save()
+
+    with InterfacesSet(sample_config_path) as new_interfaces_set:
+        new_test_interface_assignment = new_interfaces_set.find(identifier="test")
+        assert new_test_interface_assignment.identifier == "test"
+        assert new_test_interface_assignment.device == "em4"
+        assert new_test_interface_assignment.descr == "test_interface"
+        new_interfaces_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    return_value=["em0", "em1", "em2", "em3", "em4"],
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
+    mock_get_version, mock_get_interfaces, sample_config_path
+):
+    test_params: dict = {
+        "identifier": "wan",
+        "device": "em1",
+        "description": "duplicate device",
+    }
+    with InterfacesSet(sample_config_path) as interfaces_set:
+        with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
+            test_interface_assignment: InterfaceAssignment = (
+                InterfaceAssignment.from_ansible_module_params(test_params)
+            )
+            interfaces_set.update(test_interface_assignment)
+            interfaces_set.save()
+        assert (
+            "This device is already assigned, please assign this unassign this device first"
+            in str(excinfo.value)
+        )
