@@ -309,12 +309,12 @@ opnsense_configure_output:
     type: list
     sample:
       - function: "system_cron_configure"
-        params: []
+        params: ["true"]
         rc: 0
         stderr: ""
         stderr_lines: []
-        stdout: ""
-        stdout_lines: []
+        stdout: "Configuring CRON...done."
+        stdout_lines: ["Configuring CRON...done."]
       - function: "filter_configure"
         params: []
         rc: 0
