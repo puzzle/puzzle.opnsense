@@ -85,6 +85,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignm
     OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
+    OPNSenseGetInterfacesError,
 )
 
 
@@ -154,6 +155,9 @@ def main():
         OPNSenseDeviceAlreadyAssignedError
     ) as opnsense_device_already_assigned_error_message:
         module.fail_json(msg=str(opnsense_device_already_assigned_error_message))
+
+    except OPNSenseGetInterfacesError as opnsense_get_interfaces_error_message:
+        module.fail_json(msg=str(opnsense_get_interfaces_error_message))
 
 
 if __name__ == "__main__":
