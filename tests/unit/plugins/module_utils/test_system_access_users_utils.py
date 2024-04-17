@@ -17,6 +17,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     UserSet,
     UserLoginShell,
     OPNSenseGroupNotFoundError,
+    OPNSenseCryptReturnError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -602,3 +603,49 @@ def test_user_from_ansible_module_params_multiple_group_removal(
         assert "1000" not in test_group.member
 
         new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
+)
+def test_generate_hashed_secret_success(mock_run_function):
+    mock_run_function.return_value = {
+        "stdout": "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583",
+        "stderr": None,
+    }
+
+    user = User(name="test", password="test")
+    result = user._generate_hashed_secret("password123")
+    assert (
+        result
+        == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
+    )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
+)
+def test_generate_hashed_secret_failure_invalid_hash(mock_run_function):
+    mock_run_function.return_value = {
+        "stdout": "$5$somerandomsalt$shortvalue",
+        "stderr": None,
+    }
+
+    user = User(name="test", password="test")
+    with pytest.raises(OPNSenseCryptReturnError) as excinfo:
+        user._generate_hashed_secret("password123")
+
+    assert "validation of the secret failed!" in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
+)
+def test_generate_hashed_secret_error_in_crypt(mock_run_function):
+    mock_run_function.return_value = {"stdout": "", "stderr": "error in crypt function"}
+
+    user = User(name="test", password="test")
+    with pytest.raises(OPNSenseCryptReturnError) as excinfo:
+        user._generate_hashed_secret("password123")
+
+    assert "error encounterd while creating secret" in str(excinfo.value)
