@@ -17,6 +17,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignm
     OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
+    OPNSenseGetInterfacesError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -1486,3 +1487,66 @@ def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
             "This device is already assigned, please unassign this device first"
             in str(excinfo.value)
         )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    return_value={"stdout": "em0,em1,em2", "stderr": None},
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_get_interfaces_success(
+    mock_get_version, mock_get_interfaces, sample_config_path
+):
+
+    # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
+    with InterfacesSet(sample_config_path) as interfaces_set:
+        result = interfaces_set.get_interfaces()
+
+        assert result == ["em0", "em1", "em2"]
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    return_value={"stdout": "", "stderr": None},
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_get_interfaces_success(
+    mock_get_version, mock_get_interfaces, sample_config_path
+):
+
+    # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
+    with InterfacesSet(sample_config_path) as interfaces_set:
+        with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
+            result = interfaces_set.get_interfaces()
+        assert (
+            "error encounterd while getting interfaces, less than one interface available"
+            in str(excinfo.value)
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    return_value={"stdout": "", "stderr": "there was an error"},
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_get_interfaces_success(
+    mock_get_version, mock_get_interfaces, sample_config_path
+):
+
+    # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
+    with InterfacesSet(sample_config_path) as interfaces_set:
+        with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
+            result = interfaces_set.get_interfaces()
+        assert "error encounterd while getting interfaces" in str(excinfo.value)
