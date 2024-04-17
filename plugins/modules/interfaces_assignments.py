@@ -6,6 +6,7 @@
 
 """interfaces_assignments module: Module to configure OPNsense interface settings"""
 
+# pylint: disable=duplicate-code
 __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
