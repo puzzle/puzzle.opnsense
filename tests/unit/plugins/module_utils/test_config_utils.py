@@ -48,6 +48,16 @@ TEST_VERSION_MAP = {
                 },
             },
         },
+        "test_module_3": {
+            "preserve_logs": "syslog/preservelogs",
+            "php_requirements": ["req_1", "req_2"],
+            "configure_functions": {
+                "test_configure_function": {
+                    "name": "test_configure_function",
+                    "configure_params": ["param_1"],
+                },
+            },
+        },
         "missing_php_requirements": {
             "setting_1": "settings/one",
             "setting_2": "settings/two",
@@ -89,6 +99,12 @@ TEST_XML: str = """<?xml version="1.0"?>
             <hostname>test_name</hostname>
             <timezone>test_timezone</timezone>
         </system>
+        <syslog>
+        </syslog>
+        <settings>
+            <one>1</one>
+            <two>2</two>
+        </settings>
     </opnsense>
     """
 
@@ -481,3 +497,33 @@ def test_diff_on_no_change(sample_config_path):
     ) as new_config:
         diff = new_config.diff
         assert diff["before"] == diff["after"]
+
+
+def test_set_with_missing_element(sample_config_path):
+    """
+    Test case to verify that we can set options for which there is currently element
+    in the xml tree. This is the case for example with the preserve_logs setting.
+    The xml does not contain the path `syslog/preservelogs` unless the option is configured.
+    In this case we expect that the module will create the object.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        module_name="test_module_3",
+        config_context_names=["test_module_3"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
+        new_config.set(value="10", setting="preserve_logs")
+        diff = new_config.diff
+
+        assert diff == {
+            "before": {
+                "syslog/preservelogs": "",
+            },
+            "after": {
+                "syslog/preservelogs": "10",
+            },
+        }
+        new_config.save()

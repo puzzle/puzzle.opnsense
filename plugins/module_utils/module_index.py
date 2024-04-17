@@ -27,9 +27,9 @@ For example, the 'system_settings_general' module for "OPNsense 22.7 (amd64/Open
 This map is essential for dynamically configuring modules based on the OPNsense version and
 provides a centralized definition for various configurations across different OPNsense versions.
 """
-
+# pylint: disable=duplicate-code; Since this is rewritten in some tests.
 VERSION_MAP = {
-    "OPNsense 22.7 (amd64/OpenSSL)": {
+    "22.7": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -77,6 +77,64 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": [
+                    "'password'",
+                    "PASSWORD_BCRYPT",
+                    "[ 'cost' => 11 ]",
+                ],
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "services_dhcpv4": {
             "enable": interface + "/enable",
             "range_from": interface + "/range/from",
@@ -93,7 +151,7 @@ VERSION_MAP = {
             },
         },
     },
-    "OPNsense 23.1": {
+    "23.1": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -141,6 +199,64 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": [
+                    "'password'",
+                    "PASSWORD_BCRYPT",
+                    "[ 'cost' => 11 ]",
+                ],
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",  # required for the service_log utility
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "services_dhcpv4": {
             "enable": interface + "/enable",
             "range_from": interface + "/range/from",
@@ -157,7 +273,7 @@ VERSION_MAP = {
             },
         },
     },
-    "OPNsense 23.7": {
+    "23.7": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -205,6 +321,64 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                }
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": [
+                    "'password'",
+                    "PASSWORD_BCRYPT",
+                    "[ 'cost' => 11 ]",
+                ],
+            },
+        },
         "services_dhcpv4": {
             "enable": interface + "/enable",
             "range_from": interface + "/range/from",
@@ -221,7 +395,7 @@ VERSION_MAP = {
             },
         },
     },
-    "OPNsense 24.1": {
+    "24.1": {
         "system_settings_general": {
             "hostname": "system/hostname",
             "domain": "system/domain",
@@ -267,6 +441,65 @@ VERSION_MAP = {
                     "name": "filter_configure",
                     "configure_params": ["true"],
                 },
+            },
+        },
+        "system_settings_logging": {
+            "preserve_logs": "syslog/preservelogs",
+            "max_log_file_size_mb": "syslog/maxfilesize",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                }
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/filter.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "name": "echo password_hash",
+                "configure_params": [
+                    "'password'",
+                    "PASSWORD_BCRYPT",
+                    "[ 'cost' => 11 ]",
+                ],
             },
         },
         "services_dhcpv4": {

@@ -19,6 +19,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     version_utils,
     opnsense_utils,
     module_index,
+    xml_utils,
 )
 
 
@@ -71,21 +72,21 @@ class OPNsenseModuleConfig:
     PHP requirements and configure functions based on the OPNsense version and module name.
 
     Attributes:
+        opnsense_version (str): The OPNsense version.
         _config_xml_tree (Element): The XML tree of the configuration file.
         _config_path (str): The file path of the configuration.
         _config_maps (List[str]): The mappings of settings and their XPath in the XML tree.
         _config_contexts (dict): List of required config_contexts
         _module_name (str): The name of the module.
-        _opnsense_version (str): The OPNsense version.
         _check_mode (bool): If the module is run in check_mode or not
     """
 
+    opnsense_version: str
     _config_xml_tree: Element
     _config_path: str
     _module_name: str
     _config_maps: Dict[str, dict] = {}
     _config_contexts: List[str]
-    _opnsense_version: str
     _check_mode: bool
 
     def __init__(
@@ -101,19 +102,20 @@ class OPNsenseModuleConfig:
         Args:
             module_name (str): The name of the module.
             check_mode (bool): Check mode
+            config_context_names (List[str]): Names of required config contexts.
             path (str, optional): The path to the config.xml file. Defaults to "/conf/config.xml".
         """
         self._module_name = module_name
         self._config_contexts = config_context_names
         self._config_path = path
         self._config_xml_tree = self._load_config()
-        self._opnsense_version = version_utils.get_opnsense_version()
+        self.opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
         try:
-            version_map: dict = module_index.VERSION_MAP[self._opnsense_version]
+            version_map: dict = module_index.VERSION_MAP[self.opnsense_version]
         except KeyError as ke:
             raise UnsupportedOPNsenseVersion(
-                f"OPNsense version '{self._opnsense_version}' not supported "
+                f"OPNsense version '{self.opnsense_version}' not supported "
                 "by puzzle.opnsense collection.\n"
                 f"Supported versions are {list(module_index.VERSION_MAP.keys())}"
             ) from ke
@@ -121,7 +123,7 @@ class OPNsenseModuleConfig:
             if config_context_name not in version_map:
                 raise UnsupportedVersionForModule(
                     f"Config context '{config_context_name}' not supported "
-                    f"for OPNsense version '{self._opnsense_version}'.\n"
+                    f"for OPNsense version '{self.opnsense_version}'.\n"
                     f"Supported config contexts are {list(version_map.keys())}"
                 )
 
@@ -160,11 +162,18 @@ class OPNsenseModuleConfig:
             RuntimeError: If there are unsaved changes in the configuration.
         """
         if exc_type:
+            # module.fail_json will always yield a SystemExit exception
+            # we need to raise this exception "as is" to avoid ansible warnings
+            # If however an unexpected exception was risen which was not a result of
+            # module.fail_json raising this warning is ok, and we need the exceptions
+            # details to troubleshoot the issue
+            if isinstance(exc_val, SystemExit):
+                raise
             raise exc_type(f"Exception occurred: {exc_val}")
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
-    def save(self) -> bool:
+    def save(self, override_changed: bool = False) -> bool:
         """
         Saves the config to the file if changes have been made.
 
@@ -172,14 +181,12 @@ class OPNsenseModuleConfig:
         - bool: True if changes were saved, False if no changes were detected.
         """
 
-        if self.changed:
-            tree: ElementTree.ElementTree = ElementTree.ElementTree(
-                self._config_xml_tree
-            )
-            tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-            self._config_xml_tree = self._load_config()
-            return True
-        return False
+        if not self.changed and not override_changed:
+            return False
+        tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
+        tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+        self._config_xml_tree = self._load_config()
+        return True
 
     @property
     def changed(self) -> bool:
@@ -208,7 +215,7 @@ class OPNsenseModuleConfig:
             supported_settings.extend(cfg_map.keys())
         raise UnsupportedModuleSettingError(
             f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
-            f"for OPNsense version '{self._opnsense_version}'."
+            f"for OPNsense version '{self.opnsense_version}'."
             f"Supported settings are {supported_settings}"
         )
 
@@ -235,7 +242,7 @@ class OPNsenseModuleConfig:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no php_requirements defined in "
                     f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self._opnsense_version}'."
+                    f"OPNsense version '{self.opnsense_version}'."
                 )
 
             # ensure php_requirements are defined as a list
@@ -243,7 +250,7 @@ class OPNsenseModuleConfig:
                 raise ModuleMisconfigurationError(
                     f"PHP requirements (php_requirements) for the module '{self._module_name}' are "
                     "not provided as a list in the VERSION_MAP using OPNsense version"
-                    f"'{self._opnsense_version}'."
+                    f"'{self.opnsense_version}'."
                 )
 
             all_php_requirements.extend(php_requirements)
@@ -288,8 +295,9 @@ class OPNsenseModuleConfig:
             if configure_functions is None:
                 raise MissingConfigDefinitionForModuleError(
                     f"Module '{self._module_name}' has no configure_functions defined in "
-                    f"the ansible_collections.puzzle.opnsense.plugins.module_utils.module_index.VERSION_MAP for given "  # pylint: disable=line-too-long
-                    f"OPNsense version '{self._opnsense_version}'."
+                    "the ansible_collections.puzzle.opnsense.plugins.module_utils."
+                    "module_index.VERSION_MAP for given OPNsense version "
+                    f"'{self.opnsense_version}'."
                 )
 
             # ensure configure_functions are defined as a list
@@ -298,7 +306,7 @@ class OPNsenseModuleConfig:
                     "Configure functions (configure_functions) for the module "
                     f"'{self._module_name}' are "
                     "not provided as a list in the VERSION_MAP using OPNsense version "
-                    f"'{self._opnsense_version}'."
+                    f"'{self.opnsense_version}'."
                 )
 
             all_configure_functions.update(configure_functions)
@@ -401,7 +409,27 @@ class OPNsenseModuleConfig:
         # create a copy of the _config_dict
         _setting: Element = self._config_xml_tree.find(xpath)
 
-        if _setting.text in [None, "", " "]:
+        # there are conditions where a config option is not present in
+        # the XML unless it's configured. In that case _settings will be
+        # None at this point. If it is, we will have to create the new
+        # element first to be able to set it's .text value.
+        if _setting is None:
+            # get parent of new element
+            _setting_parent: Element = self._config_xml_tree.find(
+                "/".join(xpath.split("/")[:-1])
+            )
+
+            # create new empty element
+            element: Element = xml_utils.dict_to_etree(xpath.split("/")[-1], {})
+
+            # append the new element to it's parent
+            _setting_parent.extend(element)
+
+            # rediscover the element
+            _setting: Element = self._config_xml_tree.find(xpath)
+
+        # If the element is present we will verify it's .text value
+        elif _setting.text in [None, "", " "]:
             raise NotImplementedError("Currently only text settings supported")
 
         _setting.text = value
@@ -431,10 +459,25 @@ class OPNsenseModuleConfig:
                     continue
 
                 # Find the setting in the file-based configuration
-                config_diff_before.update({xpath: file_config.find(xpath).text})
+                file_config_element = file_config.find(xpath)
+
+                # there are conditions where a config option is not present in
+                # the XML unless it's configured. In that case file_config_element will be
+                # None at this point. If it is, we will set it's current value to an empty string
+                if file_config_element is None:
+                    config_diff_before.update({xpath: ""})
+                else:
+                    config_diff_before.update({xpath: file_config_element.text})
+
                 # Find the setting in the in-memory configuration
-                config_diff_after.update(
-                    {xpath: self._config_xml_tree.find(xpath).text}
-                )
+                in_memory_element = self._config_xml_tree.find(xpath)
+
+                # there are conditions where a config option is not present in
+                # the XML unless it's configured. In that case in_memory_element will be
+                # None at this point. If it is, we will set it's current value to an empty string
+                if in_memory_element is None:
+                    config_diff_after.update({xpath: ""})
+                else:
+                    config_diff_after.update({xpath: in_memory_element.text})
 
         return {"before": config_diff_before, "after": config_diff_after}

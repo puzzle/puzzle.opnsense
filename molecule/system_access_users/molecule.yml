@@ -1,14 +1,16 @@
 ---
 scenario:
-    name: system_settings_general
+    name: system_access_users
     test_sequence:
         # - dependency not relevant unless we have requirements
         - destroy
         - syntax
         - create
+#        - prepare
         - converge
         - idempotence
-        - verify
+        #- verify
+        - cleanup
         - destroy
 
 driver:
@@ -43,9 +45,9 @@ platforms:
       memory: 1024
       cpus: 2
       instance_raw_config_args:
-          - 'vm.guest = :freebsd'
-          - 'ssh.sudo_command = "%c"'
-          - 'ssh.shell = "/bin/sh"'
+        - 'vm.guest = :freebsd'
+        - 'ssh.sudo_command = "%c"'
+        - 'ssh.shell = "/bin/sh"'
     - name: "24.1"
       box: puzzle/opnsense
       hostname: false
@@ -59,8 +61,8 @@ platforms:
 
 provisioner:
     name: ansible
-    env:
-        ANSIBLE_VERBOSITY: 3
+#    env:
+#        ANSIBLE_VERBOSITY: 3
 verifier:
     name: ansible
     options:
