@@ -20,12 +20,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 )
 
 
-class OPNSenseInterfaceNotFoundError(Exception):
-    """
-    Exception raised when an OPNsense group is not found.
-    """
-
-
 class OPNSenseDeviceNotFoundError(Exception):
     """
     Exception raised when a Device is not found.
@@ -200,7 +194,7 @@ class InterfaceAssignment:
         return main_element
 
     @classmethod
-    def from_ansible_module_params(cls, params: dict) -> "User":
+    def from_ansible_module_params(cls, params: dict) -> "InterfaceAssignment":
         """
         Creates an instance from Ansible module parameters.
 
@@ -357,7 +351,6 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         Raises:
             OPNSenseDeviceNotFoundError: If device is not found.
-            OPNSenseInterfaceNotFoundError: If no matching interface is found for update.
         """
 
         device_list_set: set = set(  # pylint: disable=R1718
