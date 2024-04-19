@@ -135,6 +135,21 @@ VERSION_MAP = {
                 },
             },
         },
+        "services_dhcpv4": {
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -239,6 +254,21 @@ VERSION_MAP = {
                 "filter_configure": {
                     "name": "filter_configure",
                     "configure_params": [],
+                },
+            },
+        },
+        "services_dhcpv4": {
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
                 },
             },
         },
@@ -349,6 +379,21 @@ VERSION_MAP = {
                 ],
             },
         },
+        "services_dhcpv4": {
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
+            },
+        },
     },
     "24.1": {
         "system_settings_general": {
@@ -455,6 +500,21 @@ VERSION_MAP = {
                     "PASSWORD_BCRYPT",
                     "[ 'cost' => 11 ]",
                 ],
+            },
+        },
+        "services_dhcpv4": {
+            "enable": "/enable",
+            "range_from": "/range/from",
+            "range_to": "/range/to",
+            # Add other mappings here.
+            "php_requirements": [
+                "",
+            ],
+            "configure_functions": {
+                "reconfigure_dhcpd": {
+                    "name": "reconfigure_dhcpd",
+                    "configure_params": ["true"],
+                },
             },
         },
     },
