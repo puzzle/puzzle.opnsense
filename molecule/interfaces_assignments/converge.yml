@@ -21,8 +21,8 @@
       ansible.builtin.assert:
         that:
           - device_already_assigned_result is failed
-        fail_msg: "This device is already assigned, please assign this unassign this device first"
-        success_msg: "This device is already assigned, please assign this unassign this device first"
+        fail_msg: "This device is already assigned, please unassign this device first"
+        success_msg: "This device is already assigned, please unassign this device first"
 
     - name: Test unknown identifier to used device description update
       puzzle.opnsense.interfaces_assignments:
@@ -36,8 +36,8 @@
       ansible.builtin.assert:
         that:
           - unknown_identifier_result is failed
-        fail_msg: "This device is already assigned, please assign this unassign this device first"
-        success_msg: "This device is already assigned, please assign this unassign this device first"
+        fail_msg: "This device is already assigned, please unassign this device first"
+        success_msg: "This device is already assigned, please unassign this device first"
 
     - name: Test interface lan, unknown_device update
       puzzle.opnsense.interfaces_assignments:
