@@ -18,6 +18,7 @@ author:
   - Reto Kupferschmid (@rekup)
 module: system_settings_logging
 short_description: Configure logging settings.
+version_added: "1.0.0"
 description:
   - Module to configure system logging
 options:

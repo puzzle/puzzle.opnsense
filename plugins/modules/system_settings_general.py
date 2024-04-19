@@ -18,6 +18,7 @@ author:
   - Reto Kupferschmid (@rekup)
 module: system_settings_general
 short_description: Configure general settings mainly concern network-related settings like the hostname.
+version_added: "1.0.0"
 description:
   - Module to configure general system settings
 options:
