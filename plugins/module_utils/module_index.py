@@ -149,7 +149,6 @@ VERSION_MAP = {
             "configure_functions": {
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
                 },
             },
         },
