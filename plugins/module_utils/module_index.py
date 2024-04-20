@@ -275,10 +275,6 @@ VERSION_MAP = {
                     "name": "filter_configure",
                     "configure_params": ["true"],
                 },
-                "rrd_configure": {
-                    "name": "rrd_configure",
-                    "configure_params": [],
-                },
             },
         },
     },
@@ -402,10 +398,6 @@ VERSION_MAP = {
                 "filter_configure": {
                     "name": "filter_configure",
                     "configure_params": ["true"],
-                },
-                "rrd_configure": {
-                    "name": "rrd_configure",
-                    "configure_params": [],
                 },
             },
         },
@@ -532,10 +524,6 @@ VERSION_MAP = {
                 "filter_configure": {
                     "name": "filter_configure",
                     "configure_params": ["true"],
-                },
-                "rrd_configure": {
-                    "name": "rrd_configure",
-                    "configure_params": [],
                 },
             },
         },
