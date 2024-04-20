@@ -131,7 +131,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": [],
+                    "configure_params": ["true"],
                 },
             },
         },
@@ -256,6 +256,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
+                    "configure_params": ["true"],
                 },
             },
         },
@@ -380,6 +381,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
+                    "configure_params": ["true"],
                 },
             },
         },
@@ -506,6 +508,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
+                    "configure_params": ["true"],
                 },
             },
         },
