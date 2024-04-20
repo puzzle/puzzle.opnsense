@@ -131,7 +131,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -256,7 +256,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -381,7 +381,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -508,7 +508,7 @@ VERSION_MAP = {
                 },
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
