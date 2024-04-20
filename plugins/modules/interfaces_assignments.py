@@ -53,7 +53,7 @@ EXAMPLES = r'''
 
 RETURN = '''
 opnsense_configure_output:
-    description: A List of the executed OPNsense configure function along with their respective stdout, stderr and rc
+    description: A list of the executed OPNsense configure function along with their respective stdout, stderr and rc
     returned: always
     type: list
     sample:
