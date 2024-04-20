@@ -249,7 +249,7 @@ class InterfacesSet(OPNsenseModuleConfig):
     def __init__(self, path: str = "/conf/config.xml"):
         super().__init__(
             module_name="interfaces_assignments",
-            config_context_names=["interfaces_assignments", "interfaces_list"],
+            config_context_names=["interfaces_assignments"],
             path=path,
         )
 
@@ -304,13 +304,15 @@ class InterfacesSet(OPNsenseModuleConfig):
         """
 
         # load requirements
-        php_requirements = self._config_maps["interfaces_list"]["php_requirements"]
-        configure_function = self._config_maps["interfaces_list"][
-            "configure_functions"
-        ]["name"]
-        configure_params = self._config_maps["interfaces_list"]["configure_functions"][
-            "configure_params"
+        php_requirements = self._config_maps["interfaces_assignments"][
+            "php_requirements"
         ]
+        configure_function = """
+                    foreach (get_interface_list() as $key => $item) {
+                        echo $key.',';
+                    }
+                    """
+        configure_params = []
 
         # run php function
         result = opnsense_utils.run_function(
