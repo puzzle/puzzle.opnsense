@@ -1374,7 +1374,7 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_devic
             )
             interfaces_set.update(test_interface_assignment)
             interfaces_set.save()
-        assert "Device was not found on OpnSense Instance!" in str(excinfo.value)
+        assert "Device was not found on OPNsense Instance!" in str(excinfo.value)
 
 
 @patch(
