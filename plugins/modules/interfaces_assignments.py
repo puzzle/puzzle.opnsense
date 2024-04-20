@@ -115,43 +115,43 @@ def main():
         "diff": None,
     }
 
-    try:
-        interface_assignment = InterfaceAssignment.from_ansible_module_params(
-            module.params
-        )
+    interface_assignment = InterfaceAssignment.from_ansible_module_params(module.params)
 
-        with InterfacesSet() as interfaces_set:
+    with InterfacesSet() as interfaces_set:
 
+        try:
             interfaces_set.update(interface_assignment)
 
-            if interfaces_set.changed:
-                result["diff"] = interfaces_set.diff
-                result["changed"] = True
+        except (
+            OPNSenseDeviceNotFoundError
+        ) as opnsense_device_not_found_error_error_message:
+            module.fail_json(msg=str(opnsense_device_not_found_error_error_message))
 
-            if interfaces_set.changed and not module.check_mode:
-                interfaces_set.save()
-                result["opnsense_configure_output"] = interfaces_set.apply_settings()
+        except (
+            OPNSenseDeviceAlreadyAssignedError
+        ) as opnsense_device_already_assigned_error_message:
+            module.fail_json(msg=str(opnsense_device_already_assigned_error_message))
 
-                for cmd_result in result["opnsense_configure_output"]:
-                    if cmd_result["rc"] != 0:
-                        module.fail_json(
-                            msg="Apply of the OPNsense settings failed",
-                            details=cmd_result,
-                        )
+        except OPNSenseGetInterfacesError as opnsense_get_interfaces_error_message:
+            module.fail_json(msg=str(opnsense_get_interfaces_error_message))
+
+        if interfaces_set.changed:
+            result["diff"] = interfaces_set.diff
+            result["changed"] = True
+
+        if interfaces_set.changed and not module.check_mode:
+            interfaces_set.save()
+            result["opnsense_configure_output"] = interfaces_set.apply_settings()
+
+            for cmd_result in result["opnsense_configure_output"]:
+                if cmd_result["rc"] != 0:
+                    module.fail_json(
+                        msg="Apply of the OPNsense settings failed",
+                        details=cmd_result,
+                    )
 
         # Return results
         module.exit_json(**result)
-
-    except OPNSenseDeviceNotFoundError as opnsense_device_not_found_error_error_message:
-        module.fail_json(msg=str(opnsense_device_not_found_error_error_message))
-
-    except (
-        OPNSenseDeviceAlreadyAssignedError
-    ) as opnsense_device_already_assigned_error_message:
-        module.fail_json(msg=str(opnsense_device_already_assigned_error_message))
-
-    except OPNSenseGetInterfacesError as opnsense_get_interfaces_error_message:
-        module.fail_json(msg=str(opnsense_get_interfaces_error_message))
 
 
 if __name__ == "__main__":
