@@ -382,33 +382,7 @@ class InterfacesSet(OPNsenseModuleConfig):
             None,
         )
 
-        if interface_to_update:
-
-            if (
-                interface_assignment.device in free_interfaces
-                or interface_assignment.device == interface_to_update.device
-            ):
-
-                if interface_assignment.identifier in identifier_list_set:
-
-                    # Merge extra_attrs
-                    interface_assignment.extra_attrs.update(
-                        interface_to_update.extra_attrs
-                    )
-
-                    # Update the existing interface
-                    interface_to_update.__dict__.update(interface_assignment.__dict__)
-
-                else:
-                    raise OPNSenseDeviceAlreadyAssignedError(
-                        "This device is already assigned, please unassign this device first"
-                    )
-
-            else:
-                raise OPNSenseDeviceAlreadyAssignedError(
-                    "This device is already assigned, please unassign this device first"
-                )
-        else:
+        if not interface_to_update:
 
             interface_to_create: InterfaceAssignment = InterfaceAssignment(
                 identifier=interface_assignment.identifier,
@@ -417,6 +391,31 @@ class InterfacesSet(OPNsenseModuleConfig):
             )
 
             self._interfaces_assignments.append(interface_to_create)
+
+            return
+
+        if (
+            interface_assignment.device in free_interfaces
+            or interface_assignment.device == interface_to_update.device
+        ):
+
+            if interface_assignment.identifier in identifier_list_set:
+
+                # Merge extra_attrs
+                interface_assignment.extra_attrs.update(interface_to_update.extra_attrs)
+
+                # Update the existing interface
+                interface_to_update.__dict__.update(interface_assignment.__dict__)
+
+            else:
+                raise OPNSenseDeviceAlreadyAssignedError(
+                    "This device is already assigned, please unassign this device first"
+                )
+
+        else:
+            raise OPNSenseDeviceAlreadyAssignedError(
+                "This device is already assigned, please unassign this device first"
+            )
 
     def find(self, **kwargs) -> Optional[InterfaceAssignment]:
         """
