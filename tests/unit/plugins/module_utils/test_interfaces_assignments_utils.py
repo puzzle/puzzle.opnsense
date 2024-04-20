@@ -14,7 +14,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
     InterfaceAssignment,
     InterfacesSet,
-    OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
@@ -30,24 +29,6 @@ TEST_VERSION_MAP = {
             "interfaces": "interfaces",
             "php_requirements": [],
             "configure_functions": {},
-        },
-        "interfaces_list": {
-            "php_requirements": [
-                "/usr/local/etc/inc/config.inc",
-                "/usr/local/etc/inc/util.inc",
-                "/usr/local/etc/inc/filter.inc",
-                "/usr/local/etc/inc/system.inc",
-                "/usr/local/etc/inc/rrd.inc",
-                "/usr/local/etc/inc/interfaces.inc",
-            ],
-            "configure_functions": {
-                "name": """
-                foreach (get_interface_list() as $key => $item) {
-                    echo $key.',';
-                }
-                """,
-                "configure_params": [],
-            },
         },
     }
 }
