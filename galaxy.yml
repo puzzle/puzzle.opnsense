@@ -2,7 +2,7 @@
 
 namespace: puzzle
 name: opnsense
-version: 0.1.0
+version: 1.0.0
 readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
@@ -10,7 +10,7 @@ authors:
   - Philipp Matti (github.com/acteru)
   - Reto Kupferschmid (github.com/rekup)
   - Kilian Soltermann (github.com/killuuuhh)
-description: OPNsense collection for Ansible
+description: Ansible collection for OPNsense
 license_file: LICENSE
 tags:
 # tags so people can search for collections https://galaxy.ansible.com/search
