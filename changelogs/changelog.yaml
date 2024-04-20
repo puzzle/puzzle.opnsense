@@ -1,1 +1,18 @@
-releases: {}
+ancestor: null
+releases:
+  1.0.0:
+    modules:
+    - description: This module is used to manage OPNSense firewall rules
+      name: firewall_rules
+      namespace: ''
+    - description: Manage OPNsense users
+      name: system_access_users
+      namespace: ''
+    - description: Configure general settings mainly concern network-related settings
+        like the hostname.
+      name: system_settings_general
+      namespace: ''
+    - description: Configure logging settings.
+      name: system_settings_logging
+      namespace: ''
+    release_date: '2024-04-20'
