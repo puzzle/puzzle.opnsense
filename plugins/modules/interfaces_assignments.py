@@ -82,7 +82,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
     InterfacesSet,
     InterfaceAssignment,
-    OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
@@ -142,11 +141,6 @@ def main():
 
         # Return results
         module.exit_json(**result)
-
-    except (
-        OPNSenseInterfaceNotFoundError
-    ) as opnsense_interface_not_found_error_error_message:
-        module.fail_json(msg=str(opnsense_interface_not_found_error_error_message))
 
     except OPNSenseDeviceNotFoundError as opnsense_device_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_device_not_found_error_error_message))
