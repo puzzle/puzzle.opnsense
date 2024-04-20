@@ -369,7 +369,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         if interface_assignment.device not in device_interfaces_set:
             raise OPNSenseDeviceNotFoundError(
-                "Device was not found on OpnSense Instance!"
+                "Device was not found on OPNsense Instance!"
             )
 
         interface_to_update: Optional[InterfaceAssignment] = next(
