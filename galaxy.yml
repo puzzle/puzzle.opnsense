@@ -18,7 +18,7 @@ tags:
   - opnsense
 repository: https://github.com/puzzle/puzzle.opnsense/
 #documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
-homepage: https://github.com/puzzle/puzzle.opnsense/
+homepage: https://puzzle.github.io/puzzle.opnsense/collections/puzzle/opnsense/
 issues: https://github.com/puzzle/puzzle.opnsense/issues
 build_ignore:
 # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections_distributing.html#ignoring-files-and-folders
