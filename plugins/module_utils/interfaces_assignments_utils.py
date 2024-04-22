@@ -215,7 +215,9 @@ class InterfaceAssignment:
         }
 
         interface_assignment_dict = {
-            key: value for key, value in interface_assignment_dict.items() if value is not None
+            key: value
+            for key, value in interface_assignment_dict.items()
+            if value is not None
         }
 
         return cls(**interface_assignment_dict)
@@ -302,7 +304,9 @@ class InterfacesSet(OPNsenseModuleConfig):
         """
 
         # load requirements
-        php_requirements = self._config_maps["interfaces_assignments"]["php_requirements"]
+        php_requirements = self._config_maps["interfaces_assignments"][
+            "php_requirements"
+        ]
         php_command = """
                     foreach (get_interface_list() as $key => $item) {
                         echo $key.',';
@@ -317,7 +321,9 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         # check for stderr
         if result.get("stderr"):
-            raise OPNSenseGetInterfacesError("error encounterd while getting interfaces")
+            raise OPNSenseGetInterfacesError(
+                "error encounterd while getting interfaces"
+            )
 
         # parse list
         interface_list: list[str] = [
@@ -360,7 +366,9 @@ class InterfacesSet(OPNsenseModuleConfig):
         free_interfaces = device_interfaces_set - device_list_set
 
         if interface_assignment.device not in device_interfaces_set:
-            raise OPNSenseDeviceNotFoundError("Device was not found on OPNsense Instance!")
+            raise OPNSenseDeviceNotFoundError(
+                "Device was not found on OPNsense Instance!"
+            )
 
         interface_to_update: Optional[InterfaceAssignment] = next(
             (
@@ -425,7 +433,8 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         for interface_assignment in self._interfaces_assignments:
             match = all(
-                getattr(interface_assignment, key, None) == value for key, value in kwargs.items()
+                getattr(interface_assignment, key, None) == value
+                for key, value in kwargs.items()
             )
             if match:
                 return interface_assignment
