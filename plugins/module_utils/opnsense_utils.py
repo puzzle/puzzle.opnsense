@@ -52,18 +52,15 @@ def run_function(
     and rc of the command
     """
     if configure_params is None:
-        configure_params = []
+        params_string = ""
+    else:
+        params_string = ",".join(configure_params)
 
     # assemble the php require statements
     requirements_string = " ".join([f"require '{req}';" for req in php_requirements])
-    params_string = ",".join(configure_params)
 
     # assemble php command
-    php_cmd = (
-        f"{requirements_string} {configure_function}({params_string});"
-        if params_string
-        else f"{requirements_string} {configure_function}();"
-    )
+    php_cmd = f"{requirements_string} {configure_function}({params_string});"
 
     return _run_php_command(php_cmd)
 
