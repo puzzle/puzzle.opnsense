@@ -149,7 +149,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -274,7 +274,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -399,7 +399,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
@@ -416,7 +416,6 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/filter.inc",
                 "/usr/local/etc/inc/system.inc",
                 "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/head.inc",
             ],
             "configure_functions": {
                 "system_timezone_configure": {
@@ -526,7 +525,7 @@ VERSION_MAP = {
             "configure_functions": {
                 "filter_configure": {
                     "name": "filter_configure",
-                    "configure_params": ["true"],
+                    "configure_params": [],
                 },
             },
         },
