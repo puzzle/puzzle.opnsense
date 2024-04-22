@@ -1475,7 +1475,7 @@ def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
     return_value={"stdout": "em0,em1,em2", "stderr": None},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1495,7 +1495,7 @@ def test_get_interfaces_success(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
     return_value={"stdout": "", "stderr": None},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1518,7 +1518,7 @@ def test_get_interfaces_success(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_function",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
     return_value={"stdout": "", "stderr": "there was an error"},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
