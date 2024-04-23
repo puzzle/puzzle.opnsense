@@ -16,6 +16,7 @@ DOCUMENTATION = r'''
 author:
   - Kilian Soltermann (@killuuuhh)
 module: interfaces_assignments
+version_added: "1.1.0"
 short_description: This module can be used to assign interfaces to network ports and network IDs to new interfaces.
 description:
   - Module to assign interfaces to network ports and network IDs to new interfaces.

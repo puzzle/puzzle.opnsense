@@ -1,4 +1,0 @@
----
-bugfixes:
-  - version_util - Use `product_series` for version detection to avoid minor version
-    mismatches.

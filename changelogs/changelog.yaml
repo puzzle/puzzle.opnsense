@@ -16,3 +16,16 @@ releases:
       name: system_settings_logging
       namespace: ''
     release_date: '2024-04-20'
+  1.1.0:
+    changes:
+      bugfixes:
+      - version_util - Use `product_series` for version detection to avoid minor version
+        mismatches.
+    fragments:
+    - 109-use-product-series-in-version-detection.yml
+    modules:
+    - description: This module can be used to assign interfaces to network ports and
+        network IDs to new interfaces.
+      name: interfaces_assignments
+      namespace: ''
+    release_date: '2024-04-23'
