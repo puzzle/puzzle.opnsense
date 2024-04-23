@@ -38,7 +38,7 @@ def get_opnsense_version() -> str:
             f"There was an error getting the version {exc}"
         ) from exc
 
-    product_version = version_dict.get("product_version", None)
+    product_version = version_dict.get("product_series", None)
     if product_version is None:
         raise OPNSenseVersionUsageError(
             "There was an error getting the version: "
