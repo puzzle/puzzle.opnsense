@@ -207,6 +207,7 @@ def test_user_with_api_key_from_xml():
     assert test_user.shell == UserLoginShell.SH
     assert test_user.uid == "1001"
 
+
 def test_user_from_ansible_module_params_simple(sample_config_path):
     test_params: dict = {
         "username": "vagrant",
