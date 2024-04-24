@@ -138,3 +138,5 @@ dmypy.json
 
 # antsibull-docs build dir
 dest
+ansible.cfg
+*.tar.gz
