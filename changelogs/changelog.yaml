@@ -29,3 +29,11 @@ releases:
       name: interfaces_assignments
       namespace: ''
     release_date: '2024-04-23'
+  1.1.1:
+    changes:
+      bugfixes:
+      - system_access_users_utils - Handle additional XML attributes of user objects
+        that are not yet handled by the system_access_users module.
+    fragments:
+    - 112-fix-user-extra-attributes-in-system_access_users.yml
+    release_date: '2024-04-24'
