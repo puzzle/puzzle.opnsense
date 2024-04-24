@@ -26,8 +26,9 @@ Licensed under the GNU General Public License v3.0+
 """
 
 
-from dataclasses import dataclass, asdict, fields
-from typing import List, Optional
+import dataclasses
+from dataclasses import dataclass, asdict, fields, field
+from typing import List, Optional, Dict, Any
 import base64
 import os
 import binascii
@@ -237,6 +238,21 @@ class User:
     apikeys: Optional[List[str]] = None
     groupname: Optional[List[str]] = None
 
+    extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def __init__(self, **kwargs):
+        _attr_names: set[str] = set([f.name for f in dataclasses.fields(self)])
+        _extra_attrs: dict = {}
+        for key, value in kwargs.items():
+            if key in _attr_names:
+                if key == "shell":
+                    value = UserLoginShell.from_string(value)
+                setattr(self, key, value)
+                continue
+
+            _extra_attrs[key] = value
+        self.extra_attrs = _extra_attrs
+
     def __eq__(self, other) -> bool:
         if not isinstance(other, User):
             return False
@@ -429,6 +445,10 @@ class User:
             elif isinstance(user_val, bool):
                 user_dict[user_key] = "1"
 
+        for key, value in self.extra_attrs.items():
+            user_dict[key] = value
+
+        del user_dict["extra_attrs"]
         element: Element = xml_utils.dict_to_etree("user", user_dict)[0]
 
         return element
