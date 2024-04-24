@@ -241,7 +241,7 @@ class User:
     extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
 
     def __init__(self, **kwargs):
-        _attr_names: set[str] = set([f.name for f in dataclasses.fields(self)])
+        _attr_names: set[str] = {f.name for f in dataclasses.fields(self)}
         _extra_attrs: dict = {}
         for key, value in kwargs.items():
             if key in _attr_names:
@@ -257,9 +257,9 @@ class User:
         if not isinstance(other, User):
             return False
 
-        for field in fields(self):
-            if field.name not in ["password", "uid", "otp_seed", "apikeys"]:
-                if getattr(self, field.name) != getattr(other, field.name):
+        for _field in fields(self):
+            if _field.name not in ["password", "uid", "otp_seed", "apikeys"]:
+                if getattr(self, _field.name) != getattr(other, _field.name):
                     return False
 
         return True
