@@ -4,6 +4,14 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.1.1
+======
+
+Bugfixes
+--------
+
+- system_access_users_utils - Handle additional XML attributes of user objects that are not yet handled by the system_access_users module.
+
 v1.1.0
 ======
 
