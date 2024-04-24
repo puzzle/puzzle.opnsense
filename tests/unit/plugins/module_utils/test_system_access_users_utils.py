@@ -73,6 +73,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <password>$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O</password>
                 <scope>user</scope>
                 <name>test_user_1</name>
+                <user_dn>uid=test_user_1,ou=users,dc=example,dc=com</user_dn>
                 <descr>test_user_1</descr>
                 <expires />
                 <authorizedkeys />
