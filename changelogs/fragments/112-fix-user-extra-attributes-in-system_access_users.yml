@@ -1,0 +1,4 @@
+---
+bugfixes:
+    - system_access_users_utils - Handle additional XML attributes of user
+      objects that are not yet handled by the system_access_users module.

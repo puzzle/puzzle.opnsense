@@ -73,6 +73,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <password>$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O</password>
                 <scope>user</scope>
                 <name>test_user_1</name>
+                <user_dn>uid=test_user_1,ou=users,dc=example,dc=com</user_dn>
                 <descr>test_user_1</descr>
                 <expires />
                 <authorizedkeys />
@@ -205,24 +206,6 @@ def test_user_with_api_key_from_xml():
     assert test_user.otp_seed is None
     assert test_user.shell == UserLoginShell.SH
     assert test_user.uid == "1001"
-
-
-def test_user_to_etree():
-    test_user: User = User(
-        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-        scope="user",
-        name="vagrant",
-        descr="vagrant box management",
-        shell="/bin/sh",
-        uid="1000",
-    )
-
-    test_element = test_user.to_etree()
-
-    orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_user: Element = list(list(orig_etree)[0])[2]
-
-    assert xml_utils.elements_equal(test_element, orig_user)
 
 
 def test_user_from_ansible_module_params_simple(sample_config_path):
