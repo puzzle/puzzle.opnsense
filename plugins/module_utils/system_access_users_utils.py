@@ -63,16 +63,6 @@ class OPNSenseCryptReturnError(Exception):
     """
 
 
-# pylint: disable=too-few-public-methods
-class UserLoginShell(ListEnum):
-    """Represents the user login shell."""
-
-    NOLOGIN = "/sbin/nologin"
-    CSH = "/bin/csh"
-    SH = "/bin/sh"
-    TCSH = "/bin/tcsh"
-
-
 @dataclass
 class Group:
     """
@@ -190,7 +180,7 @@ class User:
         descr (Optional[str]): A description of the user, if available.
         ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
         otp_seed (Optional[str]): OTP seed for two-factor authentication, if used.
-        shell (Optional[UserLoginShell]): The user's login shell, if specified.
+        shell (Optional[str]): The user's login shell, if specified.
         uid (Optional[str]): The user's unique identifier.
         disabled (bool): Whether the user is disabled (default is False).
         full_name (Optional[str]): The user's full name, if available.
@@ -225,7 +215,7 @@ class User:
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
     otp_seed: Optional[str] = None
-    shell: Optional[UserLoginShell] = UserLoginShell.NOLOGIN
+    shell: str = "/sbin/nologin"
     uid: Optional[str] = None
     disabled: bool = False
     full_name: Optional[str] = None
@@ -245,8 +235,6 @@ class User:
         _extra_attrs: dict = {}
         for key, value in kwargs.items():
             if key in _attr_names:
-                if key == "shell":
-                    value = UserLoginShell.from_string(value)
                 setattr(self, key, value)
                 continue
 
@@ -263,20 +251,6 @@ class User:
                     return False
 
         return True
-
-    def __post_init__(self) -> None:
-        # Manually define the fields and their expected types
-        enum_fields = {
-            "shell": UserLoginShell,
-        }
-
-        for field_name, field_type in enum_fields.items():
-            value = getattr(self, field_name)
-
-            # Check if the value is a string and the field_type is a subclass of ListEnum
-            if isinstance(value, str) and issubclass(field_type, ListEnum):
-                # Convert string to ListEnum
-                setattr(self, field_name, field_type.from_string(value))
 
     def set_otp_seed(self, otp_seed: str = None) -> str:
         """

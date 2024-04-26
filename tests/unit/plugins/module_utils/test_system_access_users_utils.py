@@ -15,7 +15,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     Group,
     User,
     UserSet,
-    UserLoginShell,
     OPNSenseGroupNotFoundError,
     OPNSenseCryptReturnError,
 )
@@ -157,7 +156,7 @@ def test_user_from_xml():
     assert test_user.authorizedkeys is None
     assert test_user.ipsecpsk is None
     assert test_user.otp_seed is None
-    assert test_user.shell == UserLoginShell.SH
+    assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1000"
 
 
@@ -204,7 +203,7 @@ def test_user_with_api_key_from_xml():
     assert test_user.authorizedkeys is None
     assert test_user.ipsecpsk is None
     assert test_user.otp_seed is None
-    assert test_user.shell == UserLoginShell.SH
+    assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1001"
 
 
@@ -227,7 +226,7 @@ def test_user_from_ansible_module_params_simple(sample_config_path):
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys is None
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
 
 
@@ -316,7 +315,7 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys is None
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
     assert new_test_user.groupname == ["admins"]
 
@@ -504,7 +503,7 @@ def test_user_from_ansible_module_params_with_authorizedkeys(
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys == "3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ"
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
 
 
