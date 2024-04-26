@@ -135,6 +135,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -242,6 +260,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
     },
     "23.7": {
         "system_settings_general": {
@@ -306,26 +342,6 @@ VERSION_MAP = {
                 }
             },
         },
-        "firewall_rules": {
-            "rules": "filter",
-            "php_requirements": [
-                "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/config.inc",
-                "/usr/local/etc/inc/util.inc",
-                "/usr/local/etc/inc/filter.inc",
-                "/usr/local/etc/inc/system.inc",
-            ],
-            "configure_functions": {
-                "system_cron_configure": {
-                    "name": "system_cron_configure",
-                    "configure_params": ["true"],
-                },
-                "filter_configure": {
-                    "name": "filter_configure",
-                    "configure_params": [],
-                },
-            },
-        },
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
@@ -347,6 +363,44 @@ VERSION_MAP = {
                     "PASSWORD_BCRYPT",
                     "[ 'cost' => 11 ]",
                 ],
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
             },
         },
     },
@@ -414,26 +468,6 @@ VERSION_MAP = {
                 }
             },
         },
-        "firewall_rules": {
-            "rules": "filter",
-            "php_requirements": [
-                "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/config.inc",
-                "/usr/local/etc/inc/util.inc",
-                "/usr/local/etc/inc/system.inc",
-                "/usr/local/etc/inc/filter.inc",
-            ],
-            "configure_functions": {
-                "system_cron_configure": {
-                    "name": "system_cron_configure",
-                    "configure_params": ["true"],
-                },
-                "filter_configure": {
-                    "name": "filter_configure",
-                    "configure_params": [],
-                },
-            },
-        },
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
@@ -455,6 +489,44 @@ VERSION_MAP = {
                     "PASSWORD_BCRYPT",
                     "[ 'cost' => 11 ]",
                 ],
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/filter.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
             },
         },
     },

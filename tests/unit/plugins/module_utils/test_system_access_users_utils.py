@@ -15,7 +15,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     Group,
     User,
     UserSet,
-    UserLoginShell,
     OPNSenseGroupNotFoundError,
     OPNSenseCryptReturnError,
 )
@@ -73,6 +72,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <password>$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O</password>
                 <scope>user</scope>
                 <name>test_user_1</name>
+                <user_dn>uid=test_user_1,ou=users,dc=example,dc=com</user_dn>
                 <descr>test_user_1</descr>
                 <expires />
                 <authorizedkeys />
@@ -156,7 +156,7 @@ def test_user_from_xml():
     assert test_user.authorizedkeys is None
     assert test_user.ipsecpsk is None
     assert test_user.otp_seed is None
-    assert test_user.shell == UserLoginShell.SH
+    assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1000"
 
 
@@ -203,26 +203,8 @@ def test_user_with_api_key_from_xml():
     assert test_user.authorizedkeys is None
     assert test_user.ipsecpsk is None
     assert test_user.otp_seed is None
-    assert test_user.shell == UserLoginShell.SH
+    assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1001"
-
-
-def test_user_to_etree():
-    test_user: User = User(
-        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-        scope="user",
-        name="vagrant",
-        descr="vagrant box management",
-        shell="/bin/sh",
-        uid="1000",
-    )
-
-    test_element = test_user.to_etree()
-
-    orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_user: Element = list(list(orig_etree)[0])[2]
-
-    assert xml_utils.elements_equal(test_element, orig_user)
 
 
 def test_user_from_ansible_module_params_simple(sample_config_path):
@@ -244,7 +226,7 @@ def test_user_from_ansible_module_params_simple(sample_config_path):
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys is None
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
 
 
@@ -333,7 +315,7 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys is None
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
     assert new_test_user.groupname == ["admins"]
 
@@ -521,7 +503,7 @@ def test_user_from_ansible_module_params_with_authorizedkeys(
     assert new_test_user.expires is None
     assert new_test_user.authorizedkeys == "3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ"
     assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == UserLoginShell.SH
+    assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
 
 
