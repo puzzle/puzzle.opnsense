@@ -484,3 +484,18 @@ class OPNsenseModuleConfig:
                     config_diff_after.update({xpath: in_memory_element.text})
 
         return {"before": config_diff_before, "after": config_diff_after}
+
+
+class ConfigObject:
+    """
+    Base class for config object abstraction.
+    """
+
+    @classmethod
+    def from_ansible_module_params(cls, params: dict) -> "ConfigObject":
+        """
+
+        :param params: raw ansible module execution parameters.
+        :return: instance of the config object class.
+        """
+        return cls(**params)

@@ -7,6 +7,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+import dataclasses
+
 __metaclass__val = type
 
 import os
@@ -23,6 +25,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     ModuleMisconfigurationError,
     MissingConfigDefinitionForModuleError,
     UnsupportedVersionForModule,
+    ConfigObject,
 )
 
 # Test version map for OPNsense versions and modules
@@ -576,3 +579,25 @@ def test_success_set_on_empty_leaf_node(sample_config_path):
         new_config.set("test", "remote_system_username")
         assert new_config.get("remote_system_username").text == "test"
         new_config.save()
+
+
+###
+# ConfigObject Tests
+###
+
+
+@dataclasses.dataclass
+class TestConfigObject(ConfigObject):
+    __test__ = False
+    name: str
+
+
+def test_config_object_from_ansible_params_simple() -> None:
+    """Basic ConfigObject.from_ansible_module_params test"""
+    module_params: dict = {"name": "test_object"}
+
+    test_obj: TestConfigObject = TestConfigObject.from_ansible_module_params(
+        module_params
+    )
+
+    assert test_obj.name == module_params["name"]
