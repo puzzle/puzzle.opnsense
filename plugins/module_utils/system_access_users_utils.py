@@ -727,10 +727,13 @@ class UserSet(OPNsenseModuleConfig):
             "configure_params"
         ]
 
+        # sanitize and escape password
+        escaped_password = user.password.replace("\\", "\\\\").replace("'", "\\'")
+
         # format parameters
         formatted_params = [
             (
-                param.replace("'password'", f"'{user.password}'")
+                param.replace("'password'", f"'{escaped_password}'")
                 if "password" in param
                 else param
             )
