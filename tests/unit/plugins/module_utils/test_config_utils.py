@@ -59,7 +59,6 @@ TEST_VERSION_MAP = {
             },
         },
         "test_module_4": {
-            "syslog_parent": "syslog",
             "hasync_parent": "hasync",
             "remote_system_username": "hasync/username",
             "php_requirements": ["req_1", "req_2"],
@@ -559,10 +558,16 @@ def test_fail_set_on_parent_node(sample_config_path):
         check_mode=False,
     ) as new_config:
         with pytest.raises(AttributeError):
-            new_config.set("test", "syslog_parent")
-        with pytest.raises(AttributeError):
             new_config.set("test", "hasync_parent")
 
+
+def test_success_set_on_empty_leaf_node(sample_config_path):
+    with OPNsenseModuleConfig(
+        module_name="test_module_4",
+        config_context_names=["test_module_4"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
         new_config.set("test", "remote_system_username")
         assert new_config.get("remote_system_username").text == "test"
         new_config.save()
