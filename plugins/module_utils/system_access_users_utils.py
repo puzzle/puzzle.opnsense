@@ -829,17 +829,25 @@ class UserSet(OPNsenseModuleConfig):
         )
         next_uid: Element = self.get("uid")
 
-        # since the current password of an user cannot not be compared with the new one,
-        # we're setting the password anyways
-        self.set_user_password(user)
-
         if existing_user:
+
+            if not password_verify(
+                existing_user_password=existing_user.password, password=user.password
+            ):
+                self.set_user_password(user)
+
+            # since we don't want the clear-type password to be set,
+            # and it is clear a update is not needed, we remove it from the update
+            if "password" in user.__dict__:
+                del user.__dict__["password"]
+
             # Update groups if needed
             self._update_user_groups(user, existing_user)
 
             # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
         else:
+            self.set_user_password(user)
             # Assign UID if not set
             if not user.uid:
                 user.uid = next_uid.text
