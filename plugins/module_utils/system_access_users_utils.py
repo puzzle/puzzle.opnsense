@@ -93,7 +93,7 @@ def password_verify(existing_user_password: str, password: str) -> bool:
     if password_matches.get("stderr"):
         raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
 
-    # if return code of password_matches equals 1, it's a match
+    # if return code of password_matches not equals 1, it's a match
     if password_matches.get("stdout") != "1":
         return True
 
