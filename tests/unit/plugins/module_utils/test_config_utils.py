@@ -558,9 +558,9 @@ def test_fail_set_on_parent_node(sample_config_path):
         path=sample_config_path,
         check_mode=False,
     ) as new_config:
-        with pytest.raises(AttributeError) as exc_info:
+        with pytest.raises(AttributeError):
             new_config.set("test", "syslog_parent")
-        with pytest.raises(AttributeError) as exc_info:
+        with pytest.raises(AttributeError):
             new_config.set("test", "hasync_parent")
 
         new_config.set("test", "remote_system_username")
