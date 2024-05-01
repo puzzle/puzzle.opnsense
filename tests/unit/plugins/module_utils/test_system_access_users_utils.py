@@ -18,6 +18,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     password_verify,
     OPNSenseGroupNotFoundError,
     OPNSenseCryptReturnError,
+    OPNSensePasswordVerifyReturnError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -301,7 +302,6 @@ def test_user_set_add_group(
 
     with UserSet(sample_config_path) as new_user_set:
         new_test_user: User = new_user_set.find(name="vagrant")
-        # group: Group = new_user_set
 
         assert new_test_user.groupname == ["admins"]
         assert "1000" in new_user_set._groups[0].member
@@ -687,3 +687,68 @@ def test_generate_hashed_secret_error_in_crypt(mock_run_function):
         user._generate_hashed_secret("password123")
 
     assert "error encounterd while creating secret" in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command"
+)
+def test_password_verify_returns_true_on_match(mock_run_command: MagicMock):
+
+    # Mock the return value of the run_command to simulate a password match
+    mock_run_command.return_value = {
+        "stdout": "",
+        "stderr": None,
+    }
+
+    # Call the function with test data
+    test_password_matches = password_verify(
+        password="test_password_1",
+        existing_user_password="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
+    )
+
+    # Assert that the function returns True for a password match
+    assert test_password_matches == True
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command"
+)
+def test_password_verify_returns_false_on_difference(mock_run_command: MagicMock):
+
+    # Mock the return value of the run_command to simulate a password match
+    mock_run_command.return_value = {
+        "stdout": "1",
+        "stderr": None,
+    }
+
+    # Call the function with test data
+    test_password_matches = password_verify(
+        password="test_password_1",
+        existing_user_password="$2y$11$pSYTZcD0o23JSfksEe1231345h9vp7OOQN.v35E1rag49cEc6",
+    )
+
+    # Assert that the function returns True for a password match
+    assert test_password_matches == False
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command"
+)
+def test_password_verify_returns_OPNSensePasswordVerifyReturnError(
+    mock_run_command: MagicMock,
+):
+
+    # Mock the return value of the run_command to simulate a password match
+    mock_run_command.return_value = {
+        "stdout": None,
+        "stderr": "this an error",
+    }
+
+    with pytest.raises(OPNSensePasswordVerifyReturnError) as excinfo:
+        # Call the function with test data
+        test_password_matches = password_verify(
+            password="test_password_1",
+            existing_user_password="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
+        )
+
+    assert "error encounterd verifying passwor" in str(excinfo.value)
