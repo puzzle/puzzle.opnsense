@@ -63,6 +63,43 @@ class OPNSenseCryptReturnError(Exception):
     """
 
 
+class OPNSensePasswordVerifyReturnError(Exception):
+    """
+    Exception raised when the return value of the instance is not what is expected
+    """
+
+
+def password_verify(existing_user_password: str, password: str) -> bool:
+    """
+    Verify if provided password matches the stored password using OPNsense's PHP command.
+
+    Args:
+        existing_user_password (str): The hashed password stored in the XML config.
+        password (str): The plaintext password to verify.
+
+    Returns:
+        bool: True if passwords match, False otherwise.
+
+    Raises:
+        OPNSensePasswordVerifyReturnError: If an error occurs during verification.
+    """
+
+    # check if current password matches hash
+    password_matches = opnsense_utils.run_command(
+        php_requirements=[],
+        command=f"password_verify('{password}','{existing_user_password}');",
+    )
+
+    if password_matches.get("stderr"):
+        raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
+
+    # if return code of password_matches equals 1, it's a match
+    if password_matches.get("stdout") != "1":
+        return True
+
+    return False
+
+
 @dataclass
 class Group:
     """
