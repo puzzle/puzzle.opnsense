@@ -545,8 +545,7 @@ def test_set_with_missing_element(sample_config_path):
 
 def test_fail_set_on_parent_node(sample_config_path):
     """
-    Test case to verify that setting a value for a parent node will fail, while setting a
-    leaf node with a value of None will succeed.
+    Test case to verify that setting a value for a parent node will fail.
 
     Args:
     - sample_config_path (str): The path to the temporary test configuration file.
@@ -562,6 +561,12 @@ def test_fail_set_on_parent_node(sample_config_path):
 
 
 def test_success_set_on_empty_leaf_node(sample_config_path):
+    """
+    Test case to verify that setting a leaf node with a value of None will succeed.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
     with OPNsenseModuleConfig(
         module_name="test_module_4",
         config_context_names=["test_module_4"],
