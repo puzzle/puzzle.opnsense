@@ -707,7 +707,7 @@ def test_password_verify_returns_true_on_match(mock_run_command: MagicMock):
     )
 
     # Assert that the function returns True for a password match
-    assert test_password_matches == True
+    assert test_password_matches
 
 
 @patch(
@@ -728,7 +728,7 @@ def test_password_verify_returns_false_on_difference(mock_run_command: MagicMock
     )
 
     # Assert that the function returns True for a password match
-    assert test_password_matches == False
+    assert not test_password_matches
 
 
 @patch(
