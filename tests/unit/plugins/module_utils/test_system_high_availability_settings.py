@@ -216,4 +216,14 @@ def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_c
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
 def test_services_to_synchronize(mocked_version_utils: MagicMock, sample_config):
-    sample_config.set("test", "synchronize_config_to_ip")
+    services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
+    services_to_synchronize(sample_config, services)
+    assert sample_config.get("Aliases").text == "on"
+    assert sample_config.get("Cron") is None
+
+    services_to_synchronize(sample_config, [])
+    assert sample_config.get("Cron") is None
+    assert sample_config.get("Aliases") is None
+
+    with pytest.raises(ValueError):
+        services_to_synchronize(sample_config, ["Aliases", "bababooey"])
