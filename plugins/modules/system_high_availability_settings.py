@@ -81,11 +81,19 @@ RETURN = ''''''
 # fmt: on
 
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from ansible.module_utils.basic import AnsibleModule
 from xml.etree import ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
+)
+
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+    OPNSenseGetInterfacesError,
+)
+
+from ansible_collections.puzzle.opnsense.plugins.module_utils import (
+    opnsense_utils,
 )
 
 
@@ -93,8 +101,10 @@ def check_hasync_node(config: OPNsenseModuleConfig):
     # When an opnsense instance is created, the hasync block does not exist at all.
     # This function checks if this element exists in the tree, and adds it if no.
     if config.get("parent_node") is None:
-        ElementTree.SubElement(config._config_xml_tree,
-                               config._config_maps["system_high_availability_settings"]["parent_node"])
+        ElementTree.SubElement(
+            config._config_xml_tree,
+            config._config_maps["system_high_availability_settings"]["parent_node"],
+        )
         # default settings when nothing is selected
         synchronize_interface(config, "lan")
         remote_system_synchronization(config, None, None, None)
@@ -107,8 +117,55 @@ def synchronize_states(config: OPNsenseModuleConfig, params: bool):
         config._config_xml_tree.find("hasync").remove(config.get("synchronize_states"))
 
 
-def synchronize_interface(config: OPNsenseModuleConfig, params: str):
-    config.set(value=params, setting="synchronize_interface")
+def get_configured_interface_with_descr(config: OPNsenseModuleConfig) -> Dict[str, str]:
+    # https://github.com/opnsense/core/blob/7d212f3e5d9eb2456acf2165987dd850cd78c710/src/etc/inc/util.inc#L822
+    # load requirements
+    php_requirements = config._config_maps["system_high_availability_settings"][
+        "php_requirements"
+    ]
+    php_command = """
+                foreach (get_configured_interface_with_descr() as $key => $item) {
+                    echo $key.':'.$item.',';
+                }
+                """
+
+    # run php function
+    result = opnsense_utils.run_command(
+        php_requirements=php_requirements,
+        command=php_command,
+    )
+
+    # check for stderr
+    if result.get("stderr"):
+        raise OPNSenseGetInterfacesError("error encounterd while getting interfaces")
+
+    # parse list
+    interfaces = dict(
+        (item.strip().split(":"))
+        for item in result.get("stdout").split(",")
+        if item.strip() and item.strip() != "None"
+    )
+
+    # check parsed list length
+    if len(interfaces) < 1:
+        raise OPNSenseGetInterfacesError(
+            "error encounterd while getting interfaces, less than one interface available"
+        )
+
+    return interfaces
+
+
+def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
+    interfaces = {"lo0": "Loopback"}
+    interfaces.update(get_configured_interface_with_descr(config))
+    for ident, desc in interfaces.items():
+        if sync_interface.lower() in (ident.lower(), desc.lower()):
+            config.set(ident, "synchronize_interface")
+            return
+    raise ValueError(
+        f"{sync_interface} is not a valid Interface."
+        + "If the interface exists, ensure it is enabled and also not virtual."
+    )
 
 
 def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str):
@@ -118,20 +175,54 @@ def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str):
         config._config_xml_tree.find("hasync").remove(config.get("synchronize_peer_ip"))
 
 
-def remote_system_synchronization(config: OPNsenseModuleConfig, remote_backup_url: Optional[str],
-                                  username: Optional[str], password: Optional[str]):
+def remote_system_synchronization(
+    config: OPNsenseModuleConfig,
+    remote_backup_url: Optional[str],
+    username: Optional[str],
+    password: Optional[str],
+):
     config.set(value=remote_backup_url, setting="synchronize_config_to_ip")
     config.set(value=username, setting="remote_system_username")
     config.set(value=password, setting="remote_system_password")
 
 
 def get_all_services() -> List[str]:
-    allowed_services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates", "Cron", "DHCPD", "DHCPDv6",
-                        "DHCPv4: Relay", "DHCPv6: Relay", "Dashboard", "Dnsmasq DNS", "FRR", "Firewall Categories",
-                        "Firewall Groups", "Firewall Log Templates", "Firewall Rules", "Firewall Schedules", "IPsec",
-                        "Intrusion Detection", "Kea DHCP", "Monit System Monitoring", "NAT", "Netflow / Insight",
-                        "Network Time", "OpenSSH", "OpenVPN", "Shaper", "Static Routes", "System Tunables",
-                        "Unbound DNS", "User and Groups", "Virtual IPs", "Web GUI", "WireGuard"]
+    allowed_services = [
+        "Aliases",
+        "Auth Servers",
+        "Captive Portal",
+        "Certificates",
+        "Cron",
+        "DHCPD",
+        "DHCPDv6",
+        "DHCPv4: Relay",
+        "DHCPv6: Relay",
+        "Dashboard",
+        "Dnsmasq DNS",
+        "FRR",
+        "Firewall Categories",
+        "Firewall Groups",
+        "Firewall Log Templates",
+        "Firewall Rules",
+        "Firewall Schedules",
+        "IPsec",
+        "Intrusion Detection",
+        "Kea DHCP",
+        "Monit System Monitoring",
+        "NAT",
+        "Netflow / Insight",
+        "Network Time",
+        "OpenSSH",
+        "OpenVPN",
+        "Shaper",
+        "Static Routes",
+        "System Tunables",
+        "Unbound DNS",
+        "User and Groups",
+        "Virtual IPs",
+        "Web GUI",
+        "WireGuard",
+    ]
     # do gschnüdel to remove services from allowed_services that aren't installed (at some point)
     # Remove frr for now since it is an opt-in plugin and is by default not configured.
     allowed_services.remove("FRR")
@@ -145,7 +236,9 @@ def services_to_synchronize(config: OPNsenseModuleConfig, services: List[str]):
         services = [services]
     for service in services:
         if service not in allowed_services:
-            raise ValueError(f"Service {service} could not be found in your Opnsense installation")
+            raise ValueError(
+                f"Service {service} could not be found in your Opnsense installation"
+            )
 
         if config.get(service) is None:
             config.set(value="on", setting=service)
@@ -161,20 +254,27 @@ def main():
 
     module_args = {
         "synchronize_states": {"type": "bool", "default": False},
-        "synchronize_interface": {"type": "str",  "required": True},
-        "synchronize_peer_ip": {"type": "string",  "required": False},
-        "synchronize_config_to_ip": {"type": "string",  "required": False},
-        "remote_system_username": {"type": "string",  "required": False},
-        "remote_system_password": {"type": "string",  "required": False},
-        "services_to_synchronize": {"type": "list",  "required": False}
+        "synchronize_interface": {"type": "str", "required": True},
+        "synchronize_peer_ip": {"type": "string", "required": False},
+        "synchronize_config_to_ip": {"type": "string", "required": False},
+        "remote_system_username": {"type": "string", "required": False},
+        "remote_system_password": {"type": "string", "required": False},
+        "services_to_synchronize": {"type": "list", "required": False},
     }
 
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True,
         required_one_of=[
-            ['synchronize_states', 'synchronize_interface', 'synchronize_peer_ip', 'synchronize_config_to_ip',
-             'remote_system_username', 'remote_system_password', 'services_to_synchronize'],
+            [
+                "synchronize_states",
+                "synchronize_interface",
+                "synchronize_peer_ip",
+                "synchronize_config_to_ip",
+                "remote_system_username",
+                "remote_system_password",
+                "services_to_synchronize",
+            ],
         ],
     )
     result = {
@@ -198,19 +298,27 @@ def main():
     ) as config:
         check_hasync_node(config)
 
-        remote_system_synchronization(config=config, remote_backup_url=synchronize_config_to_ip_param,
-                                      username=remote_system_username_param, password=remote_system_password_param)
+        remote_system_synchronization(
+            config=config,
+            remote_backup_url=synchronize_config_to_ip_param,
+            username=remote_system_username_param,
+            password=remote_system_password_param,
+        )
         if synchronize_states_param:
             synchronize_states(config=config, params=synchronize_states_param)
 
         if synchronize_interface_param:
-            synchronize_interface(config=config, params=synchronize_interface_param)
+            synchronize_interface(
+                config=config, sync_interface=synchronize_interface_param
+            )
 
         if synchronize_peer_ip_param:
             synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
 
         if services_to_synchronize_param:
-            services_to_synchronize(config=config, services=services_to_synchronize_param)
+            services_to_synchronize(
+                config=config, services=services_to_synchronize_param
+            )
 
         if config.changed:
             result["diff"] = config.diff

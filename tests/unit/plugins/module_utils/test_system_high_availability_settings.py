@@ -18,7 +18,7 @@ from ansible_collections.puzzle.opnsense.plugins.modules.system_high_availabilit
     synchronize_interface,
     synchronize_peer_ip,
     remote_system_synchronization,
-    services_to_synchronize
+    services_to_synchronize,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -29,14 +29,16 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     OPNsenseModuleConfig,
 )
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+    OPNSenseGetInterfacesError,
+)
 
 import pytest
 
 
 TEST_VERSION_MAP = {
     "OPNsense Test": {
-        "system_high_availability_settings":
-        {
+        "system_high_availability_settings": {
             # Add other mappings here
             "parent_node": "hasync",
             "synchronize_states": "hasync/pfsyncenabled",
@@ -81,10 +83,9 @@ TEST_VERSION_MAP = {
             "WireGuard": "hasync/synchronizewireguard",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
-                ],
-            "configure_functions": {
-
-            },
+                "/usr/local/etc/inc/util.inc",
+            ],
+            "configure_functions": {},
         },
     }
 }
@@ -140,9 +141,15 @@ def sample_config(request):
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.modules.system_high_availability_settings.opnsense_utils.run_command",
+    return_value={"stdout": "opt2:vagrant,lan:LAN", "stderr": None},
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG_EMPTY], indirect=True)
-def test_check_hasync_node(mocked_version_utils: MagicMock, sample_config):
+@pytest.mark.parametrize("sample_config", [XML_CONFIG_EMPTY], indirect=True)
+def test_check_hasync_node(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
     assert sample_config.get("parent_node") is None
     check_hasync_node(sample_config)
     assert sample_config.get("parent_node") is not None
@@ -163,7 +170,7 @@ def test_check_hasync_node(mocked_version_utils: MagicMock, sample_config):
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_synchronize_states(mocked_version_utils: MagicMock, sample_config):
     synchronize_states(sample_config, False)
     assert sample_config.get("synchronize_states") is None
@@ -175,11 +182,60 @@ def test_synchronize_states(mocked_version_utils: MagicMock, sample_config):
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
+    return_value={"stdout": "opt2:vagrant,lan:LAN", "stderr": None},
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
-def test_synchronize_interface(mocked_version_utils: MagicMock, sample_config):
-    synchronize_interface(sample_config, "opt1")
-    assert sample_config.get("synchronize_interface").text == "opt1"
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_synchronize_interface(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
+    synchronize_interface(sample_config, "vagrant")
+    assert sample_config.get("synchronize_interface").text == "opt2"
+    synchronize_interface(sample_config, "LAN")
+    assert sample_config.get("synchronize_interface").text == "lan"
+    with pytest.raises(ValueError):
+        synchronize_interface(sample_config, "wan")
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
+    return_value={"stdout": "", "stderr": None},
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_synchronize_interface_success(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
+    with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
+        result = synchronize_interface(sample_config, "LAN")
+    assert (
+        "error encounterd while getting interfaces, less than one interface available"
+        in str(excinfo.value)
+    )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
+    return_value={"stdout": "", "stderr": "there was an error"},
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_synchronize_interface_success(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
+    with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
+        result = synchronize_interface(sample_config, "LAN")
+    assert "error encounterd while getting interfaces" in str(excinfo.value)
 
 
 @patch(
@@ -187,7 +243,7 @@ def test_synchronize_interface(mocked_version_utils: MagicMock, sample_config):
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_synchronize_peer_ip(mocked_version_utils: MagicMock, sample_config):
     synchronize_peer_ip(sample_config, "240.0.0.240")
     assert sample_config.get("synchronize_peer_ip").text == "240.0.0.240"
@@ -200,7 +256,7 @@ def test_synchronize_peer_ip(mocked_version_utils: MagicMock, sample_config):
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_config):
     remote_system_synchronization(sample_config, None, "test", "vagrant")
     assert sample_config.get("synchronize_config_to_ip") is not None
@@ -214,7 +270,7 @@ def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_c
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-@pytest.mark.parametrize('sample_config', [XML_CONFIG], indirect=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_services_to_synchronize(mocked_version_utils: MagicMock, sample_config):
     services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
     services_to_synchronize(sample_config, services)

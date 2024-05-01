@@ -574,6 +574,7 @@ VERSION_MAP = {
             "WireGuard": "hasync/synchronizewireguard",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
             ],
             "configure_functions": {
             },
