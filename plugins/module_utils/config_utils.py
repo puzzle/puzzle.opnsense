@@ -435,7 +435,7 @@ class OPNsenseModuleConfig:
             _setting: Element = self._config_xml_tree.find(xpath)
 
         # If the element is present we will verify it's .text value
-        elif _setting.text in [None, "", " "]:
+        elif _setting.text is None or _setting.text.strip() == "":
             # check if setting has children
             if len(_setting.items()) > 0 or \
                str(ElementTree.tostring(_setting)).count(_setting.tag) > 1:

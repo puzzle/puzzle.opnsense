@@ -58,6 +58,18 @@ TEST_VERSION_MAP = {
                 },
             },
         },
+        "test_module_4": {
+            "syslog_parent": "syslog",
+            "hasync_parent": "hasync",
+            "remote_system_username": "hasync/username",
+            "php_requirements": ["req_1", "req_2"],
+            "configure_functions": {
+                "test_configure_function": {
+                    "name": "test_configure_function",
+                    "configure_params": ["param_1"],
+                },
+            },
+        },
         "missing_php_requirements": {
             "setting_1": "settings/one",
             "setting_2": "settings/two",
@@ -105,6 +117,9 @@ TEST_XML: str = """<?xml version="1.0"?>
             <one>1</one>
             <two>2</two>
         </settings>
+        <hasync>
+            <username />
+        </hasync>
     </opnsense>
     """
 
@@ -526,4 +541,28 @@ def test_set_with_missing_element(sample_config_path):
                 "syslog/preservelogs": "10",
             },
         }
+        new_config.save()
+
+
+def test_fail_set_on_parent_node(sample_config_path):
+    """
+    Test case to verify that setting a value for a parent node will fail, while setting a
+    leaf node with a value of None will succeed.
+
+    Args:
+    - sample_config_path (str): The path to the temporary test configuration file.
+    """
+    with OPNsenseModuleConfig(
+        module_name="test_module_4",
+        config_context_names=["test_module_4"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
+        with pytest.raises(AttributeError) as exc_info:
+            new_config.set("test", "syslog_parent")
+        with pytest.raises(AttributeError) as exc_info:
+            new_config.set("test", "hasync_parent")
+
+        new_config.set("test", "remote_system_username")
+        assert new_config.get("remote_system_username").text == "test"
         new_config.save()
