@@ -212,7 +212,7 @@ class User:
 
     Args:
         name (str): The username of the user.
-        password (str): The user's password.
+        password (Optional[str]): The user's password.
         scope (Optional[str]): The scope of the user, default is "User".
         descr (Optional[str]): A description of the user, if available.
         ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
@@ -247,7 +247,7 @@ class User:
     """
 
     name: str
-    password: str
+    password: Optional[str] = None
     scope: Optional[str] = "User"
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
@@ -285,6 +285,9 @@ class User:
 
         for _field in fields(self):
             if _field.name not in ["uid", "otp_seed", "apikeys"]:
+
+                if not hasattr(self, "password") or not hasattr(other, "password"):
+                    return False
 
                 if _field.name == "password" and not password_verify(
                     existing_user_password=getattr(other, _field.name),
