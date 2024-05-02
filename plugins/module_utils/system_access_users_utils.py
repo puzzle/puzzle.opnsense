@@ -63,6 +63,46 @@ class OPNSenseCryptReturnError(Exception):
     """
 
 
+class OPNSensePasswordVerifyReturnError(Exception):
+    """
+    Exception raised when the return value of the instance is not what is expected
+    """
+
+
+def password_verify(existing_user_password: str, password: Optional[str]) -> bool:
+    """
+    Verify if provided password matches the stored password using OPNsense's PHP command.
+
+    Args:
+        existing_user_password (str): The hashed password stored in the XML config.
+        password (str): The plaintext password to verify.
+
+    Returns:
+        bool: True if passwords match, False otherwise.
+
+    Raises:
+        OPNSensePasswordVerifyReturnError: If an error occurs during verification.
+    """
+
+    if password is None:
+        return False
+
+    # check if current password matches hash
+    password_matches = opnsense_utils.run_command(
+        php_requirements=[],
+        command=f"password_verify('{password}','{existing_user_password}');",
+    )
+
+    if password_matches.get("stderr"):
+        raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
+
+    # if return code of password_matches not equals 1, it's a match
+    if password_matches.get("stdout") != "1":
+        return True
+
+    return False
+
+
 @dataclass
 class Group:
     """
@@ -175,7 +215,7 @@ class User:
 
     Args:
         name (str): The username of the user.
-        password (str): The user's password.
+        password (Optional[str]): The user's password.
         scope (Optional[str]): The scope of the user, default is "User".
         descr (Optional[str]): A description of the user, if available.
         ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
@@ -210,7 +250,7 @@ class User:
     """
 
     name: str
-    password: str
+    password: Optional[str] = None
     scope: Optional[str] = "User"
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
@@ -245,10 +285,22 @@ class User:
         if not isinstance(other, User):
             return False
 
+        if not hasattr(self, "password") or not hasattr(other, "password"):
+            return False
+
         for _field in fields(self):
-            if _field.name not in ["password", "uid", "otp_seed", "apikeys"]:
-                if getattr(self, _field.name) != getattr(other, _field.name):
-                    return False
+            if _field.name in ["uid", "otp_seed", "apikeys"]:
+                continue
+
+            if _field.name == "password" and not password_verify(
+                existing_user_password=getattr(other, _field.name),
+                password=self.password,
+            ):
+                return False
+
+            # if value is not equal return False
+            if getattr(self, _field.name) != getattr(other, _field.name):
+                return False
 
         return True
 
@@ -383,7 +435,6 @@ class User:
         user_dict: dict = asdict(self)
 
         for user_key, user_val in user_dict.copy().items():
-
             if user_val is None and user_key in [
                 "expires",
                 "ipsecpsk",
@@ -690,6 +741,10 @@ class UserSet(OPNsenseModuleConfig):
             for existing_group in self._groups:
                 if existing_group.check_if_user_in_group(target_user):
                     existing_group.remove_user(target_user)
+                    if target_user.groupname:
+                        target_user.groupname.remove(existing_group.name)
+                        if not target_user.groupname:
+                            target_user.groupname = None
             return  # Exit the method after removing the user from all groups.
 
         # Convert groupname to a list if it's not already.
@@ -727,10 +782,13 @@ class UserSet(OPNsenseModuleConfig):
             "configure_params"
         ]
 
+        # sanitize and escape password
+        escaped_password = user.password.replace("\\", "\\\\").replace("'", "\\'")
+
         # format parameters
         formatted_params = [
             (
-                param.replace("'password'", f"'{user.password}'")
+                param.replace("'password'", f"'{escaped_password}'")
                 if "password" in param
                 else param
             )
@@ -780,28 +838,37 @@ class UserSet(OPNsenseModuleConfig):
         )
         next_uid: Element = self.get("uid")
 
-        # since the current password of an user cannot not be compared with the new one,
-        # we're setting the password anyways
-        self.set_user_password(user)
-
         if existing_user:
+            if not password_verify(
+                existing_user_password=existing_user.password, password=user.password
+            ):
+                self.set_user_password(user)
+
+            # since we don't want the clear-type password to be set,
+            # and it is clear a update is not needed, we remove it from the update
+            if "password" in user.__dict__:
+                del user.__dict__["password"]
+
             # Update groups if needed
             self._update_user_groups(user, existing_user)
 
             # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
-        else:
-            # Assign UID if not set
-            if not user.uid:
-                user.uid = next_uid.text
-                # Increase the next_uid
-                self.set(value=str(int(next_uid.text) + 1), setting="uid")
 
-            if user.groupname:
-                # Update groups for the new user
-                self._update_user_groups(user)
-            # Add the new user
-            self._users.append(user)
+            return
+
+        self.set_user_password(user)
+        # Assign UID if not set
+        if not user.uid:
+            user.uid = next_uid.text
+            # Increase the next_uid
+            self.set(value=str(int(next_uid.text) + 1), setting="uid")
+
+        if user.groupname:
+            # Update groups for the new user
+            self._update_user_groups(user)
+        # Add the new user
+        self._users.append(user)
 
     def delete(self, user: User) -> None:
         """
