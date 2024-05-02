@@ -588,8 +588,16 @@ def test_success_set_on_empty_leaf_node(sample_config_path):
 
 @dataclasses.dataclass
 class TestConfigObject(ConfigObject):
+
     __test__ = False
     name: str
+    pretty_name: str
+
+    @classmethod
+    def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
+        params: dict = {**raw_params}
+        params["pretty_name"] = params["name"].capitalize()
+        return params
 
 
 def test_config_object_from_ansible_params_simple() -> None:
@@ -601,3 +609,15 @@ def test_config_object_from_ansible_params_simple() -> None:
     )
 
     assert test_obj.name == module_params["name"]
+
+
+def test_config_object_preprocessed_parameters() -> None:
+    """Basic ConfigObject.from_ansible_module_params test"""
+    module_params: dict = {"name": "test object"}
+
+    test_obj: TestConfigObject = TestConfigObject.from_ansible_module_params(
+        module_params
+    )
+
+    assert test_obj.name == module_params["name"]
+    assert test_obj.pretty_name == "Test object"

@@ -11,6 +11,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import abc
+import dataclasses
 from typing import List, Optional, Dict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
@@ -486,16 +488,29 @@ class OPNsenseModuleConfig:
         return {"before": config_diff_before, "after": config_diff_after}
 
 
+@dataclasses.dataclass
 class ConfigObject:
     """
     Base class for config object abstraction.
     """
 
     @classmethod
+    @abc.abstractmethod
+    def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
+        """
+        Performs the mapping of the module parameters to the required data
+        for the instantiation of the given dataclass.
+        :param raw_params: ansible parameters as provided by the invocation.
+        :return:
+        """
+        raise NotImplementedError()
+
+    @classmethod
     def from_ansible_module_params(cls, params: dict) -> "ConfigObject":
         """
-
+        Creates instance from given ansible module parameters.
         :param params: raw ansible module execution parameters.
         :return: instance of the config object class.
         """
-        return cls(**params)
+        preprocessed_params: dict = cls.preprocess_ansible_module_params(params)
+        return cls(**preprocessed_params)
