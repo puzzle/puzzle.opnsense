@@ -584,12 +584,12 @@ def test_user_from_ansible_module_params_single_group_removal(
     sample_config_path,
 ):
     test_params = {
-        "username": "vagrant",
-        "password": "vagrant",
+        "username": "test_user_23",
+        "password": "test_password_23",
         "scope": "user",
-        "full_name": "vagrant box management",
+        "full_name": "[ ANSIBLE ]",
         "shell": "/bin/sh",
-        "uid": "1000",
+        "uid": "2021",
     }
 
     with UserSet(sample_config_path) as user_set:
@@ -602,10 +602,12 @@ def test_user_from_ansible_module_params_single_group_removal(
 
     with UserSet(sample_config_path) as new_user_set:
         all_groups = new_user_set._load_groups()
+        test_user: User = user_set.find(name="test_user_23")
 
-        admin_group = all_groups[0]
+        test_group = all_groups[1]
 
-        assert "1000" not in admin_group.member
+        assert "2021" not in test_group.member
+        assert not test_user.groupname
 
         new_user_set.save()
 
