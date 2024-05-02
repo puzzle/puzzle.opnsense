@@ -279,16 +279,14 @@ class User:
         self.extra_attrs = _extra_attrs
 
     def __eq__(self, other) -> bool:
-
         if not isinstance(other, User):
+            return False
+
+        if not hasattr(self, "password") or not hasattr(other, "password"):
             return False
 
         for _field in fields(self):
             if _field.name not in ["uid", "otp_seed", "apikeys"]:
-
-                if not hasattr(self, "password") or not hasattr(other, "password"):
-                    return False
-
                 if _field.name == "password" and not password_verify(
                     existing_user_password=getattr(other, _field.name),
                     password=self.password,
@@ -432,7 +430,6 @@ class User:
         user_dict: dict = asdict(self)
 
         for user_key, user_val in user_dict.copy().items():
-
             if user_val is None and user_key in [
                 "expires",
                 "ipsecpsk",
@@ -833,7 +830,6 @@ class UserSet(OPNsenseModuleConfig):
         next_uid: Element = self.get("uid")
 
         if existing_user:
-
             if not password_verify(
                 existing_user_password=existing_user.password, password=user.password
             ):
