@@ -286,16 +286,18 @@ class User:
             return False
 
         for _field in fields(self):
-            if _field.name not in ["uid", "otp_seed", "apikeys"]:
-                if _field.name == "password" and not password_verify(
-                    existing_user_password=getattr(other, _field.name),
-                    password=self.password,
-                ):
-                    return False
+            if _field.name in ["uid", "otp_seed", "apikeys"]:
+                continue
 
-                # if value is not equal return False
-                if getattr(self, _field.name) != getattr(other, _field.name):
-                    return False
+            if _field.name == "password" and not password_verify(
+                existing_user_password=getattr(other, _field.name),
+                password=self.password,
+            ):
+                return False
+
+            # if value is not equal return False
+            if getattr(self, _field.name) != getattr(other, _field.name):
+                return False
 
         return True
 
