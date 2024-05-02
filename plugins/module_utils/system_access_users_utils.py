@@ -847,19 +847,21 @@ class UserSet(OPNsenseModuleConfig):
 
             # Update existing user's attributes
             existing_user.__dict__.update(user.__dict__)
-        else:
-            self.set_user_password(user)
-            # Assign UID if not set
-            if not user.uid:
-                user.uid = next_uid.text
-                # Increase the next_uid
-                self.set(value=str(int(next_uid.text) + 1), setting="uid")
 
-            if user.groupname:
-                # Update groups for the new user
-                self._update_user_groups(user)
-            # Add the new user
-            self._users.append(user)
+            return
+
+        self.set_user_password(user)
+        # Assign UID if not set
+        if not user.uid:
+            user.uid = next_uid.text
+            # Increase the next_uid
+            self.set(value=str(int(next_uid.text) + 1), setting="uid")
+
+        if user.groupname:
+            # Update groups for the new user
+            self._update_user_groups(user)
+        # Add the new user
+        self._users.append(user)
 
     def delete(self, user: User) -> None:
         """
