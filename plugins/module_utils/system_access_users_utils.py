@@ -69,7 +69,7 @@ class OPNSensePasswordVerifyReturnError(Exception):
     """
 
 
-def password_verify(existing_user_password: str, password: str) -> bool:
+def password_verify(existing_user_password: str, password: Optional[str]) -> bool:
     """
     Verify if provided password matches the stored password using OPNsense's PHP command.
 
@@ -83,6 +83,9 @@ def password_verify(existing_user_password: str, password: str) -> bool:
     Raises:
         OPNSensePasswordVerifyReturnError: If an error occurs during verification.
     """
+
+    if password is None:
+        return False
 
     # check if current password matches hash
     password_matches = opnsense_utils.run_command(
