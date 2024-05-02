@@ -89,6 +89,20 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <shell>/bin/sh</shell>
                 <uid>1001</uid>
             </user>
+            <user>
+                <name>test_user_23</name>
+                <password>$2y$11$FGohY592rylJdDw5vTaxNubYHwh9326Eb7gtdY4GRbXrViGsPEykq</password>
+                <scope>User</scope>
+                <descr>[ ANSIBLE ]</descr>
+                <ipsecpsk/>
+                <otp_seed/>
+                <shell>/bin/sh</shell>
+                <uid>2021</uid>
+                <full_name>[ ANSIBLE ]</full_name>
+                <expires/>
+                <authorizedkeys/>
+                <groupname>test_group</groupname>
+            </user>
             <group>
                 <name>admins</name>
                 <description>System Administrators</description>
@@ -110,6 +124,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <scope>system</scope>
                 <member>1000</member>
                 <member>2004</member>
+                <member>2021</member>
                 <gid>2000</gid>
                 <priv>page-all</priv>
             </group>
@@ -245,14 +260,14 @@ def test_user_set_load_simple_user(
     mocked_version_utils: MagicMock, mock_password_verify: MagicMock, sample_config_path
 ):
     with UserSet(sample_config_path) as user_set:
-        assert len(user_set._users) == 2
+        assert len(user_set._users) == 3
         user_set.save()
 
 
 def test_group_from_xml():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
-    test_etree_group: Element = list(list(test_etree_opnsense)[0])[4]
+    test_etree_group: Element = list(list(test_etree_opnsense)[0])[5]
     test_group: Group = Group.from_xml(test_etree_group)
 
     assert test_group.name == "admins"
