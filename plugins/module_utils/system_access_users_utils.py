@@ -741,6 +741,10 @@ class UserSet(OPNsenseModuleConfig):
             for existing_group in self._groups:
                 if existing_group.check_if_user_in_group(target_user):
                     existing_group.remove_user(target_user)
+                    if target_user.groupname:
+                        target_user.groupname.remove(existing_group.name)
+                        if not target_user.groupname:
+                            target_user.groupname = None
             return  # Exit the method after removing the user from all groups.
 
         # Convert groupname to a list if it's not already.
