@@ -15,6 +15,7 @@ import os
 from tempfile import NamedTemporaryFile
 from typing import List, Dict
 from unittest.mock import patch, MagicMock
+import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
 
 import pytest
@@ -592,10 +593,17 @@ class TestConfigObject(ConfigObject):
     __test__ = False
     name: str
     pretty_name: str
+    _object_root_tag_name: str = "test"
 
     @classmethod
     def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
         params: dict = {**raw_params}
+        params["pretty_name"] = params["name"].capitalize()
+        return params
+
+    @classmethod
+    def preprocess_xml_data(cls, raw_xml_data: dict) -> dict:
+        params: dict = {**raw_xml_data}
         params["pretty_name"] = params["name"].capitalize()
         return params
 
@@ -621,3 +629,37 @@ def test_config_object_preprocessed_parameters() -> None:
 
     assert test_obj.name == module_params["name"]
     assert test_obj.pretty_name == "Test object"
+
+
+def test_simple_obj_root_tag_name() -> None:
+    simple: str = """   
+        <test>
+            <name>test_object</name>
+        </test>
+    """
+
+    test_element: Element = ET.fromstring(simple)
+
+    test_object: TestConfigObject = TestConfigObject.from_xml_element(test_element)
+
+    assert test_object.name == "test_object"
+    assert test_object.pretty_name == "Test_object"
+
+
+def test_simple_obj_extra_data() -> None:
+    simple: str = """   
+        <test>
+            <name>test_object</name>
+            <extra>Extra Data</extra>
+        </test>
+    """
+
+    test_element: Element = ET.fromstring(simple)
+
+    test_object: TestConfigObject = TestConfigObject.from_xml_element(test_element)
+
+    assert test_object.name == "test_object"
+    assert test_object.pretty_name == "Test_object"
+    assert test_object.extra_data is not None
+    assert "extra" in test_object.extra_data
+    assert test_object.extra_data["extra"] == "Extra Data"

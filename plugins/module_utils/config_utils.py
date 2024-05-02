@@ -494,6 +494,13 @@ class ConfigObject:
     Base class for config object abstraction.
     """
 
+    extra_data: dict
+
+    @property
+    @abc.abstractmethod
+    def _object_root_tag_name(self) -> str:
+        raise NotImplementedError()
+
     @classmethod
     @abc.abstractmethod
     def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
@@ -513,4 +520,42 @@ class ConfigObject:
         :return: instance of the config object class.
         """
         preprocessed_params: dict = cls.preprocess_ansible_module_params(params)
+        if "extra_data" not in preprocessed_params:
+            preprocessed_params["extra_data"] = {}
         return cls(**preprocessed_params)
+
+    @classmethod
+    @abc.abstractmethod
+    def preprocess_xml_data(cls, raw_xml_data: dict) -> dict:
+        """
+        Performs the mapping of the xml data dictionary to the required data
+        for the instantiation of the given dataclass.
+        :param raw_xml_data: xml data as provided by the xml_utils.etree_to_dict function.
+        :return: preprocessed element data
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_xml_element(cls, element: Element) -> "ConfigObject":
+        """
+        Creates instance from given XML Element instance.
+        :param element: XML Element to get data from
+        :return: Dataclass object
+        """
+        element_data: dict = xml_utils.etree_to_dict(element)[cls._object_root_tag_name]
+        constructor_data: dict = cls.preprocess_xml_data(element_data)
+
+        class_attribute_names: List[str] = list(
+            map(lambda f: f.name, dataclasses.fields(cls))
+        )
+        # filter out data that cannot be mapped to a class attribute
+        _extra_data: dict = {
+            k: v for k, v in constructor_data.items() if k not in class_attribute_names
+        }
+
+        for k in _extra_data:
+            del constructor_data[k]
+
+        constructor_data["extra_data"] = _extra_data
+
+        return cls(**constructor_data)
