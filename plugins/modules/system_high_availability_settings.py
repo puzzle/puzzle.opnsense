@@ -47,7 +47,7 @@ options:
   services_to_synchronize:
     description: "List of config items to synchronize to the other firewall."
     type: list
-    elements: ["Dashboard", "User and Groups", "Auth Servers", "Certificates", "DHCPD", "DHCPv4: Relay", "DHCPDv6", "DHCPv6: Relay", "Virtual IPs", "Static Routes", "Network Time", "Netflow / Insight", "Cron", "System Tunables", "Web GUI", "Dnsmasq DNS", "FRR", "Shaper", "Captive Portal", "IPsec", "Kea DHCP", "Monit System Monitoring", "OpenSSH", "OpenVPN", "Firewall Groups", "Firewall Rules", "Firewall Schedules", "Firewall Categories", "Firewall Log Templates", "Aliases". "NAT", "Intrusion Detection", "Unbound DNS", "WireGuard" ]
+    elements: ["Dashboard", "User and Groups", "Auth Servers", "Certificates", "DHCPD", "DHCPv4: Relay", "DHCPDv6", "DHCPv6: Relay", "Virtual IPs", "Static Routes", "Network Time", "Netflow / Insight", "Cron", "System Tunables", "Web GUI", "Dnsmasq DNS", "FRR", "Shaper", "Captive Portal", "IPsec", "Kea DHCP", "Monit System Monitoring", "OpenSSH", "OpenVPN", "Firewall Groups", "Firewall Rules", "Firewall Schedules", "Firewall Categories", "Firewall Log Templates", "Aliases", "NAT", "Intrusion Detection", "Unbound DNS", "WireGuard" ]
     required: false
 '''
 
@@ -60,9 +60,10 @@ EXAMPLES = r'''
 
 - name: Synchronize Configuration Settings
   puzzle.opnsense.system_high_availability_settings:
+    synchronize_interface: LAN
     synchronize_config_to_ip: 192.168.1.3
-    synchronize_system_username: root
-    synchronize_system_passowrd: v3rys3cure
+    remote_system_username: root
+    remote_system_password: v3rys3cure
     services_to_synchronize:
       - "Dashboard"
       - "Users and Groups"
@@ -86,6 +87,7 @@ from ansible.module_utils.basic import AnsibleModule
 from xml.etree import ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
+    UnsupportedModuleSettingError,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
@@ -188,46 +190,51 @@ def remote_system_synchronization(
 
 def get_all_services() -> List[str]:
     allowed_services = [
-        "Aliases",
-        "Auth Servers",
-        "Captive Portal",
-        "Certificates",
-        "Cron",
-        "DHCPD",
-        "DHCPDv6",
-        "DHCPv4: Relay",
-        "DHCPv6: Relay",
-        "Dashboard",
-        "Dnsmasq DNS",
-        "FRR",
-        "Firewall Categories",
-        "Firewall Groups",
-        "Firewall Log Templates",
-        "Firewall Rules",
-        "Firewall Schedules",
-        "IPsec",
-        "Intrusion Detection",
-        "Kea DHCP",
-        "Monit System Monitoring",
-        "NAT",
-        "Netflow / Insight",
-        "Network Time",
-        "OpenSSH",
-        "OpenVPN",
-        "Shaper",
-        "Static Routes",
-        "System Tunables",
-        "Unbound DNS",
-        "User and Groups",
-        "Virtual IPs",
-        "Web GUI",
-        "WireGuard",
+        "aliases",
+        "auth_servers",
+        "captive_portal",
+        "certificates",
+        "cron",
+        "dhcpd",
+        "dhcpdv6",
+        "dhcpv4_relay",
+        "dhcpv6_relay",
+        "dashboard",
+        "dnsmasq_dns",
+        "frr",
+        "firewall_categories",
+        "firewall_groups",
+        "firewall_log_templates",
+        "firewall_rules",
+        "firewall_schedules",
+        "ipsec",
+        "intrusion_detection",
+        "kea_dhcp",
+        "monit_system_monitoring",
+        "nat",
+        "netflow_insight",
+        "network_time",
+        "openssh",
+        "openvpn",
+        "shaper",
+        "static_routes",
+        "system_tunables",
+        "unbound_dns",
+        "user_and_groups",
+        "virtual_ips",
+        "web_gui",
+        "web_proxy",
+        "wireguard",
     ]
     # do gschnüdel to remove services from allowed_services that aren't installed (at some point)
     # Remove frr for now since it is an opt-in plugin and is by default not configured.
-    allowed_services.remove("FRR")
+    allowed_services.remove("frr")
 
     return allowed_services
+
+
+def services_get_lookup_name(service: str):
+    return service.lower().replace("/ ", "").replace(":", "").replace(" ", "_")
 
 
 def services_to_synchronize(config: OPNsenseModuleConfig, services: List[str]):
@@ -235,30 +242,42 @@ def services_to_synchronize(config: OPNsenseModuleConfig, services: List[str]):
     if isinstance(services, str):
         services = [services]
     for service in services:
-        if service not in allowed_services:
+        service_lookup_name = services_get_lookup_name(service)
+        if service_lookup_name not in allowed_services:
             raise ValueError(
                 f"Service {service} could not be found in your Opnsense installation"
             )
-
-        if config.get(service) is None:
-            config.set(value="on", setting=service)
+        if (
+            service_lookup_name
+            not in config._config_maps["system_high_availability_settings"]
+        ):
+            raise UnsupportedModuleSettingError(
+                f"Service {service} is not supported in version {config.opnsense_version}"
+            )
+        if config.get(service_lookup_name) is None:
+            config.set(value="on", setting=service_lookup_name)
     for service in allowed_services:
-        if service not in services and config.get(service) is not None:
+        services = list(services_get_lookup_name(service) for service in services)
+        if (
+            service not in services
+            and service in config._config_maps["system_high_availability_settings"]
+            and config.get(service) is not None
+        ):
             config._config_xml_tree.find("hasync").remove(config.get(service))
 
 
 def main():
     """
-    Main function of the system_settings_general module
+    Main function of the system_high_availability_settings module
     """
 
     module_args = {
         "synchronize_states": {"type": "bool", "default": False},
         "synchronize_interface": {"type": "str", "required": True},
-        "synchronize_peer_ip": {"type": "string", "required": False},
-        "synchronize_config_to_ip": {"type": "string", "required": False},
-        "remote_system_username": {"type": "string", "required": False},
-        "remote_system_password": {"type": "string", "required": False},
+        "synchronize_peer_ip": {"type": "str", "required": False},
+        "synchronize_config_to_ip": {"type": "str", "required": False},
+        "remote_system_username": {"type": "str", "required": False},
+        "remote_system_password": {"type": "str", "required": False},
         "services_to_synchronize": {"type": "list", "required": False},
     }
 
@@ -308,17 +327,29 @@ def main():
             synchronize_states(config=config, params=synchronize_states_param)
 
         if synchronize_interface_param:
-            synchronize_interface(
-                config=config, sync_interface=synchronize_interface_param
-            )
+            try:
+                synchronize_interface(
+                    config=config, sync_interface=synchronize_interface_param
+                )
+            except ValueError as error:
+                module.fail_json(repr(error))
+            except OPNSenseGetInterfacesError as error:
+                module.fail_json(
+                    f"Encountered Error while trying to retrieve interfaces: {repr(error)}"
+                )
 
         if synchronize_peer_ip_param:
             synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
 
-        if services_to_synchronize_param:
-            services_to_synchronize(
-                config=config, services=services_to_synchronize_param
-            )
+        if services_to_synchronize_param is not None:
+            try:
+                services_to_synchronize(
+                    config=config, services=services_to_synchronize_param
+                )
+            except ValueError as error:
+                module.fail_json(repr(error))
+            except UnsupportedModuleSettingError as error:
+                module.fail_json(repr(error))
 
         if config.changed:
             result["diff"] = config.diff
@@ -333,6 +364,8 @@ def main():
                         msg="Apply of the OPNsense settings failed",
                         details=cmd_result,
                     )
+
+        module.exit_json(**result)
 
 
 if __name__ == "__main__":
