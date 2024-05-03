@@ -435,8 +435,12 @@ class OPNsenseModuleConfig:
             _setting: Element = self._config_xml_tree.find(xpath)
 
         # If the element is present we will verify it's .text value
-        elif _setting.text in [None, "", " "]:
-            raise NotImplementedError("Currently only text settings supported")
+        elif _setting.text is None or _setting.text.strip() == "":
+            # check if setting has children
+            if list(_setting):
+                raise AttributeError(
+                    f"Cannot assign value to node '{_setting}' with child elements."
+                )
 
         _setting.text = value
 
