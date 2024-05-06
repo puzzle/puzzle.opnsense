@@ -775,10 +775,14 @@ class UserSet(OPNsenseModuleConfig):
 
         # load requirements
         php_requirements = self._config_maps["password"]["php_requirements"]
-        configure_function = self._config_maps["password"]["configure_functions"][
-            "name"
-        ]
-        configure_params = self._config_maps["password"]["configure_functions"][
+
+        # load requirements
+        configure_function_dict = self._config_maps["password"]["configure_functions"]
+        configure_function_key = next(
+            (key for key in configure_function_dict if key != "name"), None
+        )
+        configure_function = configure_function_dict[configure_function_key]["name"]
+        configure_params = configure_function_dict[configure_function_key][
             "configure_params"
         ]
 
