@@ -107,12 +107,14 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/auth.inc",
             ],
             "configure_functions": {
-                "name": "echo password_hash",
-                "configure_params": [
-                    "'password'",
-                    "PASSWORD_BCRYPT",
-                    "[ 'cost' => 11 ]",
-                ],
+                "password": {
+                    "name": "echo password_hash",
+                    "configure_params": [
+                        "'password'",
+                        "PASSWORD_BCRYPT",
+                        "[ 'cost' => 11 ]",
+                    ],
+                },
             },
         },
         "firewall_rules": {
@@ -283,12 +285,14 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/auth.inc",
             ],
             "configure_functions": {
-                "name": "echo password_hash",
-                "configure_params": [
-                    "'password'",
-                    "PASSWORD_BCRYPT",
-                    "[ 'cost' => 11 ]",
-                ],
+                "password": {
+                    "name": "echo password_hash",
+                    "configure_params": [
+                        "'password'",
+                        "PASSWORD_BCRYPT",
+                        "[ 'cost' => 11 ]",
+                    ],
+                },
             },
         },
         "firewall_rules": {
@@ -459,12 +463,14 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/auth.inc",
             ],
             "configure_functions": {
-                "name": "echo password_hash",
-                "configure_params": [
-                    "'password'",
-                    "PASSWORD_BCRYPT",
-                    "[ 'cost' => 11 ]",
-                ],
+                "password": {
+                    "name": "echo password_hash",
+                    "configure_params": [
+                        "'password'",
+                        "PASSWORD_BCRYPT",
+                        "[ 'cost' => 11 ]",
+                    ],
+                },
             },
         },
         "firewall_rules": {
@@ -636,12 +642,14 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/auth.inc",
             ],
             "configure_functions": {
-                "name": "echo password_hash",
-                "configure_params": [
-                    "'password'",
-                    "PASSWORD_BCRYPT",
-                    "[ 'cost' => 11 ]",
-                ],
+                "password": {
+                    "name": "echo password_hash",
+                    "configure_params": [
+                        "'password'",
+                        "PASSWORD_BCRYPT",
+                        "[ 'cost' => 11 ]",
+                    ],
+                },
             },
         },
         "firewall_rules": {
