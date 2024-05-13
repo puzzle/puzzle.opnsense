@@ -184,7 +184,7 @@ def main():
         "apikeys": {
             "type": "list",
             "required": False,
-            "elements": "str",
+            "elements": "dict",
             "no_log": False,
         },
         "scope": {"type": "str", "required": False},
@@ -241,12 +241,11 @@ def main():
                 if ansible_user.apikeys:
                     result["generated_apikeys"] = []
                     for new_generated_api_key in ansible_user.apikeys:
-                        result["generated_apikeys"].append(
-                            f"key={new_generated_api_key['key']}"
-                        )
-                        result["generated_apikeys"].append(
-                            f"secret={new_generated_api_key['secret']}"
-                        )
+                        api_key_dict = {
+                            "key": new_generated_api_key["key"],
+                            "secret": new_generated_api_key["secret"],
+                        }
+                        result["generated_apikeys"].append(api_key_dict)
 
                 for cmd_result in result["opnsense_configure_output"]:
                     if cmd_result["rc"] != 0:
