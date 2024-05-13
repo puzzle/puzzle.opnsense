@@ -359,7 +359,7 @@ class User:
             """
         )
 
-    def set_apikeys(self, apikeys: list = None) -> list:
+    def set_apikeys(self, apikeys: list[dict] = None) -> list:
         """
         Generates a list of dictionaries, each containing a 'key' and a 'secret'.
         If apikeys is provided, each element in apikeys is used as the 'key',
@@ -381,14 +381,17 @@ class User:
             secret = base64.b64encode(os.urandom(60)).decode("utf-8")
             api_keys.append({"key": key, "secret": secret})
         else:
-            for api_key in apikeys:
-                secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+            for api_key_entry in apikeys:
                 try:
-                    base64.b64decode(api_key)
-                    api_keys.append({"key": api_key, "secret": secret})
+                    base64.b64decode(api_key_entry["key"])
+                    base64.b64decode(api_key_entry["secret"])
+
+                    api_keys.append(
+                        {"key": api_key_entry["key"], "secret": api_key_entry["secret"]}
+                    )
                 except binascii.Error as binascii_error_message:
                     raise OPNSenseNotValidBase64APIKeyError(
-                        f"The API key: {api_key} is not a valid base64 string. "
+                        "The provided API key is not a valid base64 string."
                         f"Error: {str(binascii_error_message)}"
                     ) from binascii_error_message
 
