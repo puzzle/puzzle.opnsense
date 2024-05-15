@@ -9,6 +9,8 @@ from __future__ import absolute_import, division, print_function
 
 import dataclasses
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
+
 __metaclass__val = type
 
 import os
@@ -602,10 +604,22 @@ class TestConfigObject(ConfigObject):
         return params
 
     @classmethod
-    def preprocess_xml_data(cls, raw_xml_data: dict) -> dict:
+    def preprocess_from_xml_data(cls, raw_xml_data: dict) -> dict:
         params: dict = {**raw_xml_data}
         params["pretty_name"] = params["name"].capitalize()
         return params
+
+
+@dataclasses.dataclass
+class TestNestedConfigObject(ConfigObject):
+
+    __test__ = False
+    sub_element: TestConfigObject
+    _object_root_tag_name: str = "nested"
+
+    @classmethod
+    def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
+        return {"sub_element": {"name": raw_params["sub_element_name"]}}
 
 
 def test_config_object_from_ansible_params_simple() -> None:
@@ -663,3 +677,43 @@ def test_simple_obj_extra_data() -> None:
     assert test_object.extra_data is not None
     assert "extra" in test_object.extra_data
     assert test_object.extra_data["extra"] == "Extra Data"
+
+
+def test_simple_obj_extra_data_to_xml() -> None:
+    simple_obj: TestConfigObject = TestConfigObject(
+        name="test", pretty_name="Test Object", extra_data={"extra": "Some Data"}
+    )
+
+    test_element: Element = simple_obj.to_xml_element()
+
+    assert test_element.tag == "test"
+    children: List[Element] = list(test_element)
+    assert len(children) == 3
+    assert children[0].tag == "name"
+
+
+def test_nested_obj_extra_data_to_xml() -> None:
+    nested_obj: TestNestedConfigObject = TestNestedConfigObject(
+        sub_element=TestConfigObject(
+            name="test", pretty_name="Test Object", extra_data={"extra": "Some Data"}
+        ),
+        extra_data={"extra": "data"},
+    )
+
+    expected_element: Element = Element("nested")
+    _expected_extra: Element = Element("extra")
+    _expected_extra.text = "data"
+    _child_obj: Element = Element("sub_element")
+    _child_obj_name: Element = Element("name")
+    _child_obj_name.text = "test"
+    _child_obj_pretty_name: Element = Element("pretty_name")
+    _child_obj_pretty_name.text = "Test Object"
+    _child_obj_extra: Element = Element("extra")
+    _child_obj_extra.text = "Some Data"
+    _child_obj.extend([_child_obj_name, _child_obj_pretty_name, _child_obj_extra])
+
+    expected_element.extend([_child_obj, _expected_extra])
+
+    actual_element: Element = nested_obj.to_xml_element()
+
+    assert xml_utils.elements_equal(expected_element, actual_element), xml_utils

@@ -502,7 +502,6 @@ class ConfigObject:
         raise NotImplementedError()
 
     @classmethod
-    @abc.abstractmethod
     def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
         """
         Performs the mapping of the module parameters to the required data
@@ -510,7 +509,7 @@ class ConfigObject:
         :param raw_params: ansible parameters as provided by the invocation.
         :return:
         """
-        raise NotImplementedError()
+        return raw_params
 
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "ConfigObject":
@@ -525,15 +524,14 @@ class ConfigObject:
         return cls(**preprocessed_params)
 
     @classmethod
-    @abc.abstractmethod
-    def preprocess_xml_data(cls, raw_xml_data: dict) -> dict:
+    def preprocess_from_xml_data(cls, raw_xml_data: dict) -> dict:
         """
         Performs the mapping of the xml data dictionary to the required data
         for the instantiation of the given dataclass.
         :param raw_xml_data: xml data as provided by the xml_utils.etree_to_dict function.
         :return: preprocessed element data
         """
-        raise NotImplementedError()
+        return raw_xml_data
 
     @classmethod
     def from_xml_element(cls, element: Element) -> "ConfigObject":
@@ -543,7 +541,7 @@ class ConfigObject:
         :return: Dataclass object
         """
         element_data: dict = xml_utils.etree_to_dict(element)[cls._object_root_tag_name]
-        constructor_data: dict = cls.preprocess_xml_data(element_data)
+        constructor_data: dict = cls.preprocess_from_xml_data(element_data)
 
         class_attribute_names: List[str] = list(
             map(lambda f: f.name, dataclasses.fields(cls))
@@ -559,3 +557,27 @@ class ConfigObject:
         constructor_data["extra_data"] = _extra_data
 
         return cls(**constructor_data)
+
+    def get_class_data_for_xml(self) -> dict:
+        # create a dict which is a shallow copy of self
+        fields: dict = {
+            field.name: getattr(self, field.name) for field in dataclasses.fields(self)
+            if not field.name.startswith("_")
+        }
+
+        # for any field that is of subtype of ConfigObject, i.e. it has
+        # a _get_class_data_for_xml function, convert it to a dict
+        for f_name, f_val in fields.items():
+            if hasattr(f_val, "get_class_data_for_xml"):
+                fields[f_name] = f_val.get_class_data_for_xml()
+
+        # extract extra_data to write it correctly to XML
+        for e_name, e_val in fields["extra_data"].items():
+            fields[e_name] = e_val
+        del fields["extra_data"]
+
+        return fields
+
+    def to_xml_element(self) -> Element:
+        class_xml_data: dict = self.get_class_data_for_xml()
+        return xml_utils.dict_to_etree(self._object_root_tag_name, class_xml_data)[0]
