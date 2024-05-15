@@ -23,6 +23,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     module_index,
     xml_utils,
 )
+from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
 class OPNSenseConfigUsageError(Exception):
@@ -501,6 +502,19 @@ class ConfigObject:
     def _object_root_tag_name(self) -> str:
         raise NotImplementedError()
 
+    def __post_init__(self):
+        """
+        'Cast' ListEnum type fields which have a string value to the
+        correct enum value.
+        """
+        for field in dataclasses.fields(self):
+            field_value = getattr(self, field.name)
+
+            # Check if the value is a string and the field_type is a subclass of ListEnum
+            if isinstance(field_value, str) and issubclass(field.type, ListEnum):
+                # Convert string to ListEnum
+                setattr(self, field.name, field.type.from_string(field_value))
+
     @classmethod
     def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
         """
@@ -559,9 +573,14 @@ class ConfigObject:
         return cls(**constructor_data)
 
     def get_class_data_for_xml(self) -> dict:
+        """
+        Provide instance data preprocessed for ElementTree conversion.
+        :return: dictionary of class data for xml object creation.
+        """
         # create a dict which is a shallow copy of self
         fields: dict = {
-            field.name: getattr(self, field.name) for field in dataclasses.fields(self)
+            field.name: getattr(self, field.name)
+            for field in dataclasses.fields(self)
             if not field.name.startswith("_")
         }
 
@@ -570,6 +589,8 @@ class ConfigObject:
         for f_name, f_val in fields.items():
             if hasattr(f_val, "get_class_data_for_xml"):
                 fields[f_name] = f_val.get_class_data_for_xml()
+            elif hasattr(f_val, "value"):
+                fields[f_name] = f_val.value
 
         # extract extra_data to write it correctly to XML
         for e_name, e_val in fields["extra_data"].items():
@@ -579,5 +600,9 @@ class ConfigObject:
         return fields
 
     def to_xml_element(self) -> Element:
+        """
+        Converts the ConfigObject instance to an ElementTree.Element object
+        :return: ElementTree.Element object of the class instance
+        """
         class_xml_data: dict = self.get_class_data_for_xml()
         return xml_utils.dict_to_etree(self._object_root_tag_name, class_xml_data)[0]

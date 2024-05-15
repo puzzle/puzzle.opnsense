@@ -9,8 +9,6 @@ from __future__ import absolute_import, division, print_function
 
 import dataclasses
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
-
 __metaclass__val = type
 
 import os
@@ -21,6 +19,7 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
 
 import pytest
+from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
     UnsupportedOPNsenseVersion,
@@ -30,6 +29,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     UnsupportedVersionForModule,
     ConfigObject,
 )
+from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 # Test version map for OPNsense versions and modules
 TEST_VERSION_MAP = {
@@ -589,12 +589,19 @@ def test_success_set_on_empty_leaf_node(sample_config_path):
 ###
 
 
+class TestType(ListEnum):
+    __test__ = False
+    ONE = "one"
+    TWO = "two"
+
+
 @dataclasses.dataclass
 class TestConfigObject(ConfigObject):
 
     __test__ = False
     name: str
     pretty_name: str
+    type: TestType
     _object_root_tag_name: str = "test"
 
     @classmethod
@@ -624,18 +631,19 @@ class TestNestedConfigObject(ConfigObject):
 
 def test_config_object_from_ansible_params_simple() -> None:
     """Basic ConfigObject.from_ansible_module_params test"""
-    module_params: dict = {"name": "test_object"}
+    module_params: dict = {"name": "test_object", "type": "one"}
 
     test_obj: TestConfigObject = TestConfigObject.from_ansible_module_params(
         module_params
     )
 
     assert test_obj.name == module_params["name"]
+    assert test_obj.type == TestType.ONE
 
 
 def test_config_object_preprocessed_parameters() -> None:
     """Basic ConfigObject.from_ansible_module_params test"""
-    module_params: dict = {"name": "test object"}
+    module_params: dict = {"name": "test object", "type": "one"}
 
     test_obj: TestConfigObject = TestConfigObject.from_ansible_module_params(
         module_params
@@ -643,12 +651,14 @@ def test_config_object_preprocessed_parameters() -> None:
 
     assert test_obj.name == module_params["name"]
     assert test_obj.pretty_name == "Test object"
+    assert test_obj.type == TestType.ONE
 
 
 def test_simple_obj_root_tag_name() -> None:
-    simple: str = """   
+    simple: str = """
         <test>
             <name>test_object</name>
+            <type>one</type>
         </test>
     """
 
@@ -658,13 +668,15 @@ def test_simple_obj_root_tag_name() -> None:
 
     assert test_object.name == "test_object"
     assert test_object.pretty_name == "Test_object"
+    assert test_object.type == TestType.ONE
 
 
 def test_simple_obj_extra_data() -> None:
-    simple: str = """   
+    simple: str = """
         <test>
             <name>test_object</name>
             <extra>Extra Data</extra>
+            <type>one</type>
         </test>
     """
 
@@ -674,6 +686,7 @@ def test_simple_obj_extra_data() -> None:
 
     assert test_object.name == "test_object"
     assert test_object.pretty_name == "Test_object"
+    assert test_object.type == TestType.ONE
     assert test_object.extra_data is not None
     assert "extra" in test_object.extra_data
     assert test_object.extra_data["extra"] == "Extra Data"
@@ -681,21 +694,28 @@ def test_simple_obj_extra_data() -> None:
 
 def test_simple_obj_extra_data_to_xml() -> None:
     simple_obj: TestConfigObject = TestConfigObject(
-        name="test", pretty_name="Test Object", extra_data={"extra": "Some Data"}
+        name="test",
+        pretty_name="Test Object",
+        type=TestType.ONE,
+        extra_data={"extra": "Some Data"},
     )
 
     test_element: Element = simple_obj.to_xml_element()
 
     assert test_element.tag == "test"
     children: List[Element] = list(test_element)
-    assert len(children) == 3
-    assert children[0].tag == "name"
+    assert len(children) == 4
+    for child in children:
+        assert child.tag in ["name", "pretty_name", "type", "extra"]
 
 
 def test_nested_obj_extra_data_to_xml() -> None:
     nested_obj: TestNestedConfigObject = TestNestedConfigObject(
         sub_element=TestConfigObject(
-            name="test", pretty_name="Test Object", extra_data={"extra": "Some Data"}
+            name="test",
+            pretty_name="Test Object",
+            type=TestType.ONE,
+            extra_data={"extra": "Some Data"},
         ),
         extra_data={"extra": "data"},
     )
@@ -708,9 +728,14 @@ def test_nested_obj_extra_data_to_xml() -> None:
     _child_obj_name.text = "test"
     _child_obj_pretty_name: Element = Element("pretty_name")
     _child_obj_pretty_name.text = "Test Object"
+    _child_obj_type: Element = Element("type")
+    _child_obj_type.text = "one"
     _child_obj_extra: Element = Element("extra")
     _child_obj_extra.text = "Some Data"
-    _child_obj.extend([_child_obj_name, _child_obj_pretty_name, _child_obj_extra])
+
+    _child_obj.extend(
+        [_child_obj_name, _child_obj_pretty_name, _child_obj_type, _child_obj_extra]
+    )
 
     expected_element.extend([_child_obj, _expected_extra])
 
