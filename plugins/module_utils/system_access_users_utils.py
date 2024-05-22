@@ -90,14 +90,14 @@ def password_verify(existing_user_password: str, password: Optional[str]) -> boo
     # check if current password matches hash
     password_matches = opnsense_utils.run_command(
         php_requirements=[],
-        command=f"password_verify('{password}','{existing_user_password}');",
+        command=f"var_dump(password_verify('{password}','{existing_user_password}'));",
     )
 
     if password_matches.get("stderr"):
         raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
 
-    # if return code of password_matches not equals 1, it's a match
-    if password_matches.get("stdout") != "1":
+    # if return code of password_matches is true, it's a match
+    if password_matches.get("stdout") == "bool(true)":
         return True
 
     return False
