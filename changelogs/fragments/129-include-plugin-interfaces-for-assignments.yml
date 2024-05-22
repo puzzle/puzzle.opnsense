@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - interfaces_assignments - Include plugin interfaces such as VLAN, VXLANs etc. in validations.
