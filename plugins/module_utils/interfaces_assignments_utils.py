@@ -308,8 +308,15 @@ class InterfacesSet(OPNsenseModuleConfig):
             "php_requirements"
         ]
         php_command = """
+                    /* get physical network interfaces */
                     foreach (get_interface_list() as $key => $item) {
                         echo $key.',';
+                    }
+                    /* get virtual network interfaces */
+                    foreach (plugins_devices() as $item){
+                        foreach ($item["names"] as $key => $if ) {
+                            echo $key.',';
+                        }
                     }
                     """
 
