@@ -63,44 +63,77 @@ class OPNSenseCryptReturnError(Exception):
     """
 
 
-class OPNSensePasswordVerifyReturnError(Exception):
+class OPNSenseHashVerifyReturnError(Exception):
     """
     Exception raised when the return value of the instance is not what is expected
     """
 
 
-def password_verify(existing_user_password: str, password: Optional[str]) -> bool:
+def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> bool:
     """
-    Verify if provided password matches the stored password using OPNsense's PHP command.
+    Verifies if a plain string matches an existing hashed string.
 
     Args:
-        existing_user_password (str): The hashed password stored in the XML config.
-        password (str): The plaintext password to verify.
+        existing_hashed_string (str): The existing hashed string to verify against.
+        plain_string (Optional[str]): The plain string to verify.
 
     Returns:
-        bool: True if passwords match, False otherwise.
+        bool: True if the plain string matches the hashed string, otherwise False.
 
     Raises:
-        OPNSensePasswordVerifyReturnError: If an error occurs during verification.
+        OPNSenseHashVerifyReturnError: If an error occurs during hash verification.
     """
 
-    if password is None:
+    if plain_string is None:
         return False
 
-    # check if current password matches hash
-    password_matches = opnsense_utils.run_command(
+    # check if current plain_string matches hash
+    hash_matches = opnsense_utils.run_command(
         php_requirements=[],
-        command=f"var_dump(password_verify('{password}','{existing_user_password}'));",
+        command=f"var_dump(password_verify('{plain_string}','{existing_hashed_string}'));",
     )
 
-    if password_matches.get("stderr"):
-        raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
+    if hash_matches.get("stderr"):
+        raise OPNSenseHashVerifyReturnError("error encounterd verifying hash")
 
-    # if return code of password_matches is true, it's a match
-    if password_matches.get("stdout") == "bool(true)":
+    # if return code of hash_matches is true, it's a match
+    if hash_matches.get("stdout") == "bool(true)":
         return True
 
     return False
+
+
+def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
+    """
+    Verifies if a list of API keys matches existing API keys.
+
+    Args:
+        existing_apikeys (List[Dict]): List of existing API keys with 'key' and hashed 'secret'.
+        apikeys (List[Dict]): List of new API keys with 'key' and plain 'secret'.
+
+    Returns:
+        bool: True if all new API keys match the existing ones, otherwise False.
+    """
+
+    if apikeys is None or existing_apikeys is None:
+        return True
+
+    # Verify each new apikey against existing apikeys
+    for apikey in apikeys:
+        if apikey is None:
+            continue
+        matched = False
+        for existing_apikey in existing_apikeys:
+            if apikey.get("key") == existing_apikey.get("key") and hash_verify(
+                existing_hashed_string=existing_apikey.get("secret"),
+                plain_string=apikey.get("secret"),
+            ):
+                matched = True
+                break
+        if not matched:
+            return False
+
+    return True
 
 
 @dataclass
@@ -292,9 +325,9 @@ class User:
             if _field.name in ["uid", "otp_seed", "apikeys"]:
                 continue
 
-            if _field.name == "password" and not password_verify(
-                existing_user_password=getattr(other, _field.name),
-                password=self.password,
+            if _field.name == "password" and not hash_verify(
+                existing_hashed_string=getattr(other, _field.name),
+                plain_string=self.password,
             ):
                 return False
 
@@ -846,8 +879,9 @@ class UserSet(OPNsenseModuleConfig):
         next_uid: Element = self.get("uid")
 
         if existing_user:
-            if not password_verify(
-                existing_user_password=existing_user.password, password=user.password
+            if not hash_verify(
+                existing_hashed_string=existing_user.password,
+                plain_string=user.password,
             ):
                 self.set_user_password(user)
 
