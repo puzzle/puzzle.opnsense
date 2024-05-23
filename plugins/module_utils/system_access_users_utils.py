@@ -555,11 +555,7 @@ class User:
                 else None
             ),
             "cert": params.get("cert"),
-            "apikeys": (
-                cls.set_apikeys(cls, apikeys=params.get("apikeys"))
-                if params.get("apikeys")
-                else None
-            ),
+            "apikeys": params.get("apikeys"),
         }
 
         user_dict = {
