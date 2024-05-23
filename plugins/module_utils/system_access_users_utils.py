@@ -351,7 +351,8 @@ class User:
 
         return base64.b32encode(otp_seed.encode("utf-8")).decode("utf-8")
 
-    def _generate_hashed_secret(self, secret: str) -> str:
+    @staticmethod
+    def _generate_hashed_secret(secret: str) -> str:
         """
         function to generate hashed secrets using crypt
         """
