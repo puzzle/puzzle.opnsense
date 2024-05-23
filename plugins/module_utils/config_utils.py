@@ -503,7 +503,14 @@ class ConfigObject:
     @property
     @abc.abstractmethod
     def extra_data(self) -> dict:
-        raise NotImplementedError()
+        if not hasattr(self, "_extra_args"):
+            setattr(self, "_extra_args", {})
+
+        return self._extra_args
+
+    @extra_data.setter
+    def extra_data(self, data: dict) -> None:
+        setattr(self, "_extra_args", data)
 
     def __post_init__(self):
         """
@@ -547,8 +554,6 @@ class ConfigObject:
         :return: instance of the config object class.
         """
         preprocessed_params: dict = cls.preprocess_ansible_module_params(params)
-        if "extra_data" not in preprocessed_params:
-            preprocessed_params["extra_data"] = {}
         return cls(**preprocessed_params)
 
     @classmethod
@@ -582,9 +587,9 @@ class ConfigObject:
         for k in _extra_data:
             del constructor_data[k]
 
-        constructor_data["extra_data"] = _extra_data
-
-        return cls(**constructor_data)
+        new_obj = cls(**constructor_data)
+        new_obj.extra_data = _extra_data
+        return new_obj
 
     def get_class_data_for_xml(self) -> dict:
         """
@@ -607,7 +612,6 @@ class ConfigObject:
             # Handle Enum fields which have a value
             elif hasattr(f_val, "value"):
                 fields[f_name] = f_val.value
-
 
         # extract extra_data to write it correctly to XML
         for e_name, e_val in self.extra_data.items():
