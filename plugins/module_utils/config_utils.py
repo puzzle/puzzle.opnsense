@@ -613,6 +613,9 @@ class ConfigObject:
             elif hasattr(f_val, "value"):
                 fields[f_name] = f_val.value
 
+            if isinstance(f_val, bool):
+                fields[f_name] = "1" if f_val else "0"
+
         # extract extra_data to write it correctly to XML
         for e_name, e_val in self.extra_data.items():
             fields[e_name] = e_val
