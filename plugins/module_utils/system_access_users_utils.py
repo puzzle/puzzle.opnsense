@@ -607,11 +607,9 @@ class User:
         # Handle 'disabled' element
         user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
 
-        if "apikeys" in user_dict and isinstance(user_dict["apikeys"], str):
-            apikeys_elements = user_dict["apikeys"].get("item", [])
-            if isinstance(apikeys_elements, dict):
-                apikeys_elements = [apikeys_elements]
-            user_dict["apikeys"] = [item["key"] for item in apikeys_elements]
+        # handle apikeys element
+        if user_dict.get("apikeys"):
+            user_dict["apikeys"] = User._apikeys_from_xml(user_dict.get("apikeys"))
 
         return User(**user_dict)
 
