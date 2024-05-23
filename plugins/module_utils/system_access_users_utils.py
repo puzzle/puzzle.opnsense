@@ -478,11 +478,12 @@ class User:
 
             if isinstance(user_val, list) and user_key == "apikeys":
                 # Modify the apikeys directly into the list of items
+
                 user_dict[user_key] = [
                     {
                         "item": {
                             key_name: (
-                                self._generate_hashed_secret(secret_value)
+                                User._generate_hashed_secret(secret_value)
                                 if key_name == "secret"
                                 and not secret_value.startswith("$6$")
                                 else secret_value
