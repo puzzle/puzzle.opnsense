@@ -13,7 +13,7 @@ __metaclass__ = type
 
 import abc
 import dataclasses
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any, get_args
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
@@ -495,11 +495,14 @@ class ConfigObject:
     Base class for config object abstraction.
     """
 
-    extra_data: dict
-
     @property
     @abc.abstractmethod
     def _object_root_tag_name(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def extra_data(self) -> dict:
         raise NotImplementedError()
 
     def __post_init__(self):
@@ -508,12 +511,23 @@ class ConfigObject:
         correct enum value.
         """
         for field in dataclasses.fields(self):
-            field_value = getattr(self, field.name)
+            field_value: Any = getattr(self, field.name)
+
+            if field_value is None:
+                continue
+
+            field_type: type
+
+            # handle types from typing package which are not of class type.
+            if get_args(field.type):
+                field_type = get_args(field.type)[0]
+            else:
+                field_type = field.type
 
             # Check if the value is a string and the field_type is a subclass of ListEnum
-            if isinstance(field_value, str) and issubclass(field.type, ListEnum):
+            if isinstance(field_value, str) and issubclass(field_type, ListEnum):
                 # Convert string to ListEnum
-                setattr(self, field.name, field.type.from_string(field_value))
+                setattr(self, field.name, field_type.from_string(field_value))
 
     @classmethod
     def preprocess_ansible_module_params(cls, raw_params: dict) -> dict:
