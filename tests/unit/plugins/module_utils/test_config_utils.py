@@ -715,8 +715,8 @@ def test_simple_obj_extra_data_to_xml() -> None:
         name="test",
         pretty_name="Test Object",
         type=TestType.ONE,
-        extra_data={"extra": "Some Data"},
     )
+    simple_obj.extra_data = {"extra": "Some Data"}
 
     test_element: Element = simple_obj.to_xml_element()
 
@@ -731,15 +731,17 @@ def test_nested_obj_extra_data_to_xml() -> None:
     """Test nested TestConfigObject extra data inclusion in generated XML"""
 
     # pylint: disable=unexpected-keyword-arg
-    nested_obj: TestNestedConfigObject = TestNestedConfigObject(
-        sub_element=TestConfigObject(
-            name="test",
-            pretty_name="Test Object",
-            type=TestType.ONE,
-            extra_data={"extra": "Some Data"},
-        ),
-        extra_data={"extra": "data"},
+    obj: TestConfigObject = TestConfigObject(
+        name="test",
+        pretty_name="Test Object",
+        type=TestType.ONE,
     )
+    obj.extra_data = {"extra": "Some Data"}
+    nested_obj: TestNestedConfigObject = TestNestedConfigObject(
+        sub_element=obj
+    )
+
+    nested_obj.extra_data = {"extra": "data"}
 
     expected_element: Element = Element("nested")
     _expected_extra: Element = Element("extra")
