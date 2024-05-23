@@ -38,7 +38,7 @@ import pytest
 
 TEST_VERSION_MAP = {
     "OPNsense Test": {
-      "system_high_availability_settings": {
+        "system_high_availability_settings": {
             # Add other mappings here
             "hasync": "hasync",
             "synchronize_states": "hasync/pfsyncenabled",
@@ -52,7 +52,7 @@ TEST_VERSION_MAP = {
                 "/usr/local/etc/inc/util.inc",
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/plugins.inc",
-            ]
+            ],
         },
     }
 }
@@ -182,7 +182,7 @@ def test_synchronize_interface_failure(
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
         _ = synchronize_interface(sample_config, "LAN")
     assert (
-        "error encounterd while getting interfaces, less than one interface available"
+        "error encountered while getting interfaces, less than one interface available"
         in str(excinfo.value)
     )
 
@@ -202,7 +202,7 @@ def test_synchronize_interface_success(
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
         _ = synchronize_interface(sample_config, "LAN")
-    assert "error encounterd while getting interfaces" in str(excinfo.value)
+    assert "error encountered while getting interfaces" in str(excinfo.value)
 
 
 @patch(
@@ -240,12 +240,19 @@ def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_c
     "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
     return_value={
         "stdout_lines": [
-            "aliases,Aliases", "authservers,Auth Servers", "captiveportal,Captive Portal", "certs,Certificates"
-            ], "stderr": ""},
+            "aliases,Aliases",
+            "authservers,Auth Servers",
+            "captiveportal,Captive Portal",
+            "certs,Certificates",
+        ],
+        "stderr": "",
+    },
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
-def test_services_to_synchronize(mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config):
+def test_services_to_synchronize(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
     for _ in range(2):
         services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
         services_to_synchronize(sample_config, services)
