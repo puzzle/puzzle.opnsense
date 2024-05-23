@@ -43,8 +43,9 @@ def dict_to_etree(
         return return_value
 
     raise ValueError(
-        f"You provided an unsupported data type {type(data)}."
-        "Only values of type int, str, dict or list are supported."
+        f"You provided an unsupported data type {type(data)}. "
+        "Only values of type int, str, dict or list are supported. "
+        f"Data: {data}"
     )
 
 
