@@ -15,10 +15,10 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     Group,
     User,
     UserSet,
-    password_verify,
+    hash_verify,
     OPNSenseGroupNotFoundError,
     OPNSenseCryptReturnError,
-    OPNSensePasswordVerifyReturnError,
+    OPNSenseHashVerifyReturnError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -195,6 +195,7 @@ def test_user_to_etree():
     assert xml_utils.elements_equal(test_element, orig_user)
 
 
+# attribute apikeys tests
 def test_user_with_api_key_from_xml():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
@@ -209,11 +210,11 @@ def test_user_with_api_key_from_xml():
     assert test_user.scope == "user"
     assert test_user.descr == "test_user_1"
     assert (
-        test_user.apikeys["item"]["secret"]
+        test_user.apikeys[0]["secret"]
         == "$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0"
     )
     assert (
-        test_user.apikeys["item"]["key"]
+        test_user.apikeys[0]["key"]
         == "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
     )
     assert test_user.expires is None
@@ -222,6 +223,144 @@ def test_user_with_api_key_from_xml():
     assert test_user.otp_seed is None
     assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1001"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_new_user_from_ansible_module_params_with_multiple_api_keys(
+    mock_set_password: MagicMock,
+    mock_get_version: MagicMock,
+    mock_password_verify: MagicMock,
+    mock_run_function: MagicMock,
+    sample_config_path,
+):
+    test_params: dict = {
+        "username": "test_user_2",
+        "password": "test_password_2",
+        "scope": "user",
+        "full_name": "test_user_2",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "apikeys": [
+            {
+                "key": "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
+                "secret": "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ==",
+            },
+            {
+                "key": "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
+                "secret": "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ==",
+            },
+        ],
+    }
+
+    mock_run_function.return_value = {
+        "stdout": "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583",
+        "stderr": None,
+    }
+
+    with UserSet(sample_config_path) as user_set:
+        new_test_user: User = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(new_test_user)
+        user_set.save()
+
+    assert new_test_user.name == "test_user_2"
+    assert new_test_user.password == "test_password_2"
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "test_user_2"
+    assert new_test_user.expires is None
+    assert len(new_test_user.apikeys) == 2
+    assert (
+        new_test_user.apikeys[0]["key"]
+        == "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
+    )
+    assert (
+        new_test_user.apikeys[0]["secret"]
+        == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
+    )
+    assert (
+        new_test_user.apikeys[1]["key"]
+        == "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
+    )
+    assert (
+        new_test_user.apikeys[1]["secret"]
+        == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
+    )
+    assert new_test_user.ipsecpsk is None
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.uid == "1000"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.User.set_authorizedkeys",
+    return_value="3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ",
+)
+def test_existing_user_from_ansible_module_params_with_multiple_api_keys(
+    mock_set_set_authorizedkeys, mock_set_password, sample_config_path
+):
+    test_params: dict = {
+        "username": "vagrant",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "apikeys": [
+            {
+                "key": "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
+                "secret": "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ==",
+            },
+            {
+                "key": "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
+                "secret": "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ==",
+            },
+        ],
+    }
+
+    new_test_user: User = User.from_ansible_module_params(test_params)
+
+    assert new_test_user.name == "vagrant"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "vagrant box management"
+    assert new_test_user.expires is None
+    assert len(new_test_user.apikeys) == 2
+    assert (
+        new_test_user.apikeys[0]["key"]
+        == "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
+    )
+    assert (
+        new_test_user.apikeys[0]["secret"]
+        == "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
+    )
+    assert (
+        new_test_user.apikeys[1]["key"]
+        == "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
+    )
+    assert (
+        new_test_user.apikeys[1]["secret"]
+        == "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ=="
+    )
+    assert new_test_user.ipsecpsk is None
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.uid == "1000"
 
 
 def test_user_from_ansible_module_params_simple(sample_config_path):
@@ -252,7 +391,7 @@ def test_user_from_ansible_module_params_simple(sample_config_path):
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -295,7 +434,7 @@ def test_group_from_xml():
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -358,7 +497,7 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -405,7 +544,7 @@ def test_user_from_ansible_module_params_with_group_as_string(
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -455,7 +594,7 @@ def test_user_from_ansible_module_params_with_multiple_groups_as_list(
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -499,7 +638,7 @@ def test_user_from_ansible_module_params_with_no_groups(
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -565,65 +704,6 @@ def test_user_from_ansible_module_params_with_authorizedkeys(
 
 
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.User.set_authorizedkeys",
-    return_value="3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ",
-)
-def test_user_from_ansible_module_params_with_multiple_api_keys(
-    mock_set_set_authorizedkeys, mock_set_password, sample_config_path
-):
-    test_params: dict = {
-        "username": "vagrant",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-        "apikeys": [
-            {
-                "key": "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
-                "secret": "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ==",
-            },
-            {
-                "key": "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy",
-                "secret": "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ==",
-            },
-        ],
-    }
-
-    new_test_user: User = User.from_ansible_module_params(test_params)
-
-    assert new_test_user.name == "vagrant"
-    assert new_test_user.password == "vagrant"
-    assert new_test_user.scope == "user"
-    assert new_test_user.descr == "vagrant box management"
-    assert new_test_user.expires is None
-    assert len(new_test_user.apikeys) == 2
-    assert (
-        new_test_user.apikeys[0]["key"]
-        == "AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
-    )
-    assert (
-        new_test_user.apikeys[0]["secret"]
-        == "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
-    )
-    assert (
-        new_test_user.apikeys[1]["key"]
-        == "BMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy"
-    )
-    assert (
-        new_test_user.apikeys[1]["secret"]
-        == "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ=="
-    )
-    assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == "/bin/sh"
-    assert new_test_user.uid == "1000"
-
-
-@patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
@@ -632,7 +712,7 @@ def test_user_from_ansible_module_params_with_multiple_api_keys(
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -680,7 +760,7 @@ def test_user_from_ansible_module_params_single_group_removal(
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.password_verify",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
     return_value=True,
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -771,14 +851,14 @@ def test_generate_hashed_secret_error_in_crypt(mock_run_function):
 def test_password_verify_returns_true_on_match(mock_run_command: MagicMock):
     # Mock the return value of the run_command to simulate a password match
     mock_run_command.return_value = {
-        "stdout": "",
+        "stdout": "bool(true)",
         "stderr": None,
     }
 
     # Call the function with test data
-    test_password_matches = password_verify(
-        password="test_password_1",
-        existing_user_password="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
+    test_password_matches = hash_verify(
+        plain_string="test_password_1",
+        existing_hashed_string="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
     )
 
     # Assert that the function returns True for a password match
@@ -796,9 +876,9 @@ def test_password_verify_returns_false_on_difference(mock_run_command: MagicMock
     }
 
     # Call the function with test data
-    test_password_matches = password_verify(
-        password="test_password_1",
-        existing_user_password="$2y$11$pSYTZcD0o23JSfksEe1231345h9vp7OOQN.v35E1rag49cEc6",
+    test_password_matches = hash_verify(
+        plain_string="test_password_1",
+        existing_hashed_string="$2y$11$pSYTZcD0o23JSfksEe1231345h9vp7OOQN.v35E1rag49cEc6",
     )
 
     # Assert that the function returns True for a password match
@@ -808,7 +888,7 @@ def test_password_verify_returns_false_on_difference(mock_run_command: MagicMock
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command"
 )
-def test_password_verify_returns_OPNSensePasswordVerifyReturnError(
+def test_password_verify_returns_OPNSenseHashVerifyReturnError(
     mock_run_command: MagicMock,
 ):
     # Mock the return value of the run_command to simulate a password match
@@ -817,11 +897,11 @@ def test_password_verify_returns_OPNSensePasswordVerifyReturnError(
         "stderr": "this an error",
     }
 
-    with pytest.raises(OPNSensePasswordVerifyReturnError) as excinfo:
+    with pytest.raises(OPNSenseHashVerifyReturnError) as excinfo:
         # Call the function with test data
-        test_password_matches = password_verify(
-            password="test_password_1",
-            existing_user_password="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
+        test_password_matches = hash_verify(
+            plain_string="test_password_1",
+            existing_hashed_string="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
         )
 
-    assert "error encounterd verifying passwor" in str(excinfo.value)
+    assert "error encounterd verifying hash" in str(excinfo.value)
