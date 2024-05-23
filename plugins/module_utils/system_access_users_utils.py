@@ -855,6 +855,20 @@ class UserSet(OPNsenseModuleConfig):
         # since "password" is no longer needed, it can be popped
         self._config_maps.pop("password")
 
+    def set_api_keys_secret(self, user: User) -> None:
+
+        user.apikeys = [
+            {
+                key_name: (
+                    User._generate_hashed_secret(secret_value)
+                    if key_name == "secret" and not secret_value.startswith("$6$")
+                    else secret_value
+                )
+                for key_name, secret_value in api_key_dict.items()
+            }
+            for api_key_dict in user.apikeys
+        ]
+
     def add_or_update(self, user: User) -> None:
         """
         Adds a new user to the system or updates an existing user's information, ensuring that group
@@ -895,10 +909,20 @@ class UserSet(OPNsenseModuleConfig):
             ):
                 self.set_user_password(user)
 
+            if user.apikeys:
+                if not apikeys_verify(
+                    existing_apikeys=existing_user.apikeys, apikeys=user.apikeys
+                ):
+
+                    self.set_api_keys_secret(user)
+
             # since we don't want the clear-type password to be set,
             # and it is clear a update is not needed, we remove it from the update
             if "password" in user.__dict__:
                 del user.__dict__["password"]
+
+            # if "apikeys" in user.__dict__:
+            #    del user.__dict__["apikeys"]
 
             # Update groups if needed
             self._update_user_groups(user, existing_user)
