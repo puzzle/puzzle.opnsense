@@ -565,6 +565,24 @@ class User:
         return cls(**user_dict)
 
     @staticmethod
+    def _apikeys_from_xml(apikeys: dict) -> list[Dict]:
+
+        if isinstance(apikeys, str):
+            return [{}]
+
+        if isinstance(apikeys, list):
+            api_keys = []
+            for item in apikeys:
+                item = item.get("item", {})
+                api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
+
+            return api_keys
+
+        if apikeys.get("item"):
+            item = apikeys.get("item", {})
+            return [{"key": item.get("key"), "secret": item.get("secret")}]
+
+    @staticmethod
     def from_xml(element: Element) -> "User":
         """
         Converts an XML element into a User object.
