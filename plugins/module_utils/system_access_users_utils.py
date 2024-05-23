@@ -294,7 +294,7 @@ class User:
     expires: Optional[str] = None
     authorizedkeys: Optional[str] = None
     cert: Optional[str] = None  # will be handled in seperate module
-    apikeys: Optional[List[str]] = None
+    apikeys: Optional[List[dict]] = None
     groupname: Optional[List[str]] = None
 
     extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
