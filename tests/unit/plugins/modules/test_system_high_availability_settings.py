@@ -1,6 +1,6 @@
 # Copyright: (c) 2023, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-"""Tests for the ansible_collections.puzzle.opnsense.plugins.modules.test_system_high_availability_settings"""
+"""Tests for the ansible_collections.puzzle.opnsense.plugins.modules.test_system_high_availability_settings"""  # pylint: disable=line-too-long
 
 from __future__ import absolute_import, division, print_function
 
@@ -38,54 +38,21 @@ import pytest
 
 TEST_VERSION_MAP = {
     "OPNsense Test": {
-        "system_high_availability_settings": {
+      "system_high_availability_settings": {
             # Add other mappings here
-            "parent_node": "hasync",
+            "hasync": "hasync",
             "synchronize_states": "hasync/pfsyncenabled",
             "synchronize_interface": "hasync/pfsyncinterface",
             "synchronize_peer_ip": "hasync/pfsyncpeerip",
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
             "remote_system_password": "hasync/password",
-            "Aliases": "hasync/synchronizealiases",
-            "Auth Servers": "hasync/synchronizeauthservers",
-            "Captive Portal": "hasync/synchronizecaptiveportal",
-            "Certificates": "hasync/synchronizecerts",
-            "Cron": "hasync/syncronizecron",
-            "DHCPD": "hasync/syncronizedhcp",
-            "DHCPDv6": "hasync/syncronizedhcpdv6",
-            "DHCPv4: Relay": "hasync/syncronizedhcrelay6",
-            "DHCPv6: Relay": "hasync/syncronizedhcrelay",
-            "Dashboard": "hasync/synchronizewidgets",
-            "Dnsmasq DNS": "hasync/synchronizednsforwarder",
-            "FRR": "hasync/",
-            "Firewall Categories": "hasync/synchronizecategories",
-            "Firewall Groups": "hasync/synchronizeifgroups",
-            "Firewall Log Templates": "hasync/synchronizelvtemplate",
-            "Firewall Rules": "hasync/synchronizerules",
-            "Firewall Schedules": "hasync/synchronizeschedules",
-            "IPsec": "hasync/synchronizeipsec",
-            "Intrusion Detection": "hasync/synchronizesuricata",
-            "Kea DHCP": "hasync/synchronizekea",
-            "Monit System Monitoring": "hasync/synchronizemonit",
-            "NAT": "hasync/synchronizenat",
-            "Netflow / Insight": "hasync/synchronizesyslog",
-            "Network Time": "hasync/synchronizentpd",
-            "OpenSSH": "hasync/syncronizessh",
-            "OpenVPN": "hasync/synchronizeopenvpn",
-            "Shaper": "hasync/synchronizeshaper",
-            "Static Routes": "hasync/synchronizestaticroutes",
-            "System Tunables": "hasync/synchronizesysctl",
-            "Unbound DNS": "hasync/synchronizednsresolver",
-            "User and Groups": "hasync/syncronizeusers",
-            "Virtual IPs": "hasync/synchronizevirtualip",
-            "Web GUI": "hasync/syncronizewebgui",
-            "WireGuard": "hasync/synchronizewireguard",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/util.inc",
-            ],
-            "configure_functions": {},
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ]
         },
     }
 }
@@ -142,7 +109,7 @@ def sample_config(request):
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.modules.system_high_availability_settings.opnsense_utils.run_command",
+    "ansible_collections.puzzle.opnsense.plugins.modules.system_high_availability_settings.opnsense_utils.run_command",  # pylint: disable=line-too-long
     return_value={"stdout": "opt2:vagrant,lan:LAN", "stderr": None},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -150,9 +117,9 @@ def sample_config(request):
 def test_check_hasync_node(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
-    assert sample_config.get("parent_node") is None
+    assert sample_config.get("hasync") is None
     check_hasync_node(sample_config)
-    assert sample_config.get("parent_node") is not None
+    assert sample_config.get("hasync") is not None
     assert sample_config.get("synchronize_interface").text == "lan"
 
     assert sample_config.get("synchronize_config_to_ip") is not None
@@ -209,11 +176,11 @@ def test_synchronize_interface(
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
-def test_synchronize_interface_success(
+def test_synchronize_interface_failure(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
-        result = synchronize_interface(sample_config, "LAN")
+        _ = synchronize_interface(sample_config, "LAN")
     assert (
         "error encounterd while getting interfaces, less than one interface available"
         in str(excinfo.value)
@@ -234,7 +201,7 @@ def test_synchronize_interface_success(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
-        result = synchronize_interface(sample_config, "LAN")
+        _ = synchronize_interface(sample_config, "LAN")
     assert "error encounterd while getting interfaces" in str(excinfo.value)
 
 
@@ -269,17 +236,25 @@ def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_c
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
+    return_value={
+        "stdout_lines": [
+            "aliases,Aliases", "authservers,Auth Servers", "captiveportal,Captive Portal", "certs,Certificates"
+            ], "stderr": ""},
+)
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
-def test_services_to_synchronize(mocked_version_utils: MagicMock, sample_config):
-    services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
-    services_to_synchronize(sample_config, services)
-    assert sample_config.get("Aliases").text == "on"
-    assert sample_config.get("Cron") is None
+def test_services_to_synchronize(mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config):
+    for _ in range(2):
+        services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
+        services_to_synchronize(sample_config, services)
+        assert sample_config.get("hasync").find("synchronizealiases").text == "on"
+        assert sample_config.get("hasync").find("synchronizecron") is None
 
-    services_to_synchronize(sample_config, [])
-    assert sample_config.get("Cron") is None
-    assert sample_config.get("Aliases") is None
-
+    services_to_synchronize(sample_config, "Certificates")
+    assert sample_config.get("hasync").find("synchronizecron") is None
+    assert sample_config.get("hasync").find("synchronizealiases") is None
+    assert sample_config.get("hasync").find("synchronizecerts").text == "on"
     with pytest.raises(ValueError):
-        services_to_synchronize(sample_config, ["Aliases", "bababooey"])
+        services_to_synchronize(sample_config, "bababooey")

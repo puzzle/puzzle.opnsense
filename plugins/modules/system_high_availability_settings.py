@@ -83,8 +83,9 @@ RETURN = ''''''
 
 
 from typing import Optional, List, Dict
-from ansible.module_utils.basic import AnsibleModule
 from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
     UnsupportedModuleSettingError,
@@ -100,31 +101,48 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
 
 
 def check_hasync_node(config: OPNsenseModuleConfig):
-    # When an opnsense instance is created, the hasync block does not exist at all.
-    # This function checks if this element exists in the tree, and adds it if no.
-    if config.get("parent_node") is None:
+    """
+    When an opnsense instance is created, the hasync block does not exist at all.
+    This function checks if the opnsense/hasync exists in the tree. If not, it
+    adds that parent node with the default settings (pfsyncinterface=LAN
+    remote_system all None)
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+    """
+    if config.get("hasync") is None:
         ElementTree.SubElement(
             config._config_xml_tree,
-            config._config_maps["system_high_availability_settings"]["parent_node"],
+            config._config_maps["system_high_availability_settings"]["hasync"],
         )
         # default settings when nothing is selected
         synchronize_interface(config, "lan")
         remote_system_synchronization(config, None, None, None)
 
 
-def synchronize_states(config: OPNsenseModuleConfig, params: bool):
-    if params and config.get("synchronize_states") is None:
+def synchronize_states(config: OPNsenseModuleConfig, setting: bool):
+    """
+    Handler function for the synchronize_states setting.
+    Args:
+        config (OPNsenseModuleConfig): The given Opnsense configuration
+        setting (bool): The setting value
+    """
+    if setting and config.get("synchronize_states") is None:
         config.set(value="on", setting="synchronize_states")
-    elif not params and config.get("synchronize_states") is not None:
+    elif not setting and config.get("synchronize_states") is not None:
         config._config_xml_tree.find("hasync").remove(config.get("synchronize_states"))
 
 
 def get_configured_interface_with_descr(config: OPNsenseModuleConfig) -> Dict[str, str]:
+    """
+    Get all interfaces that are allowed to be used for synchronize_interface
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+    """
     # https://github.com/opnsense/core/blob/7d212f3e5d9eb2456acf2165987dd850cd78c710/src/etc/inc/util.inc#L822
     # load requirements
-    php_requirements = config._config_maps["system_high_availability_settings"][
-        "php_requirements"
-    ]
+    php_requirements = ["/usr/local/etc/inc/interfaces.inc",
+                        "/usr/local/etc/inc/util.inc",
+                        "/usr/local/etc/inc/config.inc"]
     php_command = """
                 foreach (get_configured_interface_with_descr() as $key => $item) {
                     echo $key.':'.$item.',';
@@ -139,7 +157,7 @@ def get_configured_interface_with_descr(config: OPNsenseModuleConfig) -> Dict[st
 
     # check for stderr
     if result.get("stderr"):
-        raise OPNSenseGetInterfacesError("error encounterd while getting interfaces")
+        raise OPNSenseGetInterfacesError("error encountered while getting interfaces")
 
     # parse list
     interfaces = dict(
@@ -151,13 +169,20 @@ def get_configured_interface_with_descr(config: OPNsenseModuleConfig) -> Dict[st
     # check parsed list length
     if len(interfaces) < 1:
         raise OPNSenseGetInterfacesError(
-            "error encounterd while getting interfaces, less than one interface available"
+            "error encountered while getting interfaces, less than one interface available"
         )
 
     return interfaces
 
 
 def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
+    """
+    Handler function for the synchronize_interface setting
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+        sync_interface (bool): If synchronize_states is enabled,
+                               it will utilize this interface for communication.
+    """
     interfaces = {"lo0": "Loopback"}
     interfaces.update(get_configured_interface_with_descr(config))
     for ident, desc in interfaces.items():
@@ -165,12 +190,18 @@ def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
             config.set(ident, "synchronize_interface")
             return
     raise ValueError(
-        f"{sync_interface} is not a valid Interface."
+        f"{sync_interface} is not a valid interface. "
         + "If the interface exists, ensure it is enabled and also not virtual."
     )
 
 
 def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str):
+    """
+    Handler function for the synchronize_peer_ip setting
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+        peer_ip: PFsync will sync to this IP address.
+    """
     if peer_ip:
         config.set(value=peer_ip, setting="synchronize_peer_ip")
     elif not peer_ip and config.get("synchronize_peer_ip") is not None:
@@ -183,53 +214,45 @@ def remote_system_synchronization(
     username: Optional[str],
     password: Optional[str],
 ):
-    config.set(value=remote_backup_url, setting="synchronize_config_to_ip")
-    config.set(value=username, setting="remote_system_username")
-    config.set(value=password, setting="remote_system_password")
+    """
+    Handler function for the settings synchronize_config_to_ip,
+    remote_system_username and remote_system_password.
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+        remote_backup_url (Optional[str]): Synchronize your settings to this URL
+        username (Optional[str]): Username for logging in to the remote firewall
+        password (Optional[str]): Password for logging in to the remote firewall
+    """
+    if remote_backup_url:
+        config.set(value=remote_backup_url, setting="synchronize_config_to_ip")
+    if username:
+        config.set(value=username, setting="remote_system_username")
+    if password:
+        config.set(value=password, setting="remote_system_password")
 
 
-def get_all_services() -> List[str]:
-    allowed_services = [
-        "aliases",
-        "auth_servers",
-        "captive_portal",
-        "certificates",
-        "cron",
-        "dhcpd",
-        "dhcpdv6",
-        "dhcpv4_relay",
-        "dhcpv6_relay",
-        "dashboard",
-        "dnsmasq_dns",
-        "frr",
-        "firewall_categories",
-        "firewall_groups",
-        "firewall_log_templates",
-        "firewall_rules",
-        "firewall_schedules",
-        "ipsec",
-        "intrusion_detection",
-        "kea_dhcp",
-        "monit_system_monitoring",
-        "nat",
-        "netflow_insight",
-        "network_time",
-        "openssh",
-        "openvpn",
-        "shaper",
-        "static_routes",
-        "system_tunables",
-        "unbound_dns",
-        "user_and_groups",
-        "virtual_ips",
-        "web_gui",
-        "web_proxy",
-        "wireguard",
-    ]
-    # do gschnüdel to remove services from allowed_services that aren't installed (at some point)
-    # Remove frr for now since it is an opt-in plugin and is by default not configured.
-    allowed_services.remove("frr")
+def plugins_xmlrpc_sync(config: OPNsenseModuleConfig) -> Dict[str, str]:
+    """
+    Get all services on the firewall which can even be synced
+    """
+    # https://github.com/opnsense/core/blob/66c684b2c66d26000129bfb161c6cbafe4175dc8/src/etc/inc/plugins.inc#L355
+    php_requirements = ["/usr/local/etc/inc/plugins.inc"]
+    php_command = """
+                foreach (plugins_xmlrpc_sync() as $key => $item) {
+                    echo $key.','.$item['description'].'\n';
+                }
+                """
 
+    # run php function
+    result = opnsense_utils.run_command(
+        php_requirements=php_requirements,
+        command=php_command,
+    )
+
+    # check for stderr
+    if result.get("stderr"):
+        raise OPNSenseGetInterfacesError("error encounterd while getting interfaces")
+    allowed_services = dict(service.split(",") for service in result.get("stdout_lines"))
     return allowed_services
 
 
@@ -237,33 +260,33 @@ def services_get_lookup_name(service: str):
     return service.lower().replace("/ ", "").replace(":", "").replace(" ", "_")
 
 
-def services_to_synchronize(config: OPNsenseModuleConfig, services: List[str]):
-    allowed_services = get_all_services()
-    if isinstance(services, str):
-        services = [services]
-    for service in services:
-        service_lookup_name = services_get_lookup_name(service)
-        if service_lookup_name not in allowed_services:
+def services_to_synchronize(config: OPNsenseModuleConfig, sync_services: List[str]):
+    allowed_services = plugins_xmlrpc_sync(config)
+    if isinstance(sync_services, str):
+        sync_services = [sync_services]
+    for service in sync_services:
+        if service in allowed_services.keys():
+            service_id = service
+            service_description = allowed_services[service]
+        elif service in allowed_services.values():
+            service_id = {v: k for k, v in allowed_services.items()}[service]
+            service_description = service
+        else:
             raise ValueError(
-                f"Service {service} could not be found in your Opnsense installation"
+                f"Service {service} could not be found in your Opnsense installation. "
+                + f"These are all the available services: {', '.join(allowed_services.values())}."
             )
-        if (
-            service_lookup_name
-            not in config._config_maps["system_high_availability_settings"]
-        ):
-            raise UnsupportedModuleSettingError(
-                f"Service {service} is not supported in version {config.opnsense_version}"
-            )
-        if config.get(service_lookup_name) is None:
-            config.set(value="on", setting=service_lookup_name)
-    for service in allowed_services:
-        services = list(services_get_lookup_name(service) for service in services)
-        if (
-            service not in services
-            and service in config._config_maps["system_high_availability_settings"]
-            and config.get(service) is not None
-        ):
-            config._config_xml_tree.find("hasync").remove(config.get(service))
+
+        service_xml_path = f"synchronize{service_id}"
+        if config.get("hasync").find(service_xml_path) is None:
+            xml_elem = Element(service_xml_path)
+            xml_elem.text = "on"
+            config.get("hasync").append(xml_elem)
+    for service_id, service_description in allowed_services.items():
+        service_xml_elem = config.get("hasync").find(f"synchronize{service_id}")
+        if (service_id not in sync_services and service_description not in sync_services and
+           service_xml_elem is not None):
+            config.get("hasync").remove(service_xml_elem)
 
 
 def main():
@@ -324,7 +347,7 @@ def main():
             password=remote_system_password_param,
         )
         if synchronize_states_param:
-            synchronize_states(config=config, params=synchronize_states_param)
+            synchronize_states(config=config, setting=synchronize_states_param)
 
         if synchronize_interface_param:
             try:
@@ -344,7 +367,7 @@ def main():
         if services_to_synchronize_param is not None:
             try:
                 services_to_synchronize(
-                    config=config, services=services_to_synchronize_param
+                    config=config, sync_services=services_to_synchronize_param
                 )
             except ValueError as error:
                 module.fail_json(repr(error))

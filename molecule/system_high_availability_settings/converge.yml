@@ -1,0 +1,130 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    services:
+      - aliases
+      - authservers
+      - captiveportal
+      - certs
+      - cron
+      - dhcpd
+      - dhcpdv6
+      - dhcrelay6
+      - dhcrelay
+      - widgets
+      - dnsforwarder
+      - categories
+      - ifgroups
+      - lvtemplate
+      - rules
+      - schedules
+      - ipsec
+      - suricata
+      - monit
+      - nat
+      - syslog
+      - ntpd
+      - ssh
+      - openvpn
+      - shaper
+      - staticroutes
+      - sysctl
+      - dnsresolver
+      - users
+      - virtualip
+      - webgui
+  tasks:
+    - name: Converge - Test all Parameters
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        synchronize_config_to_ip: 224.0.0.240
+        synchronize_peer_ip: 224.0.0.241
+        synchronize_states: true
+        remote_system_username: opnsense
+        remote_system_password: v3rys3cure
+        services_to_synchronize: "{{ services }}"
+
+    - name: Converge - get config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Converge - Check that Parameters changed
+      ansible.builtin.assert:
+        that:
+          - "'<pfsyncinterface>lan</pfsyncinterface>' in ( current_config.content | b64decode )"
+          - "'<synchronizetoip>224.0.0.240</synchronizetoip> in ( current_config.content | b64decode )'"
+          - "'<pfsyncenabled>on</pfsyncenabled> in ( current_config.content | b64decode )'"
+          - "'<username>opnsense</username> in ( current_config.content | b64decode )'"
+          - "'<password>v3rys3cure</password> in ( current_config.content | b64decode )'"
+          - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip> in ( current_config.content | b64decode )'"
+
+    - name: Converge - Check that services changed
+      ansible.builtin.assert:
+        that:
+          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' in ( current_config.content | b64decode )"
+      loop: "{{ services }}"
+
+    - name: Converge - Change nothing
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+      register: reset_all
+
+    - name: Converge - Check that parameters stay unaffected
+      ansible.builtin.assert:
+        that:
+          - reset_all.changed == false
+
+    - name: Converge - Remove all services
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize: []
+      register: synch_remove_services
+
+    - name: Converge - get config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Converge - Check that all services are removed
+      ansible.builtin.assert:
+        that:
+          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' not  in ( current_config.content | b64decode )"
+      loop: "{{ services }}"
+
+    - name: Converge - Enable unsupported service
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize:
+          - blabla
+      register: unsupported_service_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Service is not supported
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is failed
+
+    - name: Converge - Set synchronize_interface to nonexistent Interface
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: Interfface
+      register: nonexistent_interface_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Interfasce assignment failed
+      ansible.builtin.assert:
+        that:
+          - nonexistent_interface_output is failed
+
+    - name: Converge - Set synchronize_interface to virtual Interface
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: openvpn
+      register: virtual_interface_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Interfasce assignment failed
+      ansible.builtin.assert:
+        that:
+          - virtual_interface_output is failed
