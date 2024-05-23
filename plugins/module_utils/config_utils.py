@@ -598,18 +598,20 @@ class ConfigObject:
             if not field.name.startswith("_")
         }
 
-        # for any field that is of subtype of ConfigObject, i.e. it has
-        # a _get_class_data_for_xml function, convert it to a dict
         for f_name, f_val in fields.items():
+            # for any field that is of subtype of ConfigObject, i.e. it has
+            # a _get_class_data_for_xml function, convert it to a dict
             if hasattr(f_val, "get_class_data_for_xml"):
                 fields[f_name] = f_val.get_class_data_for_xml()
+
+            # Handle Enum fields which have a value
             elif hasattr(f_val, "value"):
                 fields[f_name] = f_val.value
 
+
         # extract extra_data to write it correctly to XML
-        for e_name, e_val in fields["extra_data"].items():
+        for e_name, e_val in self.extra_data.items():
             fields[e_name] = e_val
-        del fields["extra_data"]
 
         return fields
 
