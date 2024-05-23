@@ -180,7 +180,9 @@
       puzzle.opnsense.system_access_users:
             username: test_user_20
             password: test_password_20
-            apikeys: "TEST_API_KEY"
+            apikeys:
+              - key: "TEST_API_KEY"
+                secret: "O0OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
             full_name: "Test User 20: Test User Creation with too short api_keys"
       register: test_user_20_result
       ignore_errors: yes
@@ -197,7 +199,9 @@
       puzzle.opnsense.system_access_users:
             username: test_user_21
             password: test_password_21
-            apikeys: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu9xc"
+            apikeys:
+              - key: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu900"
+                secret: "O0OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
             full_name: "Test User 21: Test User Creation with valid api_keys"
       register: api_keys_result
 
@@ -239,3 +243,14 @@
         that:
           - "'syntax error, unexpected identifier \"cost\", expecting \")\" in Command line code on line 1' not in (current_config.content | b64decode | string)"
           - "'syntax error, unexpected single-quoted string \",PASSWORD_BCRYPT,[ \", expecting \")\" in Command line code on line 1' not in (current_config.content | b64decode | string)"
+
+    # Test User with apikeys as list
+    - name: "Test User 24: Test User Creation with apikeys as list"
+      puzzle.opnsense.system_access_users:
+            username: test_user_24
+            password: test_password_24
+            apikeys:
+              - key: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu900"
+                secret: "O0OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
+              - key: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu911"
+                secret: "111Qc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
