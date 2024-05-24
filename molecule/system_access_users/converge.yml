@@ -176,7 +176,6 @@
       when:
         - "'generated_apikeys' in api_keys_result"
         - api_keys_result.generated_apikeys | length > 0
-
     # Test User with too short api_keys
     - name: "Test User 20: Test User Creation with too short api_keys"
       puzzle.opnsense.system_access_users:
@@ -251,6 +250,8 @@
       puzzle.opnsense.system_access_users:
             username: test_user_24
             password: test_password_24
+            groups:
+              - admins
             apikeys:
               - key: "TEST_API_KEY_WITH_RANDOM_CHARS_UNTIL_80_zo5Y3bUpOQFfbQnAOB6GqbHsPAP9Jqbjofnqu900"
                 secret: "O0OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
