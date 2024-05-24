@@ -419,39 +419,43 @@ class User:
             """
         )
 
-    def set_apikeys(self, apikeys: list[dict] = None) -> list:
+    @staticmethod
+    def generate_apikeys(apikeys: list[dict] = None) -> list[dict]:
         """
-        Generates a list of dictionaries, each containing a 'key' and a 'secret'.
-        If apikeys is provided, each element in apikeys is used as the 'key',
-        and a new 'secret' is generated.
-        If apikeys is not provided or is an empty list, a single 'key'-'secret' pair is generated.
+        Generates API keys if they are missing or validates provided keys.
 
         Args:
-            apikeys (list, optional): A list of strings to be used as the 'key' part of each pair.
+            apikeys (list[dict]): A list of dictionaries containing 'key' and 'secret'.
 
         Returns:
-            list: A list of dictionaries, where each dictionary has a 'key' and a 'secret'.
+            list[dict]: A list of dictionaries with valid 'key' and 'secret' pairs.
+
+        Raises:
+            OPNSenseNotValidBase64APIKeyError: If the provided key or secret
+            is not a valid base64 string.
         """
 
-        api_keys = []
+        api_keys: list[dict] = []
 
-        # Check if apikeys is None or contains an empty string
-        if apikeys is None or "" in apikeys:
-            key = base64.b64encode(os.urandom(60)).decode("utf-8")
-            secret = base64.b64encode(os.urandom(60)).decode("utf-8")
-            api_keys.append({"key": key, "secret": secret})
-        else:
-            for api_key_entry in apikeys:
+        for apikey in apikeys:
+            # Check if key and secret are provided
+            if not apikey["key"]:
+                key = base64.b64encode(os.urandom(60)).decode("utf-8")
+
+                if not apikey["secret"]:
+                    secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+
+                api_keys.append({"key": key, "secret": secret})
+            else:
                 try:
-                    base64.b64decode(api_key_entry["key"])
-                    base64.b64decode(api_key_entry["secret"])
+                    base64.b64decode(apikey["key"])
+                    base64.b64decode(apikey["secret"])
 
-                    api_keys.append(
-                        {"key": api_key_entry["key"], "secret": api_key_entry["secret"]}
-                    )
+                    api_keys.append(apikey)
+
                 except binascii.Error as binascii_error_message:
                     raise OPNSenseNotValidBase64APIKeyError(
-                        "The provided API key is not a valid base64 string."
+                        f"The API key: {apikey} is not a valid base64 string. "
                         f"Error: {str(binascii_error_message)}"
                     ) from binascii_error_message
 
