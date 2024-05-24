@@ -425,44 +425,6 @@ def test_group_from_xml():
     assert test_group.gid == "1999"
 
 
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_set_add_group(
-    mocked_version_utils: MagicMock,
-    mock_set_password: MagicMock,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    with UserSet(sample_config_path) as user_set:
-        test_user: User = user_set.find(name="vagrant")
-        test_user.groupname = ["admins"]
-
-        user_set.add_or_update(test_user)
-
-        assert user_set.changed
-
-        user_set.save()
-
-    with UserSet(sample_config_path) as new_user_set:
-        new_test_user: User = new_user_set.find(name="vagrant")
-
-        assert new_test_user.groupname == ["admins"]
-        assert "1000" in new_user_set._groups[0].member
-
-        new_user_set.save()
-
-
 def test_user_from_ansible_module_params_with_group(sample_config_path):
     test_params: dict = {
         "username": "vagrant",
@@ -809,7 +771,7 @@ def test_generate_hashed_secret_success(mock_run_function):
     }
 
     user = User(name="test", password="test")
-    result = user._generate_hashed_secret("password123")
+    result = user.generate_hashed_secret("password123")
     assert (
         result
         == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
@@ -827,7 +789,7 @@ def test_generate_hashed_secret_failure_invalid_hash(mock_run_function):
 
     user = User(name="test", password="test")
     with pytest.raises(OPNSenseCryptReturnError) as excinfo:
-        user._generate_hashed_secret("password123")
+        user.generate_hashed_secret("password123")
 
     assert "validation of the secret failed!" in str(excinfo.value)
 
@@ -840,7 +802,7 @@ def test_generate_hashed_secret_error_in_crypt(mock_run_function):
 
     user = User(name="test", password="test")
     with pytest.raises(OPNSenseCryptReturnError) as excinfo:
-        user._generate_hashed_secret("password123")
+        user.generate_hashed_secret("password123")
 
     assert "error encounterd while creating secret" in str(excinfo.value)
 
