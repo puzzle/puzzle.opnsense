@@ -421,7 +421,7 @@ class User:
         )
 
     @staticmethod
-    def generate_apikeys(apikeys: list[dict] = None) -> list[dict]:
+    def generate_apikeys(apikeys: List[dict] = None) -> List[dict]:
         """
         Generates API keys if they are missing or validates provided keys.
 
@@ -604,7 +604,7 @@ class User:
         return cls(**user_dict)
 
     @staticmethod
-    def _apikeys_from_xml(apikeys: dict) -> list[Dict]:
+    def _apikeys_from_xml(apikeys: dict) -> List[Dict]:
 
         if isinstance(apikeys, str):
             return [{}]

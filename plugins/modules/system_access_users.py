@@ -80,7 +80,7 @@ options:
             - A list of apikeys for an OPNsense User. Generates new apikey if "" is provided.
         required: false
         type: list
-        elements: str
+        elements: dict
     otp_seed:
         description:
             - The otp_seed of a OPNsense user.
