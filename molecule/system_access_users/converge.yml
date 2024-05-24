@@ -164,7 +164,9 @@
       puzzle.opnsense.system_access_users:
             username: test_user_19
             password: test_password_19
-            apikeys: ""
+            apikeys:
+              - key: ""
+                secret: ""
             full_name: "Test User 19: Test User Creation with empty api_keys"
       register: api_keys_result
 
