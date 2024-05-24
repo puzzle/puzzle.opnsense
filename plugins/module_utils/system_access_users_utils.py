@@ -325,14 +325,24 @@ class User:
             return False
 
         for _field in fields(self):
-            if _field.name in ["uid", "otp_seed", "apikeys"]:
+            if _field.name in ["uid", "otp_seed"]:
                 continue
 
-            if _field.name == "password" and not hash_verify(
-                existing_hashed_string=getattr(other, _field.name),
-                plain_string=self.password,
+            if (
+                _field.name == "apikeys"
+                and self.apikeys
+                and apikeys_verify(
+                    existing_apikeys=getattr(self, _field.name),
+                    apikeys=getattr(other, _field.name),
+                )
             ):
-                return False
+                return True
+
+            if _field.name == "password" and hash_verify(
+                existing_hashed_string=getattr(self, _field.name),
+                plain_string=getattr(other, _field.name),
+            ):
+                return True
 
             # if value is not equal return False
             if getattr(self, _field.name) != getattr(other, _field.name):
