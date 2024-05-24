@@ -517,7 +517,7 @@ class User:
                     {
                         "item": {
                             key_name: (
-                                User._generate_hashed_secret(secret_value)
+                                User.generate_hashed_secret(secret_value)
                                 if key_name == "secret"
                                 and not secret_value.startswith("$6$")
                                 else secret_value
@@ -589,7 +589,11 @@ class User:
                 else None
             ),
             "cert": params.get("cert"),
-            "apikeys": params.get("apikeys"),
+            "apikeys": (
+                User.generate_apikeys(apikeys=params.get("apikeys"))
+                if params.get("apikeys")
+                else None
+            ),
         }
 
         user_dict = {
@@ -890,11 +894,24 @@ class UserSet(OPNsenseModuleConfig):
         self._config_maps.pop("password")
 
     def set_api_keys_secret(self, user: User) -> None:
+        """
+        Sets the API keys for a user, hashing the 'secret' key if not already hashed.
+
+        Args:
+            user (User): The user object containing API keys to be processed.
+
+        Returns:
+            None
+
+        The function iterates over the user's API keys and hashes the 'secret' key using
+        User.generate_hashed_secret if the key name is 'secret' and the value does not already start
+        with "$6$". Other keys and values are left unchanged.
+        """
 
         user.apikeys = [
             {
                 key_name: (
-                    User._generate_hashed_secret(secret_value)
+                    User.generate_hashed_secret(secret_value)
                     if key_name == "secret" and not secret_value.startswith("$6$")
                     else secret_value
                 )
@@ -949,14 +966,6 @@ class UserSet(OPNsenseModuleConfig):
                 ):
 
                     self.set_api_keys_secret(user)
-
-            # since we don't want the clear-type password to be set,
-            # and it is clear a update is not needed, we remove it from the update
-            if "password" in user.__dict__:
-                del user.__dict__["password"]
-
-            # if "apikeys" in user.__dict__:
-            #    del user.__dict__["apikeys"]
 
             # Update groups if needed
             self._update_user_groups(user, existing_user)
