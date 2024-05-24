@@ -369,9 +369,22 @@ class User:
         return base64.b32encode(otp_seed.encode("utf-8")).decode("utf-8")
 
     @staticmethod
-    def _generate_hashed_secret(secret: str) -> str:
+    def generate_hashed_secret(secret: str) -> str:
         """
-        function to generate hashed secrets using crypt
+        Generates a hashed secret using the crypt function.
+
+        Args:
+            secret (str): The secret string to be hashed.
+
+        Returns:
+            str: The hashed secret if the hashing and validation are successful.
+
+        Raises:
+            OPNSenseCryptReturnError: If an error is encountered during hashing or validation fails.
+
+        The function utilizes a utility to run a PHP script that
+        hashes the secret using SHA-512 ($6$).
+        It checks the stderr for errors and validates the format and length of the hashed secret.
         """
 
         # load requirements
