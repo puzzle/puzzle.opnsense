@@ -276,9 +276,8 @@ class User:
         to_etree(self): Convert User instance to an XML Element.
         from_ansible_module_params(cls, params): Create a User from Ansible module parameters.
         from_xml(element): Create a User from an XML Element.
-        __post_init__(self): Process post-initialization tasks.
         set_otp_seed(self, otp_seed=None): Generate or encode OTP seed.
-        set_apikeys(self, apikeys=None): Generate or set API keys.
+        generate_apikeys(apikeys=None): Generate API keys.
         set_authorizedkeys(self, authorizedkeys=None): Encode authorized SSH keys.
 
     The User class is designed to represent user entities with various attributes commonly used in
