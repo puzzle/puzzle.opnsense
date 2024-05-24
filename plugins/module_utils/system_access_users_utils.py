@@ -608,17 +608,16 @@ class User:
         if isinstance(apikeys, str):
             return [{}]
 
+        api_keys = []
         if isinstance(apikeys, list):
-            api_keys = []
             for item in apikeys:
                 item = item.get("item", {})
                 api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
-
-            return api_keys
-
-        if apikeys.get("item"):
+        elif apikeys.get("item"):
             item = apikeys.get("item", {})
-            return [{"key": item.get("key"), "secret": item.get("secret")}]
+            api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
+
+        return api_keys
 
     @staticmethod
     def from_xml(element: Element) -> "User":
