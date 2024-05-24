@@ -115,21 +115,29 @@ def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
         bool: True if all new API keys match the existing ones, otherwise False.
     """
 
-    # Extract the keys and secrets from existing_apikeys
+    if apikeys is None:
+        return False
+
     existing_keys_and_secrets = {
         apikey["key"]: apikey["secret"] for apikey in existing_apikeys
     }
 
-    # Check if keys from apikeys are in existing_keys_and_secrets and verify secrets
     for apikey in apikeys:
-        if apikey["key"] in existing_keys_and_secrets:
-            existing_secret = existing_keys_and_secrets[apikey["key"]]
-            if hash_verify(existing_secret, apikey["secret"]):
-                return True
-            else:
-                return False
-        else:
+        key = apikey["key"]
+        plain_secret = apikey["secret"]
+
+        if key not in existing_keys_and_secrets:
+            # Key does not exist
             return False
+
+        existing_hashed_secret = existing_keys_and_secrets[key]
+
+        if not hash_verify(existing_hashed_secret, plain_secret):
+            # Secret does not match
+            return False
+
+    # If all keys and secrets match
+    return True
 
 
 @dataclass
