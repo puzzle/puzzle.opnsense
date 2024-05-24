@@ -55,11 +55,11 @@
       ansible.builtin.assert:
         that:
           - "'<pfsyncinterface>lan</pfsyncinterface>' in ( current_config.content | b64decode )"
-          - "'<synchronizetoip>224.0.0.240</synchronizetoip> in ( current_config.content | b64decode )'"
-          - "'<pfsyncenabled>on</pfsyncenabled> in ( current_config.content | b64decode )'"
-          - "'<username>opnsense</username> in ( current_config.content | b64decode )'"
-          - "'<password>v3rys3cure</password> in ( current_config.content | b64decode )'"
-          - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip> in ( current_config.content | b64decode )'"
+          - "'<synchronizetoip>224.0.0.240</synchronizetoip>' in ( current_config.content | b64decode )"
+          - "'<pfsyncenabled>on</pfsyncenabled>' in ( current_config.content | b64decode )"
+          - "'<username>opnsense</username>' in ( current_config.content | b64decode )"
+          - "'<password>v3rys3cure</password>' in ( current_config.content | b64decode )"
+          - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip>' in ( current_config.content | b64decode )"
 
     - name: Converge - Check that services changed
       ansible.builtin.assert:

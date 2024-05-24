@@ -6,12 +6,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import subprocess
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch, MagicMock
 import os
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
+
 from ansible_collections.puzzle.opnsense.plugins.modules.system_high_availability_settings import (
     check_hasync_node,
     synchronize_states,
@@ -180,7 +178,7 @@ def test_synchronize_interface_failure(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
-        _ = synchronize_interface(sample_config, "LAN")
+        synchronize_interface(sample_config, "LAN")
     assert (
         "error encountered while getting interfaces, less than one interface available"
         in str(excinfo.value)
@@ -201,7 +199,7 @@ def test_synchronize_interface_success(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
-        _ = synchronize_interface(sample_config, "LAN")
+        synchronize_interface(sample_config, "LAN")
     assert "error encountered while getting interfaces" in str(excinfo.value)
 
 
@@ -253,7 +251,7 @@ def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_c
 def test_services_to_synchronize(
     mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
 ):
-    for _ in range(2):
+    for i in range(2):
         services = ["Aliases", "Auth Servers", "Captive Portal", "Certificates"]
         services_to_synchronize(sample_config, services)
         assert sample_config.get("hasync").find("synchronizealiases").text == "on"

@@ -21,7 +21,7 @@ description:
   - Module to configure high availability system settings
 options:
   synchronize_states:
-    description: "pfsync transfers state insertion, update, and deletion messages between firewalls. Each firewall sends these messages out via multicast on a specified interface, using the PFSYNC protocol ([IP Protocol 240](https://www.openbsd.org/faq/pf/carp.html)). It also listens on that interface for similar messages from other firewalls, and imports them into the local state table. This setting should be enabled on all members of a failover group."
+    description: "pfsync transfers state insertion, update, and deletion messages between firewalls. Each firewall sends these messages out via multicast on a specified interface, using the PFSYNC protocol ([IP Protocol 240](https://www.openbsd.org/faq/pf/carp.html)). It also listens on that interface for similar messages from other firewalls, and imports them into the local state table. This setting should be enabled on all members of a failover group."  # nopep8
     type: bool
     default: false
   synchronize_interface:
@@ -30,24 +30,24 @@ options:
     required: true
   synchronize_peer_ip:
     description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast. "
-    type: string
+    type: str
     required: false
   synchronize_config_to_ip:
     description: "IP address of the firewall to which the selected configuration sections should be synchronized."
-    type: string
+    type: str
     required: false
   remote_system_username:
     description: "Enter the web GUI username of the system entered above for synchronizing your configuration."
-    type: string
+    type: str
     required: false
   remote_system_password:
     description: "Enter the web GUI password of the system entered above for synchronizing your configuration."
-    type: string
+    type: str
     required: false
   services_to_synchronize:
     description: "List of config items to synchronize to the other firewall."
     type: list
-    elements: ["Dashboard", "User and Groups", "Auth Servers", "Certificates", "DHCPD", "DHCPv4: Relay", "DHCPDv6", "DHCPv6: Relay", "Virtual IPs", "Static Routes", "Network Time", "Netflow / Insight", "Cron", "System Tunables", "Web GUI", "Dnsmasq DNS", "FRR", "Shaper", "Captive Portal", "IPsec", "Kea DHCP", "Monit System Monitoring", "OpenSSH", "OpenVPN", "Firewall Groups", "Firewall Rules", "Firewall Schedules", "Firewall Categories", "Firewall Log Templates", "Aliases", "NAT", "Intrusion Detection", "Unbound DNS", "WireGuard" ]
+    elements: str
     required: false
 '''
 
@@ -111,8 +111,10 @@ def check_hasync_node(config: OPNsenseModuleConfig):
     """
     if config.get("hasync") is None:
         ElementTree.SubElement(
-            config._config_xml_tree,
-            config._config_maps["system_high_availability_settings"]["hasync"],
+            config._config_xml_tree,  # pylint: disable=W0212
+            config._config_maps[  # pylint: disable=W0212
+                "system_high_availability_settings"
+            ]["hasync"],
         )
         # default settings when nothing is selected
         synchronize_interface(config, "lan")
@@ -255,7 +257,7 @@ def plugins_xmlrpc_sync() -> Dict[str, str]:
 
     # check for stderr
     if result.get("stderr"):
-        raise OPNSenseGetInterfacesError("error encounterd while getting interfaces")
+        raise OPNSenseGetInterfacesError("error encountered while getting interfaces")
     allowed_services = dict(
         service.split(",") for service in result.get("stdout_lines")
     )
@@ -311,8 +313,12 @@ def main():
         "synchronize_peer_ip": {"type": "str", "required": False},
         "synchronize_config_to_ip": {"type": "str", "required": False},
         "remote_system_username": {"type": "str", "required": False},
-        "remote_system_password": {"type": "str", "required": False},
-        "services_to_synchronize": {"type": "list", "required": False},
+        "remote_system_password": {"type": "str", "required": False, "no_log": True},
+        "services_to_synchronize": {
+            "type": "list",
+            "required": False,
+            "elements": "str",
+        },
     }
 
     module = AnsibleModule(
