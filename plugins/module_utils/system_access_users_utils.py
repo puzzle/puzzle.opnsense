@@ -268,7 +268,7 @@ class User:
         expires (Optional[str]): The expiration date for the user, if set.
         authorizedkeys (Optional[str]): Authorized SSH keys for the user, if applicable.
         cert (Optional[str]): Certificate information for the user, if relevant.
-        apikeys (Optional[list[str]]): API key associated with the user, if any. Will be generated
+        apikeys (Optional[list[dict]]): API key associated with the user, if any. Will be generated
         if "" is provided
         groupname (Optional[list[str]]): List of group names the user belongs to, if any.
 
