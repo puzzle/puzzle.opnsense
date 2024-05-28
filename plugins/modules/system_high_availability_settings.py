@@ -175,7 +175,7 @@ def get_configured_interface_with_descr() -> Dict[str, str]:
     # check parsed list length
     if len(interfaces) < 1:
         raise OPNSenseGetInterfacesError(
-            "error encountered while getting interfaces, less than one interface available"
+            "error encountered while getting interfaces, no interfaces available"
         )
 
     return interfaces
@@ -196,7 +196,7 @@ def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
             config.set(ident, "synchronize_interface")
             return
     raise ValueError(
-        f"{sync_interface} is not a valid interface. "
+        f"'{sync_interface}' is not a valid interface. "
         + "If the interface exists, ensure it is enabled and also not virtual."
     )
 
@@ -257,7 +257,7 @@ def plugins_xmlrpc_sync() -> Dict[str, str]:
 
     # check for stderr
     if result.get("stderr"):
-        raise OPNSenseGetInterfacesError("error encountered while getting interfaces")
+        raise OPNSenseGetInterfacesError("error encountered while getting services")
     allowed_services = dict(
         service.split(",") for service in result.get("stdout_lines")
     )
@@ -372,10 +372,10 @@ def main():
                     config=config, sync_interface=synchronize_interface_param
                 )
             except ValueError as error:
-                module.fail_json(repr(error))
+                module.fail_json(str(error))
             except OPNSenseGetInterfacesError as error:
                 module.fail_json(
-                    f"Encountered Error while trying to retrieve interfaces: {repr(error)}"
+                    f"Encountered Error while trying to retrieve interfaces: {str(error)}"
                 )
 
         if synchronize_peer_ip_param:
@@ -387,9 +387,9 @@ def main():
                     config=config, sync_services=services_to_synchronize_param
                 )
             except ValueError as error:
-                module.fail_json(repr(error))
+                module.fail_json(str(error))
             except UnsupportedModuleSettingError as error:
-                module.fail_json(repr(error))
+                module.fail_json(str(error))
 
         if config.changed:
             result["diff"] = config.diff

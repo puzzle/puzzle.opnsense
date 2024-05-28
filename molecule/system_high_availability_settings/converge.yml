@@ -97,8 +97,7 @@
     - name: Converge - Enable unsupported service
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
-        services_to_synchronize:
-          - blabla
+        services_to_synchronize: blabla
       register: unsupported_service_output
       ignore_errors: true
 
@@ -106,10 +105,11 @@
       ansible.builtin.assert:
         that:
           - unsupported_service_output is failed
+          - unsupported_service_output.msg.startswith("Service blabla could not be found in your Opnsense installation. These are all the available services:")
 
     - name: Converge - Set synchronize_interface to nonexistent Interface
       puzzle.opnsense.system_high_availability_settings:
-        synchronize_interface: Interfface
+        synchronize_interface: silly
       register: nonexistent_interface_output
       ignore_errors: true
 
@@ -117,6 +117,7 @@
       ansible.builtin.assert:
         that:
           - nonexistent_interface_output is failed
+          - nonexistent_interface_output.msg == "'silly' is not a valid interface. If the interface exists, ensure it is enabled and also not virtual."
 
     - name: Converge - Set synchronize_interface to virtual Interface
       puzzle.opnsense.system_high_availability_settings:
@@ -128,3 +129,4 @@
       ansible.builtin.assert:
         that:
           - virtual_interface_output is failed
+          - virtual_interface_output.msg == "'openvpn' is not a valid interface. If the interface exists, ensure it is enabled and also not virtual."

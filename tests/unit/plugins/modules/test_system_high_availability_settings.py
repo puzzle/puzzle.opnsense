@@ -160,8 +160,12 @@ def test_synchronize_interface(
     assert sample_config.get("synchronize_interface").text == "opt2"
     synchronize_interface(sample_config, "LAN")
     assert sample_config.get("synchronize_interface").text == "lan"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         synchronize_interface(sample_config, "wan")
+    assert (
+        str(excinfo.value)
+        == "'wan' is not a valid interface. If the interface exists, ensure it is enabled and also not virtual."
+    )
 
 
 @patch(
@@ -179,9 +183,8 @@ def test_synchronize_interface_failure(
 ):
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
         synchronize_interface(sample_config, "LAN")
-    assert (
-        "error encountered while getting interfaces, less than one interface available"
-        in str(excinfo.value)
+    assert "error encountered while getting interfaces, no interfaces available" in str(
+        excinfo.value
     )
 
 
@@ -261,5 +264,30 @@ def test_services_to_synchronize(
     assert sample_config.get("hasync").find("synchronizecron") is None
     assert sample_config.get("hasync").find("synchronizealiases") is None
     assert sample_config.get("hasync").find("synchronizecerts").text == "on"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         services_to_synchronize(sample_config, "bababooey")
+    assert (
+        str(excinfo.value)
+        == "Service bababooey could not be found in your Opnsense installation. These are all the available services: Aliases, Auth Servers, Captive Portal, Certificates."
+    )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command",
+    return_value={
+        "stdout_lines": [],
+        "stderr": "there was an error",
+    },
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_services_to_synchronize_failure(
+    mocked_version_utils: MagicMock, mocked_command_out: MagicMock, sample_config
+):
+    with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
+        services_to_synchronize(sample_config, "cron")
+    assert str(excinfo.value) == "error encountered while getting services"
