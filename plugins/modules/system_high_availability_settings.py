@@ -112,6 +112,19 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
 )
 
 
+def validate_ipv4(ipaddr: str):
+    """
+    Check if the given string is an IPv4 address
+    """
+    digits = ipaddr.split(".")
+    if len(digits) != 4:
+        return False
+    for num in digits:
+        if not (num.isdigit() and int(num) < 256):
+            return False
+    return True
+
+
 def check_hasync_node(config: OPNsenseModuleConfig):
     """
     When an opnsense instance is created, the hasync block does not exist at all.
@@ -221,6 +234,10 @@ def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str):
         peer_ip: PFsync will sync to this IP address.
     """
     if peer_ip:
+        if not validate_ipv4(peer_ip):
+            raise ValueError(
+                "Setting synchronize_peer_ip has to be a valid IPv4 address"
+            )
         config.set(value=peer_ip, setting="synchronize_peer_ip")
     elif not peer_ip and config.get("synchronize_peer_ip") is not None:
         config.get("hasync").remove(config.get("synchronize_peer_ip"))
@@ -368,7 +385,6 @@ def main():
         check_mode=module.check_mode,
     ) as config:
         check_hasync_node(config)
-
         remote_system_synchronization(
             config=config,
             remote_backup_url=synchronize_config_to_ip_param,
@@ -391,7 +407,10 @@ def main():
                 )
 
         if synchronize_peer_ip_param:
-            synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
+            try:
+                synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
+            except ValueError as error:
+                module.fail_json(str(error))
 
         if services_to_synchronize_param is not None:
             try:

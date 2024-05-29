@@ -17,6 +17,7 @@ from ansible_collections.puzzle.opnsense.plugins.modules.system_high_availabilit
     synchronize_peer_ip,
     remote_system_synchronization,
     services_to_synchronize,
+    validate_ipv4,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -217,6 +218,22 @@ def test_synchronize_peer_ip(mocked_version_utils: MagicMock, sample_config):
     assert sample_config.get("synchronize_peer_ip").text == "240.0.0.240"
     synchronize_peer_ip(sample_config, None)
     assert sample_config.get("synchronize_peer_ip") is None
+    with pytest.raises(ValueError) as excinfo:
+        synchronize_peer_ip(sample_config, "test")
+    assert (
+        str(excinfo.value)
+        == "Setting synchronize_peer_ip has to be a valid IPv4 address"
+    )
+
+
+def test_validate_ipv4():
+    assert validate_ipv4("240.0.0.240")
+    assert not validate_ipv4("test")
+    assert not validate_ipv4("510.2440.-1.3")
+    assert not validate_ipv4("240.0.0.240.1")
+    assert not validate_ipv4("240.0.0.")
+    assert not validate_ipv4("240.0.0")
+    assert not validate_ipv4("2a02:150:a60d::2df:94:1:510")
 
 
 @patch(
