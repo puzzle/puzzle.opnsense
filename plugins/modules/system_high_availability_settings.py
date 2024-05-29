@@ -77,11 +77,23 @@ EXAMPLES = r'''
       - "Aliases"
       - "NAT"
 '''
-RETURN = ''''''
-
+# pylint: disable=duplicate-code
+RETURN = '''
+opnsense_configure_output:
+    description: A List of the executed OPNsense configure function along with their respective stdout, stderr and rc
+    returned: always
+    type: list
+    sample:
+      - function: "opnsense_configure_output"
+        params: []
+        rc: 0
+        stderr: ""
+        stderr_lines: []
+        stdout: ""
+        stdout_lines: []
+'''
+# pylint: enable=duplicate-code
 # fmt: on
-
-
 from typing import Optional, List, Dict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element

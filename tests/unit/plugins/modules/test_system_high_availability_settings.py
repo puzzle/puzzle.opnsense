@@ -268,7 +268,8 @@ def test_services_to_synchronize(
         services_to_synchronize(sample_config, "bababooey")
     assert (
         str(excinfo.value)
-        == "Service bababooey could not be found in your Opnsense installation. These are all the available services: Aliases, Auth Servers, Captive Portal, Certificates."
+        == "Service bababooey could not be found in your Opnsense installation."
+        + " These are all the available services: Aliases, Auth Servers, Captive Portal, Certificates."
     )
 
 
