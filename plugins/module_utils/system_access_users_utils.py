@@ -95,7 +95,9 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
     )
 
     if hash_matches.get("stderr"):
-        raise OPNSenseHashVerifyReturnError("error encounterd verifying hash")
+        raise OPNSenseHashVerifyReturnError(
+            f"error encounterd verifying hash {hash_matches.get('stderr')}"
+        )
 
     # if return code of hash_matches is true, it's a match
     if hash_matches.get("stdout") == "bool(true)":
@@ -605,7 +607,6 @@ class User:
 
     @staticmethod
     def _apikeys_from_xml(apikeys: dict) -> List[Dict]:
-
         if isinstance(apikeys, str):
             return [{}]
 
@@ -964,7 +965,6 @@ class UserSet(OPNsenseModuleConfig):
                 if not apikeys_verify(
                     existing_apikeys=existing_user.apikeys, apikeys=user.apikeys
                 ):
-
                     self.set_api_keys_secret(user)
 
             # Update groups if needed
