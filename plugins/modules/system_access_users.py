@@ -239,13 +239,7 @@ def main():
                 result["opnsense_configure_output"] = user_set.apply_settings()
 
                 if ansible_user.apikeys:
-                    result["generated_apikeys"] = []
-                    for new_generated_api_key in ansible_user.apikeys:
-                        api_key_dict = {
-                            "key": new_generated_api_key["key"],
-                            "secret": new_generated_api_key["secret"],
-                        }
-                        result["generated_apikeys"].append(api_key_dict)
+                    result["generated_apikeys"] = ansible_user.apikeys
 
                 for cmd_result in result["opnsense_configure_output"]:
                     if cmd_result["rc"] != 0:
