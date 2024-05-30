@@ -112,7 +112,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
 )
 
 
-def validate_ipv4(ipaddr: str):
+def validate_ipv4(ipaddr: str) -> bool:
     """
     Check if the given string is an IPv4 address
     """
@@ -125,7 +125,7 @@ def validate_ipv4(ipaddr: str):
     return True
 
 
-def check_hasync_node(config: OPNsenseModuleConfig):
+def check_hasync_node(config: OPNsenseModuleConfig) -> None:
     """
     When an opnsense instance is created, the hasync block does not exist at all.
     This function checks if the opnsense/hasync exists in the tree. If not, it
@@ -206,7 +206,7 @@ def get_configured_interface_with_descr() -> Dict[str, str]:
     return interfaces
 
 
-def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
+def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str) -> None:
     """
     Handler function for the synchronize_interface setting
     Args:
@@ -226,7 +226,7 @@ def synchronize_interface(config: OPNsenseModuleConfig, sync_interface: str):
     )
 
 
-def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str):
+def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str) -> None:
     """
     Handler function for the synchronize_peer_ip setting
     Args:
@@ -248,7 +248,7 @@ def remote_system_synchronization(
     remote_backup_url: Optional[str],
     username: Optional[str],
     password: Optional[str],
-):
+) -> None:
     """
     Handler function for the settings synchronize_config_to_ip,
     remote_system_username and remote_system_password.
@@ -291,7 +291,9 @@ def plugins_xmlrpc_sync() -> Dict[str, str]:
     return allowed_services
 
 
-def services_to_synchronize(config: OPNsenseModuleConfig, sync_services: List[str]):
+def services_to_synchronize(
+    config: OPNsenseModuleConfig, sync_services: List[str]
+) -> None:
     """
     Handler function for the setting services_to_synchronize.
     Args:
