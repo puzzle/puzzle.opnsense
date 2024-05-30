@@ -243,6 +243,16 @@ def test_validate_ipv4():
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_remote_system_synchronization(mocked_version_utils: MagicMock, sample_config):
+    remote_system_synchronization(sample_config, "127.0.0.1", "test", "vagrant")
+    assert sample_config.get("synchronize_config_to_ip").text == "127.0.0.1"
+    assert sample_config.get("remote_system_username").text == "test"
+    assert sample_config.get("remote_system_password").text == "vagrant"
+
+    remote_system_synchronization(sample_config, None, None, None)
+    assert sample_config.get("synchronize_config_to_ip").text == "127.0.0.1"
+    assert sample_config.get("remote_system_username").text == "test"
+    assert sample_config.get("remote_system_password").text == "vagrant"
+
     remote_system_synchronization(sample_config, None, "test", "vagrant")
     assert sample_config.get("synchronize_config_to_ip") is not None
     assert sample_config.get("synchronize_config_to_ip").text is None

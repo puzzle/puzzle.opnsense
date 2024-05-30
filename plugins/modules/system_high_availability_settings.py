@@ -258,11 +258,9 @@ def remote_system_synchronization(
         username (Optional[str]): Username for logging in to the remote firewall
         password (Optional[str]): Password for logging in to the remote firewall
     """
-    if remote_backup_url:
+    if any((remote_backup_url, username, password)):
         config.set(value=remote_backup_url, setting="synchronize_config_to_ip")
-    if username:
         config.set(value=username, setting="remote_system_username")
-    if password:
         config.set(value=password, setting="remote_system_password")
 
 
