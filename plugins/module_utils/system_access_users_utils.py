@@ -133,9 +133,7 @@ def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
             # Key does not exist
             return False
 
-        existing_hashed_secret = existing_keys_and_secrets[key]
-
-        if not hash_verify(existing_hashed_secret, plain_secret):
+        if not hash_verify(existing_keys_and_secrets[key], plain_secret):
             # Secret does not match
             return False
 
