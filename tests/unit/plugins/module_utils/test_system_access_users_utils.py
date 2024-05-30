@@ -289,7 +289,7 @@ def test_new_user_from_ansible_module_params_with_multiple_api_keys(
     )
     assert (
         new_test_user.apikeys[0]["secret"]
-        == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
+        == "O6OQc0uNZ1w/ihSAVGyPbPzXmBhOt1hUpytSMU2NGdQfQWYlSDFtwY4xAquJtJLPQS0cN6conp59QGf5+icYvQ=="
     )
     assert (
         new_test_user.apikeys[1]["key"]
@@ -297,7 +297,7 @@ def test_new_user_from_ansible_module_params_with_multiple_api_keys(
     )
     assert (
         new_test_user.apikeys[1]["secret"]
-        == "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583"
+        == "lvU6lbOscmeunpWVHFfDlj4yF4DVp7uXOuH3770BkH0Tf4w4XFB/GKJw6+RzJPtoauKkHoPz/1y0NT0SRn3vqQ=="
     )
     assert new_test_user.ipsecpsk is None
     assert new_test_user.shell == "/bin/sh"
