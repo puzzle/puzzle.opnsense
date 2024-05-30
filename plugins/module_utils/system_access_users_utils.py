@@ -436,7 +436,7 @@ class User:
             is not a valid base64 string.
         """
 
-        api_keys: list[dict] = []
+        api_keys: List[dict] = []
 
         for apikey in apikeys:
             # Check if key and secret are provided
