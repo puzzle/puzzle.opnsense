@@ -977,9 +977,6 @@ class UserSet(OPNsenseModuleConfig):
 
         self.set_user_password(user)
 
-        if "apikeys" in user.__dict__:
-            self.set_api_keys_secret(user)
-
         # Assign UID if not set
         if not user.uid:
             user.uid = next_uid.text
