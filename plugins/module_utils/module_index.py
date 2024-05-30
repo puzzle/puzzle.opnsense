@@ -164,6 +164,8 @@ VERSION_MAP = {
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
             "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/util.inc",
@@ -308,6 +310,8 @@ VERSION_MAP = {
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
             "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/util.inc",
@@ -452,6 +456,8 @@ VERSION_MAP = {
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
             "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/util.inc",
@@ -597,6 +603,8 @@ VERSION_MAP = {
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
             "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/util.inc",

@@ -13,6 +13,8 @@ import os
 from ansible_collections.puzzle.opnsense.plugins.modules.system_high_availability_settings import (
     check_hasync_node,
     synchronize_states,
+    disable_preempt,
+    disconnect_dialup_interfaces,
     synchronize_interface,
     synchronize_peer_ip,
     remote_system_synchronization,
@@ -41,6 +43,8 @@ TEST_VERSION_MAP = {
             # Add other mappings here
             "hasync": "hasync",
             "synchronize_states": "hasync/pfsyncenabled",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
             "synchronize_interface": "hasync/pfsyncinterface",
             "synchronize_peer_ip": "hasync/pfsyncpeerip",
             "synchronize_config_to_ip": "hasync/synchronizetoip",
@@ -138,10 +142,36 @@ def test_check_hasync_node(
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
 def test_synchronize_states(mocked_version_utils: MagicMock, sample_config):
-    synchronize_states(sample_config, False)
-    assert sample_config.get("synchronize_states") is None
     synchronize_states(sample_config, True)
     assert sample_config.get("synchronize_states").text == "on"
+    synchronize_states(sample_config, False)
+    assert sample_config.get("synchronize_states") is None
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_disable_preempt(mocked_version_utils: MagicMock, sample_config):
+    disable_preempt(sample_config, True)
+    assert sample_config.get("disable_preempt").text == "on"
+    disable_preempt(sample_config, False)
+    assert sample_config.get("disable_preempt") is None
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG], indirect=True)
+def test_disconnect_dialup_interfaces(mocked_version_utils: MagicMock, sample_config):
+    disconnect_dialup_interfaces(sample_config, True)
+    assert sample_config.get("disconnect_dialup_interfaces").text == "on"
+    disconnect_dialup_interfaces(sample_config, False)
+    assert sample_config.get("disconnect_dialup_interfaces") is None
 
 
 @patch(

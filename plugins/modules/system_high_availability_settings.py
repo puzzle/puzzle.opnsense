@@ -20,6 +20,14 @@ short_description: Configure high availability settings
 description:
   - Module to configure high availability system settings
 options:
+  disable_preempt:
+    description: "When this device is configured as CARP master it will try to switch to master when powering up, this option will keep this one slave if there already is a master on the network. A reboot is required to take effect."
+    type: bool
+    default: false
+  disconnect_dialup_interfaces:
+    description: "When this device is configured as CARP backup it will disconnect all PPP type interfaces and try to reconnect them when becoming master again."
+    type: bool
+    default: false
   synchronize_states:
     description: "pfsync transfers state insertion, update, and deletion messages between firewalls. Each firewall sends these messages out via multicast on a specified interface, using the PFSYNC protocol ([IP Protocol 240](https://www.openbsd.org/faq/pf/carp.html)). It also listens on that interface for similar messages from other firewalls, and imports them into the local state table. This setting should be enabled on all members of a failover group."  # nopep8
     type: bool
@@ -148,7 +156,33 @@ def check_hasync_node(config: OPNsenseModuleConfig) -> None:
         config.set(value=None, setting="remote_system_password")
 
 
-def synchronize_states(config: OPNsenseModuleConfig, setting: bool):
+def disable_preempt(config: OPNsenseModuleConfig, setting: bool) -> None:
+    """
+    Handler function for the setting disable_preempt.
+    Args:
+        config (OPNsenseModuleConfig): The given Opnsense configuration
+        setting (bool): The setting value
+    """
+    if setting and config.get("disable_preempt") is None:
+        config.set(value="on", setting="disable_preempt")
+    elif not setting and config.get("disable_preempt") is not None:
+        config.get("hasync").remove(config.get("disable_preempt"))
+
+
+def disconnect_dialup_interfaces(config: OPNsenseModuleConfig, setting: bool) -> None:
+    """
+    Handler function for the setting disconnect_dialup_interfaces.
+    Args:
+        config (OPNsenseModuleConfig): The given Opnsense configuration
+        setting (bool): The setting value
+    """
+    if setting and config.get("disconnect_dialup_interfaces") is None:
+        config.set(value="on", setting="disconnect_dialup_interfaces")
+    elif not setting and config.get("disconnect_dialup_interfaces") is not None:
+        config.get("hasync").remove(config.get("disconnect_dialup_interfaces"))
+
+
+def synchronize_states(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the synchronize_states setting.
     Args:
@@ -337,6 +371,8 @@ def main():
     """
 
     module_args = {
+        "disable_preempt": {"type": "bool", "default": False},
+        "disconnect_dialup_interfaces": {"type": "bool", "default": False},
         "synchronize_states": {"type": "bool", "default": False},
         "synchronize_interface": {"type": "str", "required": True},
         "synchronize_peer_ip": {"type": "str", "required": False},
@@ -355,6 +391,8 @@ def main():
         supports_check_mode=True,
         required_one_of=[
             [
+                "disable_preempt",
+                "disconnect_dialup_interfaces",
                 "synchronize_states",
                 "synchronize_interface",
                 "synchronize_peer_ip",
@@ -371,6 +409,10 @@ def main():
         "diff": None,
     }
 
+    disable_preempt_param = module.params.get("disable_preempt")
+    disconnect_dialup_interfaces_param = module.params.get(
+        "disconnect_dialup_interfaces"
+    )
     synchronize_states_param = module.params.get("synchronize_states")
     synchronize_interface_param = module.params.get("synchronize_interface")
     synchronize_peer_ip_param = module.params.get("synchronize_peer_ip")
@@ -391,8 +433,12 @@ def main():
             username=remote_system_username_param,
             password=remote_system_password_param,
         )
-        if synchronize_states_param:
-            synchronize_states(config=config, setting=synchronize_states_param)
+
+        synchronize_states(config=config, setting=synchronize_states_param)
+        disable_preempt(config=config, setting=disable_preempt_param)
+        disconnect_dialup_interfaces(
+            config=config, setting=disconnect_dialup_interfaces_param
+        )
 
         if synchronize_interface_param:
             try:

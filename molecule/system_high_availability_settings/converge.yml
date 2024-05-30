@@ -41,6 +41,8 @@
         synchronize_interface: LAN
         synchronize_config_to_ip: 224.0.0.240
         synchronize_peer_ip: 224.0.0.241
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
         synchronize_states: true
         remote_system_username: opnsense
         remote_system_password: v3rys3cure
@@ -56,10 +58,12 @@
         that:
           - "'<pfsyncinterface>lan</pfsyncinterface>' in ( current_config.content | b64decode )"
           - "'<synchronizetoip>224.0.0.240</synchronizetoip>' in ( current_config.content | b64decode )"
-          - "'<pfsyncenabled>on</pfsyncenabled>' in ( current_config.content | b64decode )"
           - "'<username>opnsense</username>' in ( current_config.content | b64decode )"
           - "'<password>v3rys3cure</password>' in ( current_config.content | b64decode )"
           - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip>' in ( current_config.content | b64decode )"
+          - "'<pfsyncenabled>on</pfsyncenabled>' in ( current_config.content | b64decode )"
+          - "'<disablepreempt>on</disablepreempt>' in ( current_config.content | b64decode )"
+          - "'<disconnectppps>on</disconnectppps>' in ( current_config.content | b64decode )"
 
     - name: Converge - Check that services changed
       ansible.builtin.assert:
@@ -70,6 +74,9 @@
     - name: Converge - Change nothing
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
+        synchronize_states: true
       register: reset_all
 
     - name: Converge - Check that parameters stay unaffected
@@ -77,10 +84,13 @@
         that:
           - reset_all.changed == false
 
-    - name: Converge - Remove all services
+    - name: Converge - Remove all services, set disable_preempt, disconnect_dialup_interfaces, synchronize_states to false
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
         services_to_synchronize: []
+        disable_preempt: false
+        disconnect_dialup_interfaces: false
+        synchronize_states: false
       register: synch_remove_services
 
     - name: Converge - get config
@@ -93,6 +103,13 @@
         that:
           - "'<synchronize{{ item }}>on</synchronize{{ item }}>' not  in ( current_config.content | b64decode )"
       loop: "{{ services }}"
+
+    - name: Converge - Check that all settings in question are removed
+      ansible.builtin.assert:
+        that:
+          - "'<pfsyncenabled>on</pfsyncenabled>' not  in ( current_config.content | b64decode )"
+          - "'<disablepreempt>on</disablepreempt>' not  in ( current_config.content | b64decode )"
+          - "'<disconnectppps>on</disconnectppps>' not  in ( current_config.content | b64decode )"
 
     - name: Converge - Enable unsupported service
       puzzle.opnsense.system_high_availability_settings:
