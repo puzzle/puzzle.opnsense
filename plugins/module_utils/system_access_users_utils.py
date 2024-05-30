@@ -610,8 +610,8 @@ class User:
 
         api_keys = []
         if isinstance(apikeys, list):
-            for item in apikeys:
-                item = item.get("item", {})
+            for pair in apikeys:
+                item = pair.get("item", {})
                 api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
         elif apikeys.get("item"):
             item = apikeys.get("item", {})
