@@ -334,27 +334,60 @@ def services_to_synchronize(
         config (OPNsenseModuleConfig): The configuration for the opnsense firewall
         sync_services (List[str]): A list of services that should be synchronized
     """
-    allowed_services = plugins_xmlrpc_sync()
     if isinstance(sync_services, str):
         sync_services = [sync_services]
+
+    # Opnsense has a helper function called plugins_xmlrpc_sync, which returns all services
+    # installed on Opnsense that can be synced. They are returned as a dictionary. Here an
+    # example as to how this dictionary would look like:
+    # {
+    #   "cron": "Cron",
+    #   "dhcrelay": "DHCPv4: Relay",
+    #   "virtualip": "Virtual IPs",
+    #   "sysctl": "System Tunables",
+    # }
+    # Or in short, the key is how the services will be referenced in the config, while the
+    # "description" is how the service is referenced in the GUI. For this reason, when given
+    # a service we try to identify it both by checking it against the ID's of all services as
+    # well as all the descriptions.
+
+    allowed_services = plugins_xmlrpc_sync()
+    # add all to-be-synced services that aren't already in the config
     for service in sync_services:
+        # Try to match the service by service_id
         if service in allowed_services.keys():
             service_id = service
             service_description = allowed_services[service]
+        # Try to match the service by its name in the GUI
         elif service in allowed_services.values():
+            # Invert the dictionary, i.e. look up the id of the service by its description. No two
+            # services have the same description, as none of them do the exact same thing, so there
+            # is no need to worry about collisions.
             service_id = {v: k for k, v in allowed_services.items()}[service]
             service_description = service
+
+        # could not match the service, so doesn't exist on the instance or misspelled.
         else:
             raise ValueError(
                 f"Service {service} could not be found in your Opnsense installation. "
                 + f"These are all the available services: {', '.join(allowed_services.values())}."
             )
 
-        service_xml_path = f"synchronize{service_id}"
-        if config.get("hasync").find(service_xml_path) is None:
-            xml_elem = Element(service_xml_path)
+        # The services get written into the config as follows:
+        # If a service should get synced, say cron, you'll find a line in the config that
+        # looks like this:
+        # <synchronizecron>on</synchronizecron>
+        # In general, if a service should get synced, we add an element to the config with the name
+        # "synchronize{service_id}", with the value "on".
+        # (see https://github.com/opnsense/core/blob/24f36bf3323bdb08894a8619ab8e2b22ed557539/src/www/system_hasync.php#L55) # pylint: disable=line-too-long
+        # If a service shouldn't get synced, the element is removed from the config entirely.
+        service_xml_element_name = f"synchronize{service_id}"
+        if config.get("hasync").find(service_xml_element_name) is None:
+            xml_elem = Element(service_xml_element_name)
             xml_elem.text = "on"
             config.get("hasync").append(xml_elem)
+
+    # remove all services in the config that shouldn't be synced.
     for service_id, service_description in allowed_services.items():
         service_xml_elem = config.get("hasync").find(f"synchronize{service_id}")
         if (
