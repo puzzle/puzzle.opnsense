@@ -563,6 +563,8 @@ def test_fail_set_on_parent_node(sample_config_path):
 def test_success_set_on_empty_leaf_node(sample_config_path):
     """
     Test case to verify that setting a leaf node with a value of None will succeed.
+
+    Args:
     - sample_config_path (str): The path to the temporary test configuration file.
     """
     with OPNsenseModuleConfig(

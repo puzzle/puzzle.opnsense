@@ -155,6 +155,25 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_high_availability_settings": {
+            # Add other mappings here
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -281,6 +300,25 @@ VERSION_MAP = {
                     "configure_params": [],
                 },
             },
+        },
+        "system_high_availability_settings": {
+            # Add other mappings here
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
         },
     },
     "23.7": {
@@ -409,6 +447,25 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_high_availability_settings": {
+            # Add other mappings here
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
+        },
     },
     "24.1": {
         "system_settings_general": {
@@ -536,6 +593,25 @@ VERSION_MAP = {
                     "configure_params": [],
                 },
             },
+        },
+        "system_high_availability_settings": {
+            # Add other mappings here
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
         },
     },
 }

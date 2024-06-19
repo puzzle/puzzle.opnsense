@@ -1,0 +1,203 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    services:
+      - aliases
+      - authservers
+      - captiveportal
+      - certs
+      - cron
+      - dhcpd
+      - dhcpdv6
+      - dhcrelay6
+      - dhcrelay
+      - widgets
+      - dnsforwarder
+      - categories
+      - ifgroups
+      - lvtemplate
+      - rules
+      - schedules
+      - ipsec
+      - suricata
+      - monit
+      - nat
+      - syslog
+      - ntpd
+      - ssh
+      - openvpn
+      - shaper
+      - staticroutes
+      - sysctl
+      - dnsresolver
+      - users
+      - virtualip
+      - webgui
+  tasks:
+    - name: Converge - Test all Parameters
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        synchronize_config_to_ip: 224.0.0.240
+        synchronize_peer_ip: 224.0.0.241
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
+        synchronize_states: true
+        remote_system_username: opnsense
+        remote_system_password: v3rys3cure
+        services_to_synchronize: "{{ services }}"
+      tags: all_plugs
+
+    - name: Converge - get config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Converge - Check that Parameters changed
+      ansible.builtin.assert:
+        that:
+          - "'<pfsyncinterface>lan</pfsyncinterface>' in ( current_config.content | b64decode )"
+          - "'<synchronizetoip>224.0.0.240</synchronizetoip>' in ( current_config.content | b64decode )"
+          - "'<username>opnsense</username>' in ( current_config.content | b64decode )"
+          - "'<password>v3rys3cure</password>' in ( current_config.content | b64decode )"
+          - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip>' in ( current_config.content | b64decode )"
+          - "'<pfsyncenabled>on</pfsyncenabled>' in ( current_config.content | b64decode )"
+          - "'<disablepreempt>on</disablepreempt>' in ( current_config.content | b64decode )"
+          - "'<disconnectppps>on</disconnectppps>' in ( current_config.content | b64decode )"
+
+    - name: Converge - Check that services changed
+      ansible.builtin.assert:
+        that:
+          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' in ( current_config.content | b64decode )"
+      loop: "{{ services }}"
+
+    - name: Converge - Change nothing
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
+        synchronize_states: true
+      register: reset_all
+
+    - name: Converge - Check that parameters stay unaffected
+      ansible.builtin.assert:
+        that:
+          - reset_all.changed == false
+
+    - name: Converge - Remove all services, set disable_preempt, disconnect_dialup_interfaces, synchronize_states to false
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize: []
+        disable_preempt: false
+        disconnect_dialup_interfaces: false
+        synchronize_states: false
+      register: synch_remove_services
+
+    - name: Converge - get config
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: current_config
+
+    - name: Converge - Check that all services are removed
+      ansible.builtin.assert:
+        that:
+          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' not  in ( current_config.content | b64decode )"
+      loop: "{{ services }}"
+
+    - name: Converge - Check that all settings in question are removed
+      ansible.builtin.assert:
+        that:
+          - "'<pfsyncenabled>on</pfsyncenabled>' not  in ( current_config.content | b64decode )"
+          - "'<disablepreempt>on</disablepreempt>' not  in ( current_config.content | b64decode )"
+          - "'<disconnectppps>on</disconnectppps>' not  in ( current_config.content | b64decode )"
+
+    - name: Converge - Enable unsupported service
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize: blabla
+      register: unsupported_service_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Service is not supported
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is failed
+          - unsupported_service_output.msg.startswith("Service blabla could not be found in your Opnsense installation. These are all the available services:")
+
+    - name: Converge - Get OPNsense version
+      ansible.builtin.command: opnsense-version -O
+      register: opnsense_version_cmd
+
+    - name: Converge - Set OPNsense version fact
+      ansible.builtin.set_fact:
+        opnsense_version: "{{ (opnsense_version_cmd.stdout | from_json)['product_version'] }}"
+
+    - name: Converge - Set service on unsupported Version
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize: Web Proxy
+      register: unsupported_service_output
+      ignore_errors: true
+
+    - name: Converge - Check success on supported versions
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is not failed
+        fail_msg: Service Web Proxy should be supported for Versions 23.7 and below
+      when: opnsense_version is version('24.1', '<')
+
+    - name: Converge - Check failure on unsupported versions
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is failed
+        fail_msg: Service Web Proxy should not be supported for Versions 24.1 and up
+      when: opnsense_version is version('24.1', '>=')
+
+    - name: Converge - Set service on unsupported Version
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize:
+          - Kea DHCP
+          - WireGuard
+      register: unsupported_service_output
+      ignore_errors: true
+
+    - name: Converge - Check success on supported versions
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is not failed
+        fail_msg: Services Kea DHCP and WireGuard should be supported for Versions 24.1 and up
+      when: opnsense_version is version('24.1', '>=')
+
+    - name: Converge - Check failure on unsupported versions
+      ansible.builtin.assert:
+        that:
+          - unsupported_service_output is failed
+        fail_msg: Services Kea DHCP and WireGuard  should not be supported for Versions 23.7 and below
+      when: opnsense_version is version('24.1', '<')
+
+
+    - name: Converge - Set synchronize_interface to nonexistent Interface
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: silly
+      register: nonexistent_interface_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Interfasce assignment failed
+      ansible.builtin.assert:
+        that:
+          - nonexistent_interface_output is failed
+          - nonexistent_interface_output.msg == "'silly' is not a valid interface. If the interface exists, ensure it is enabled and also not virtual."
+
+    - name: Converge - Set synchronize_interface to virtual Interface
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: openvpn
+      register: virtual_interface_output
+      ignore_errors: true
+
+    - name: Converge - Verify that Interface assignment failed
+      ansible.builtin.assert:
+        that:
+          - virtual_interface_output is failed
+          - virtual_interface_output.msg == "'openvpn' is not a valid interface. If the interface exists, ensure it is enabled and also not virtual."
