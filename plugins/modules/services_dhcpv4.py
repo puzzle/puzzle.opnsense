@@ -71,7 +71,7 @@ opnsense_configure_output:
 # fmt: on
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils.service_dhcpv4 import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.service_dhcpv4_utils import (
     DHCPv4Set,
 )
 
