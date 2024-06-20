@@ -162,14 +162,7 @@ class OPNsenseModuleConfig:
             RuntimeError: If there are unsaved changes in the configuration.
         """
         if exc_type:
-            # module.fail_json will always yield a SystemExit exception
-            # we need to raise this exception "as is" to avoid ansible warnings
-            # If however an unexpected exception was risen which was not a result of
-            # module.fail_json raising this warning is ok, and we need the exceptions
-            # details to troubleshoot the issue
-            if isinstance(exc_val, SystemExit):
-                raise
-            raise exc_type(f"Exception occurred: {exc_val}")
+            raise exc_type(exc_val).with_traceback(exc_tb)
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
