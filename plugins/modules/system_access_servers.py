@@ -13,12 +13,15 @@ __metaclass__ = type
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 
 # fmt: off
+
 DOCUMENTATION = r'''
 ---
+author:
+  - Yoan Müller (@LuminatiHD)
 module: system_access_servers
 short_description: Configure access methods used for authentication on the Webgui
 description:
-  - This Module allows you to configure different access methods (ex: LDAP) to secure the Web frontend of the OPNsense firewall.
+  - "This Module allows you to configure different access methods (ex: LDAP) to secure the Web frontend of the OPNsense firewall."
 options:
   description:
     description: "Descriptive name of your access server"
@@ -26,7 +29,6 @@ options:
     type: str
   type:
     description: "The access type you want to configure"
-    required: true
     default: LDAP
     choices:
       - LDAP
@@ -42,12 +44,10 @@ options:
     type: str
   port:
     description: "Port of your access server instance."
-    required: true
     default: 389
     type: int
   transport:
-    description: "Transport protocol to use to connect to your server.  When choosing StartTLS or SSL, please configure the required private CAs in System -> Trust"
-    required: true
+    description: "Transport protocol to use to connect to your server. When choosing StartTLS or SSL, please configure the required private CAs in System -> Trust" # nopep8
     default: TCP - Standard
     choices:
       - TCP - Standard
@@ -61,8 +61,7 @@ options:
     choices:
       - 3
       - 2
-    type: list
-    elements: int
+    type: int
   bind_credentials:
     description: "Bind user and credentials specified with two keys user_dn and password"
     choices:
@@ -71,7 +70,6 @@ options:
     type: dict
   search_scope:
     description: "The scope of how many levels the Base DN get searched for users."
-    required: true
     default: "One Level"
     choices:
       - One Level
@@ -87,7 +85,6 @@ options:
     type: str
   initial_template:
     description: "Select if using OpenLDAP, Microsoft AD or Novell eDirectory"
-    required: true
     default: "OpenLDAP"
     choices:
       - OpenLDAP
@@ -97,7 +94,6 @@ options:
     elements: str
   user_naming_attribute:
     description: "LDAP attribute to map usernames."
-    required: true
     default: "cn"
     type: str
   read_properties:
@@ -116,7 +112,7 @@ options:
     description: " Limit the groups which may be used by this authenticator, keep empty to consider all local groups in OPNsense. When groups are selected, you can assign unassigned groups to the user manually "
     default: "Nothing selected"
     type: list
-    elements: string
+    elements: str
   automatic_user_creation:
     description: " To be used in combination with synchronize groups, allow the authenticator to create new local users after successful login with group memberships returned for the user. "
     default: false
@@ -131,7 +127,6 @@ options:
     choices:
        - present
        - absent
-    elements: str
 '''
 
 EXAMPLES = r'''
@@ -188,13 +183,10 @@ def main():
 
     module_args = {
         "description": {
-            "description": "Descriptive name of your access server",
             "required": True,
             "type": "str",
         },
         "type": {
-            "description": "The access type you want to configure",
-            "required": True,
             "default": "LDAP",
             "choices": [
                 "LDAP",
@@ -207,37 +199,25 @@ def main():
             "elements": "str",
         },
         "hostname": {
-            "description": "Hostname or IP address of your access server instance",
             "required": True,
             "type": "str",
         },
         "port": {
-            "description": "Port of your access server instance.",
-            "required": True,
             "default": 389,
             "type": "int",
         },
         "transport": {
-            "description": (
-                "Transport protocol to use to connect to your server. "
-                + " When choosing StartTLS or SSL, please configure "
-                + "the required private CAs in System -> Trust"
-            ),
-            "required": True,
             "default": "TCP - Standard",
             "choices": ["TCP - Standard", "StarTLS", "SSL - Encrypted"],
             "type": "list",
             "elements": "str",
         },
         "protocol_version": {
-            "description": "Select protocol version",
             "default": 3,
             "choices": [3, 2],
-            "type": "list",
-            "elements": "int",
+            "type": "int",
         },
         "bind_credentials": {
-            "description": "Bind user and credentials specified with two keys user_dn and password",
             "choices": [
                 {"user_dn": "<CN=Binduser,OU=Staff,O=Company,DC=example,DC=com>"},
                 {"password": "<password for bind user>"},
@@ -245,98 +225,56 @@ def main():
             "type": "dict",
         },
         "search_scope": {
-            "description": "The scope of how many levels the Base DN get searched for users.",
-            "required": True,
             "default": "One Level",
             "choices": ["One Level", "Entire Subtree"],
             "type": "list",
             "elements": "str",
         },
         "authentication_containers": {
-            "description": "Semicolon-separated list of distinguished names DC= components.",
             "required": True,
             "type": "str",
         },
         "extended_query": {
-            "description": "Extended LDAP Query to map additional attributes.",
             "type": "str",
         },
         "initial_template": {
-            "description": "Select if using OpenLDAP, Microsoft AD or Novell eDirectory",
-            "required": True,
             "default": "OpenLDAP",
             "choices": ["OpenLDAP", "Microsoft AD", "Novell eDirectory"],
             "type": "list",
             "elements": "str",
         },
         "user_naming_attribute": {
-            "description": "LDAP attribute to map usernames.",
-            "required": True,
             "default": "cn",
             "type": "str",
         },
         "read_properties": {
-            "description": (
-                "Normally the authentication only tries to bind to the remote server, "
-                + "when this option isenabled also the objects properties are fetched, "
-                + "can be practical for debugging purposes. "
-            ),
             "default": False,
             "type": "bool",
         },
         "synchronize_groups": {
-            "description": (
-                "Synchronize groups specified by memberOf or class attribute after"
-                + " login, this option requires to enable read properties. Groups"
-                + " will be extracted from the first CN= section "
-                "and will only"
-                + " be considered when already existing in OPNsense. Group memberships"
-                + " will be persisted in OPNsense."
-            ),
             "default": False,
             "type": "bool",
         },
         "constraint_groups": {
-            "description": (
-                "Constraint allowed groups to those selected in the container section. "
-                + "This may offer additional security in cases where users are able to "
-                + "inject memberOf attributes in different trees."
-            ),
             "default": False,
             "type": "bool",
         },
         "limit_groups": {
-            "description": (
-                "Limit the groups which may be used by this authenticator, keep empty "
-                + "to consider all local groups in OPNsense. When groups are selected, "
-                + "you can assign unassigned groups to the user manually"
-            ),
             "default": "Nothing selected",
             "type": "list",
-            "elements": "string",
+            "elements": "str",
         },
         "automatic_user_creation": {
-            "description": (
-                "To be used in combination with synchronize groups, allow the"
-                + " authenticator to create new local users after successful login "
-                + "with group memberships returned for the user. "
-            ),
             "default": False,
             "type": "bool",
         },
         "match_case_insensitive": {
-            "description": " Allow mixed case input when gathering local user settings. ",
             "default": False,
             "type": "bool",
         },
         "state": {
-            "description": (
-                "Whether to add or update (`present`) or remove (`absent`)"
-                + "an server access configuration."
-            ),
             "type": "str",
             "choices": ["present", "absent"],
-            "elements": "str",
         },
     }
 
