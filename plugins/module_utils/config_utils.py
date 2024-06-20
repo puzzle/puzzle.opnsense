@@ -213,6 +213,12 @@ class OPNsenseModuleConfig:
         supported_settings: List[str] = []
         for cfg_map in self._config_maps.values():
             supported_settings.extend(cfg_map.keys())
+
+        if "php_requirements" in supported_settings:
+            supported_settings.remove("php_requirements")
+        if "configure_functions" in supported_settings:
+            supported_settings.remove("configure_functions")
+
         raise UnsupportedModuleSettingError(
             f"Setting '{setting_name}' is not supported in module '{self._module_name}' "
             f"for OPNsense version '{self.opnsense_version}'."

@@ -2,7 +2,7 @@
 
 namespace: puzzle
 name: opnsense
-version: 0.1.0
+version: 1.1.1
 readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
@@ -10,7 +10,7 @@ authors:
   - Philipp Matti (github.com/acteru)
   - Reto Kupferschmid (github.com/rekup)
   - Kilian Soltermann (github.com/killuuuhh)
-description: OPNsense collection for Ansible
+description: Ansible collection for OPNsense
 license_file: LICENSE
 tags:
 # tags so people can search for collections https://galaxy.ansible.com/search
@@ -18,9 +18,18 @@ tags:
   - opnsense
 repository: https://github.com/puzzle/puzzle.opnsense/
 #documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
-homepage: https://github.com/puzzle/puzzle.opnsense/
+homepage: https://puzzle.github.io/puzzle.opnsense/collections/puzzle/opnsense/
 issues: https://github.com/puzzle/puzzle.opnsense/issues
 build_ignore:
 # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections_distributing.html#ignoring-files-and-folders
   - .gitignore
+  - .github
   - changelogs/.plugin-cache.yaml
+  - codecov.yml
+  - Makefile
+  - Pipfile*
+  - "*.tar.gz"
+  - renovate.json
+  - .pylint.rc
+  - ansible.cfg
+  - .idea

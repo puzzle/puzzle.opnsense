@@ -26,8 +26,9 @@ Licensed under the GNU General Public License v3.0+
 """
 
 
-from dataclasses import dataclass, asdict, fields
-from typing import List, Optional
+import dataclasses
+from dataclasses import dataclass, asdict, fields, field
+from typing import List, Optional, Dict, Any
 import base64
 import os
 import binascii
@@ -60,16 +61,6 @@ class OPNSenseCryptReturnError(Exception):
     """
     Exception raised when the return value of the instance is not what is expected
     """
-
-
-# pylint: disable=too-few-public-methods
-class UserLoginShell(ListEnum):
-    """Represents the user login shell."""
-
-    NOLOGIN = "/sbin/nologin"
-    CSH = "/bin/csh"
-    SH = "/bin/sh"
-    TCSH = "/bin/tcsh"
 
 
 @dataclass
@@ -189,7 +180,7 @@ class User:
         descr (Optional[str]): A description of the user, if available.
         ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
         otp_seed (Optional[str]): OTP seed for two-factor authentication, if used.
-        shell (Optional[UserLoginShell]): The user's login shell, if specified.
+        shell (Optional[str]): The user's login shell, if specified.
         uid (Optional[str]): The user's unique identifier.
         disabled (bool): Whether the user is disabled (default is False).
         full_name (Optional[str]): The user's full name, if available.
@@ -224,7 +215,7 @@ class User:
     descr: Optional[str] = None
     ipsecpsk: Optional[str] = None
     otp_seed: Optional[str] = None
-    shell: Optional[UserLoginShell] = UserLoginShell.NOLOGIN
+    shell: str = "/sbin/nologin"
     uid: Optional[str] = None
     disabled: bool = False
     full_name: Optional[str] = None
@@ -237,30 +228,29 @@ class User:
     apikeys: Optional[List[str]] = None
     groupname: Optional[List[str]] = None
 
+    extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def __init__(self, **kwargs):
+        _attr_names: set[str] = {f.name for f in dataclasses.fields(self)}
+        _extra_attrs: dict = {}
+        for key, value in kwargs.items():
+            if key in _attr_names:
+                setattr(self, key, value)
+                continue
+
+            _extra_attrs[key] = value
+        self.extra_attrs = _extra_attrs
+
     def __eq__(self, other) -> bool:
         if not isinstance(other, User):
             return False
 
-        for field in fields(self):
-            if field.name not in ["password", "uid", "otp_seed", "apikeys"]:
-                if getattr(self, field.name) != getattr(other, field.name):
+        for _field in fields(self):
+            if _field.name not in ["password", "uid", "otp_seed", "apikeys"]:
+                if getattr(self, _field.name) != getattr(other, _field.name):
                     return False
 
         return True
-
-    def __post_init__(self) -> None:
-        # Manually define the fields and their expected types
-        enum_fields = {
-            "shell": UserLoginShell,
-        }
-
-        for field_name, field_type in enum_fields.items():
-            value = getattr(self, field_name)
-
-            # Check if the value is a string and the field_type is a subclass of ListEnum
-            if isinstance(value, str) and issubclass(field_type, ListEnum):
-                # Convert string to ListEnum
-                setattr(self, field_name, field_type.from_string(value))
 
     def set_otp_seed(self, otp_seed: str = None) -> str:
         """
@@ -429,6 +419,10 @@ class User:
             elif isinstance(user_val, bool):
                 user_dict[user_key] = "1"
 
+        for key, value in self.extra_attrs.items():
+            user_dict[key] = value
+
+        del user_dict["extra_attrs"]
         element: Element = xml_utils.dict_to_etree("user", user_dict)[0]
 
         return element
