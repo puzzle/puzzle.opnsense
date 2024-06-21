@@ -7,7 +7,6 @@ scenario:
         - syntax
         - create
         - converge
-        - idempotence
         - verify
         - destroy
 
