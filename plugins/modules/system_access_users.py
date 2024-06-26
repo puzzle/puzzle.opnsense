@@ -238,7 +238,7 @@ def main():
                 user_set.save()
                 result["opnsense_configure_output"] = user_set.apply_settings()
 
-                if ansible_user.apikeys:
+                if hasattr(ansible_user, "apikeys"):
                     result["generated_apikeys"] = ansible_user.apikeys
 
                 for cmd_result in result["opnsense_configure_output"]:
