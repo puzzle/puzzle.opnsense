@@ -479,7 +479,12 @@ class User:
         user_dict: dict = self.__dict__.copy()
 
         for user_key, user_val in list(user_dict.items()):
-            if user_val is None and user_key in ["expires", "ipsecpsk", "otp_seed"]:
+            if user_val is None and user_key in [
+                "expires",
+                "ipsecpsk",
+                "otp_seed",
+                "authorizedkeys",
+            ]:
                 continue
 
             if isinstance(user_val, list) and user_key == "apikeys":
