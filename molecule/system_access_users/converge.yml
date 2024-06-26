@@ -12,6 +12,7 @@
       puzzle.opnsense.system_access_users:
         username: test_user_1
         password: test_password_1
+        full_name: "Test User 1: Test minimum requirements User Creation"
 
     # Test User minimum requirements disabled
     - name: "Test User 2: Test disabled User Creation"
@@ -117,9 +118,9 @@
         full_name: "Test User 14: Test User Creation with not existing group as list"
         groups:
             - test
+
       register: test_user_14_result
       ignore_errors: yes
-
     - name: "Verify that the user creation failed due to non-existing group"
       ansible.builtin.assert:
         that:
@@ -135,7 +136,7 @@
         otp_seed: ""
         full_name: "Test User 15: Test User Creation with empty otp_seed"
 
-    # Test User with otp_seed
+    ## Test User with otp_seed
     - name: "Test User 16: Test User Creation with otp_seed"
       puzzle.opnsense.system_access_users:
         username: test_user_16
@@ -143,7 +144,7 @@
         otp_seed: test_seed
         full_name: "Test User 16: Test User Creation with otp_seed"
 
-    # Test User with empty authorizedkeys
+    ## Test User with empty authorizedkeys
     - name: "Test User 17: Test User Creation with empty authorizedkeys"
       puzzle.opnsense.system_access_users:
         username: test_user_17
@@ -156,7 +157,7 @@
       puzzle.opnsense.system_access_users:
             username: test_user_18
             password: test_password_18
-            authorizedkeys: test_authorized_key
+            authorizedkeys: test_authorized_key_mit_fabio
             full_name: "Test User 18: Test User Creation with authorizedkeys"
 
     # Test User with empty api_keys
@@ -176,6 +177,7 @@
       when:
         - "'generated_apikeys' in api_keys_result"
         - api_keys_result.generated_apikeys | length > 0
+
     # Test User with too short api_keys
     - name: "Test User 20: Test User Creation with too short api_keys"
       puzzle.opnsense.system_access_users:
@@ -213,20 +215,22 @@
         - "'generated_apikeys' in api_keys_result"
         - api_keys_result.generated_apikeys | length > 0
 
-    # Test User password escaping
-    - name: "Test User 22: Test password escaping"
+    # Test User password escaping with backslash
+    - name: "Test User 22: Test password escaping with backslash"
       puzzle.opnsense.system_access_users:
         username: test_user_22
         password: test_password_22\
+        full_name: "Test User 22: Test password escaping with backslash"
         shell: /bin/sh
         groups:
             - admins
 
-    # Test User password escaping
-    - name: "Test User 23: Test password escaping"
+    # Test User password escaping with dash
+    - name: "Test User 23: Test password escaping with dash"
       puzzle.opnsense.system_access_users:
         username: test_user_23
         password: test_password_23'
+        full_name: "Test User 23: Test password escaping with dash"
         shell: /bin/sh
         groups:
             - admins
@@ -250,6 +254,7 @@
       puzzle.opnsense.system_access_users:
             username: test_user_24
             password: test_password_24
+            full_name: "Test User 24: Test User Creation with apikeys as list"
             groups:
               - admins
             apikeys:
