@@ -292,12 +292,6 @@ class User:
         self.ipsecpsk = kwargs.get("ipsecpsk", None)
         self.otp_seed = kwargs.get("otp_seed", None)
 
-        if "plain_password" in kwargs:
-            self.plain_password = kwargs["plain_password"]
-
-            # set password
-            self.password = self._generate_hashed_secret(secret=self.plain_password)
-
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -412,15 +406,6 @@ class User:
         return api_keys
 
     @staticmethod
-    def set_authorizedkeys(authorizedkeys: str = None) -> Optional[str]:
-        """ """
-
-        if authorizedkeys:
-            return base64.b64encode(authorizedkeys.encode("utf-8")).decode("utf-8")
-
-        return None
-
-    @staticmethod
     def set_otp_seed(otp_seed: str = None) -> str:
         """ """
 
@@ -428,6 +413,26 @@ class User:
             return base64.b32encode(os.urandom(20).encode("utf-8")).decode("utf-8")
 
         return otp_seed
+
+    @staticmethod
+    def encode_authorizedkeys(authorizedkeys: Optional[str] = None) -> Optional[str]:
+        """
+        Encodes the authorized SSH keys as base32.
+
+        Args:
+            authorizedkeys (str, optional): SSH keys to encode (default: None).
+
+        Returns:
+            str: Base32-encoded authorized SSH keys.
+
+        Encodes the provided SSH keys as base32. If no keys are provided,
+        an empty string is returned.
+        """
+
+        if authorizedkeys:
+            return base64.b64encode(authorizedkeys.encode("utf-8")).decode("utf-8")
+
+        return None
 
     def to_etree(self) -> Element:
         """ """
@@ -438,7 +443,6 @@ class User:
                 "expires",
                 "ipsecpsk",
                 "otp_seed",
-                "authorizedkeys",
             ]:
                 continue
 
@@ -498,10 +502,8 @@ class User:
             "landing_page": params.get("landing_page"),
             "expires": params.get("expires"),
             "groupname": params.get("groups") if params.get("groups") else [],
-            "authorizedkeys": (
-                User.set_authorizedkeys(authorizedkeys=params.get("authorizedkeys"))
-                if params.get("authorizedkeys")
-                else None
+            "authorizedkeys": User.encode_authorizedkeys(
+                authorizedkeys=params.get("authorizedkeys", None)
             ),
             "cert": params.get("cert"),
             "apikeys": (
@@ -722,6 +724,8 @@ class UserSet(OPNsenseModuleConfig):
                 plain_string=user.password,
             ):
                 self.set_user_password(user)
+            else:
+                user.__dict__.pop("password")
 
             if hasattr(user, "apikeys"):
                 if not apikeys_verify(
