@@ -27,14 +27,13 @@ Licensed under the GNU General Public License v3.0+
 """
 
 
-import dataclasses
-from dataclasses import dataclass, asdict, fields, field
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass, asdict
+from typing import List, Optional, Dict
 import base64
 import os
 import binascii
 
-from xml.etree.ElementTree import Element, ElementTree, SubElement
+from xml.etree.ElementTree import Element, ElementTree
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
@@ -88,10 +87,13 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
     if plain_string is None:
         return False
 
+    # escape plain_string
+    escaped_string = plain_string.replace("\\", "\\\\").replace("'", "\\'")
+
     # check if current plain_string matches hash
     hash_matches = opnsense_utils.run_command(
         php_requirements=[],
-        command=f"var_dump(password_verify('{plain_string}','{existing_hashed_string}'));",
+        command=f"var_dump(password_verify('{escaped_string}','{existing_hashed_string}'));",
     )
 
     if hash_matches.get("stderr"):
@@ -120,6 +122,10 @@ def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
 
     if apikeys is None:
         return False
+
+    # if the List[Dict] matches, return True
+    if apikeys == existing_apikeys:
+        return True
 
     existing_keys_and_secrets = {
         apikey["key"]: apikey["secret"] for apikey in existing_apikeys
@@ -246,10 +252,44 @@ class Group:
 
 
 class User:
+    """
+    A class representing a user with various attributes and functionalities.
+
+    Methods:
+        __init__(**kwargs):
+            Initializes a User object with given attributes.
+
+        __eq__(other):
+            Compares two User objects for equality.
+
+        generate_hashed_secret(secret: str) -> str:
+            Generates a hashed secret using the crypt function.
+
+        _apikeys_from_xml(apikeys: dict) -> List[Dict]:
+            Converts API keys from an XML format to a list of dictionaries.
+
+        from_xml(element: Element) -> "User":
+            Converts an XML element into a User object.
+
+        generate_apikeys(apikeys: List[dict] = None) -> List[dict]:
+            Generates API keys, encoding them as necessary.
+
+        set_otp_seed(otp_seed: str = None) -> str:
+            Sets or generates an OTP seed.
+
+        encode_authorizedkeys(authorizedkeys: Optional[str] = None) -> Optional[str]:
+            Encodes authorized SSH keys as base64.
+
+        to_etree() -> Element:
+            Converts the User object to an XML element.
+
+        from_ansible_module_params(cls, params: dict) -> "User":
+            Creates a User instance from Ansible module parameters.
+    """
 
     @staticmethod
-    def _generate_hashed_secret(secret: str) -> str:
-        """ """
+    def generate_hashed_secret(secret: str) -> str:
+        """Generates a hashed secret using the crypt function."""
 
         # load requirements
         php_requirements = []
@@ -377,7 +417,7 @@ class User:
 
     @staticmethod
     def generate_apikeys(apikeys: List[dict] = None) -> List[dict]:
-        """ """
+        """Generates or validates API keys."""
 
         api_keys: List[dict] = []
 
@@ -407,7 +447,7 @@ class User:
 
     @staticmethod
     def set_otp_seed(otp_seed: str = None) -> str:
-        """ """
+        """Sets or generates an OTP seed."""
 
         if otp_seed is None or otp_seed == "":
             return base64.b32encode(os.urandom(20).encode("utf-8")).decode("utf-8")
@@ -435,25 +475,19 @@ class User:
         return None
 
     def to_etree(self) -> Element:
-        """ """
-        user_dict: dict = {key: value for key, value in self.__dict__.items()}
+        """Converts the User object into an XML element."""
+        user_dict: dict = self.__dict__.copy()
 
-        for user_key, user_val in user_dict.copy().items():
-            if user_val is None and user_key in [
-                "expires",
-                "ipsecpsk",
-                "otp_seed",
-            ]:
+        for user_key, user_val in list(user_dict.items()):
+            if user_val is None and user_key in ["expires", "ipsecpsk", "otp_seed"]:
                 continue
 
             if isinstance(user_val, list) and user_key == "apikeys":
-                # Modify the apikeys directly into the list of items
-
                 user_dict[user_key] = [
                     {
                         "item": {
                             key_name: (
-                                User._generate_hashed_secret(secret_value)
+                                User.generate_hashed_secret(secret_value)
                                 if key_name == "secret"
                                 and not secret_value.startswith("$6$")
                                 else secret_value
@@ -463,9 +497,6 @@ class User:
                     }
                     for api_key_dict in user_val
                 ]
-
-            # if issubclass(type(user_val), ListEnum):
-            #    user_dict[user_key] = user_val.value
 
             elif user_val is None or user_val is False:
                 del user_dict[user_key]
@@ -480,7 +511,20 @@ class User:
 
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "User":
-        """ """
+        """
+        Creates a User instance from Ansible module parameters.
+
+        Args:
+            params (dict): Parameters from an Ansible module, expected to contain
+                        user attributes such as 'username', 'password', etc.
+
+        Returns:
+            User: An instance of the User class initialized with the provided parameters.
+                Fields not provided are omitted from initialization.
+
+        This method processes parameters typically received from an Ansible module,
+        handling optional attributes and setting the password securely if provided.
+        """
 
         user_dict = {
             "disabled": params.get("disabled"),
@@ -521,7 +565,46 @@ class User:
 
 
 class UserSet(OPNsenseModuleConfig):
-    """ """
+    """
+    Represents a collection of user and group configurations within the OPNsense system,
+    facilitating the management of users and groups through direct manipulation of the system's
+    configuration file.
+
+    The UserSet class provides a high-level interface to add, update, delete, and find users and
+    groups in the system's configuration, abstracting the complexities of direct XML manipulation.
+    It ensures that changes to users and groups are consistent and coherent, maintaining the
+    integrity of the system's access control and configuration.
+
+    Upon initialization, the class loads existing user and group configurations from the specified
+    configuration file path, allowing for subsequent operations to reflect the current state of the
+    system accurately. The class offers methods to perform CRUD (Create, Read, Update, Delete)
+    operations on user and group entities, alongside utility methods to check for changes and save
+    updates back to the configuration file.
+
+    Attributes:
+        _users (List[User]): A list of User objects representing the users currently managed by
+                             the system.
+        _groups (List[Group]): A list of Group objects representing the groups currently managed
+                               by the system.
+
+    Methods:
+        __init__(self, path: str): Initializes a new UserSet instance, loading users and groups
+                                   from the specified configuration file.
+        _load_users(self): Loads users from the system configuration into the _users list.
+        _load_groups(self): Loads groups from the system configuration into the _groups list.
+        add_or_update(self, user: User): Adds a new user or updates an existing one in the system.
+        delete(self, user: User): Removes a specified user from the system's configuration.
+        find(self, **kwargs): Searches for and returns a user matching specified criteria.
+        save(self): Saves changes made to users or groups back to the system's configuration file.
+
+    Usage:
+        The UserSet class is intended for use within the OPNsense system's configuration management
+        tools, providing a structured and safe approach to modifying user and group settings.
+
+    Note:
+        Modifications made through UserSet instances are not persisted automatically. The `save`
+        method must be called to write changes back to the configuration file.
+    """
 
     _users: List[User]
 
@@ -536,7 +619,27 @@ class UserSet(OPNsenseModuleConfig):
         self._config_xml_tree = self._load_config()
 
     def _load_users(self) -> List[User]:
-        """ """
+        """
+        Loads user data from the system's configuration and converts it into a list of User objects.
+
+        This method accesses the 'system' element of the configuration, searching for all 'user'
+        elements. Each found 'user' element represents a user configuration within the system.
+        The method collects these elements, and for each one, it creates a User object by parsing
+        the XML data into the structured format defined by the User data class.
+
+        The conversion process relies on the `from_xml` class method of the User, which interprets
+        the XML data and initializes a User object with the corresponding attributes extracted from
+        the XML element.
+
+        Returns:
+            List[User]: A list of User objects representing all users found in the system's
+                        configuration. If no users are found, an empty list is returned.
+
+        Note:
+            This method is intended to be used internally within the class to refresh or initialize
+            the in-memory representation of users based on the current state of the system's
+            configuration.
+        """
 
         element_tree_users: Element = self.get("system")
 
@@ -550,7 +653,28 @@ class UserSet(OPNsenseModuleConfig):
         return [User.from_xml(user_data) for user_data in user_list]
 
     def _load_groups(self) -> List:
-        """ """
+        """
+        Loads and returns a list of Group objects from the system's configuration XML.
+
+        This method parses the system's configuration file to extract information about groups,
+        creating a list of Group objects. Each group found within the 'system' configuration
+        section is instantiated as a Group object based on its XML representation.
+
+        Returns:
+            List[Group]: A list of Group objects representing all groups found in the system's
+                        configuration file. The groups are extracted by searching for 'group'
+                        tags within the 'system' section of the configuration XML.
+
+        The process involves searching the XML for all 'group' elements, collecting these elements
+        into a list, and then transforming each XML element into a Group object using the static
+        method `Group.from_xml`. This method is critical for initializing the internal state of
+        the system with the current group configurations as defined in the configuration file.
+
+        Note:
+            The method assumes that the 'system' element of the configuration XML is already loaded
+            and accessible via the `self.get("system")` call, which should return the relevant
+            XML section for parsing.
+        """
 
         element_tree_groups: Element = self.get("system")
 
@@ -646,7 +770,7 @@ class UserSet(OPNsenseModuleConfig):
         user.apikeys = [
             {
                 key_name: (
-                    User._generate_hashed_secret(secret_value)
+                    User.generate_hashed_secret(secret_value)
                     if key_name == "secret" and not secret_value.startswith("$6$")
                     else secret_value
                 )
@@ -711,7 +835,32 @@ class UserSet(OPNsenseModuleConfig):
                 )
 
     def add_or_update(self, user: User) -> None:
-        """ """
+        """
+        Adds a new user to the system or updates an existing user's information, ensuring that group
+        associations are correctly managed. This method determines whether the provided user already
+        exists within the system. If the user exists, it updates the user's details and group
+        associations; if the user does not exist, it assigns a unique user ID and adds the user to
+        the system.
+
+        The method handles the assignment of user IDs and updates the internal tracking of the next
+        available ID. It also manages group memberships by updating group associations for both new
+        and existing users as necessary.
+
+        Parameters:
+            user (User): The user object to add or update. This object should contain all relevant
+                        information about the user, including username, password, and any group
+                        memberships.
+
+        Note:
+            This operation directly affects the internal list of users managed by this instance,
+            reflecting changes immediately in the system's state. However, persistent storage or
+            external system updates must be handled separately to ensure that changes remain
+            effective across sessions or reboots.
+
+        Returns:
+            None: This method does not return a value but updates the internal state to include or
+                modify the specified user's information.
+        """
 
         existing_user: Optional[User] = next(
             (u for u in self._users if u.name == user.name), None
