@@ -331,6 +331,7 @@ class User:
         self.expires = kwargs.get("expires", None)
         self.ipsecpsk = kwargs.get("ipsecpsk", None)
         self.otp_seed = kwargs.get("otp_seed", None)
+        self.scope = kwargs.get("scope", "user")
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -540,7 +541,7 @@ class User:
             "ipsecpsk": params.get("ipsecpsk"),
             "otp_seed": (
                 User.set_otp_seed(otp_seed=params.get("otp_seed"))
-                if params.get("otp_seed") is not None and params.get("otp_seed") != ""
+                if params.get("otp_seed")
                 else None
             ),
             "shell": params.get("shell"),
