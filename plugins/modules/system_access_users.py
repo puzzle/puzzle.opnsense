@@ -66,7 +66,7 @@ options:
         type: str
     expires:
         description:
-            - The expiration date for the OPNsense user account.
+            - Leave blank if the account shouldn't expire, otherwise enter the expiration date in the following format: mm/dd/yyyy
         required: false
         type: str
     groups:
