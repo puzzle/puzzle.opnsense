@@ -176,7 +176,6 @@ def test_user_from_xml():
     assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1000"
     assert not hasattr(test_user, "api_keys")
-    assert not hasattr(test_user, "plain_password")
 
 
 def test_user_to_etree():
@@ -225,6 +224,354 @@ def test_user_with_api_key_from_xml():
     assert test_user.otp_seed is None
     assert test_user.shell == "/bin/sh"
     assert test_user.uid == "1001"
+
+
+# Function user_from_ansible_params attributes Unit-Tests
+
+
+def test_user_from_ansible_module_params_simple(sample_config_path):
+    test_params: dict = {
+        "username": "vagrant",
+        "password": "vagrant",
+        "disabled": True,
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+    }
+    new_test_user: User = User.from_ansible_module_params(test_params)
+    assert new_test_user.name == "vagrant"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.disabled == 1
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "vagrant box management"
+    assert new_test_user.expires is None
+    assert new_test_user.authorizedkeys is None
+    assert new_test_user.ipsecpsk is None
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.uid == "1000"
+
+
+def test_new_user_from_ansible_module_params_required(sample_config_path):
+    test_params: dict = {
+        "username": "not_existing_user",
+        "password": "vagrant",
+    }
+    new_test_user: User = User.from_ansible_module_params(test_params)
+    assert new_test_user.name == "not_existing_user"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.scope == "user"
+    assert new_test_user.expires is None
+    assert new_test_user.authorizedkeys is None
+    assert new_test_user.ipsecpsk is None
+
+
+def test_new_user_from_ansible_module_params_additional_parameters(sample_config_path):
+    test_params: dict = {
+        "username": "not_existing_user",
+        "password": "vagrant",
+        "full_name": "new not_existing_user",
+        "email": "test@test.com",
+        "comment": "this is a test",
+        "landing_page": "/test.html",
+        "shell": "/bin/sh",
+        "expires": "11/17/2024",
+    }
+    new_test_user: User = User.from_ansible_module_params(test_params)
+    assert new_test_user.name == "not_existing_user"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "new not_existing_user"
+    assert new_test_user.email == "test@test.com"
+    assert new_test_user.comment == "this is a test"
+    assert new_test_user.landing_page == "/test.html"
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.expires == "11/17/2024"
+    assert new_test_user.authorizedkeys is None
+    assert new_test_user.ipsecpsk is None
+
+
+def test_group_from_xml():
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    test_etree_group: Element = list(list(test_etree_opnsense)[0])[5]
+    test_group: Group = Group.from_xml(test_etree_group)
+    assert test_group.name == "admins"
+    assert test_group.description == "System Administrators"
+    assert test_group.scope == "system"
+    assert test_group.member == [
+        "0",
+        "1000",
+        "2004",
+        "2005",
+        "2006",
+        "2009",
+        "2010",
+        "2014",
+    ]
+    assert test_group.gid == "1999"
+
+
+def test_user_from_ansible_module_params_with_group(sample_config_path):
+    test_params: dict = {
+        "username": "vagrant",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "groups": ["admins"],
+    }
+    new_test_user: User = User.from_ansible_module_params(test_params)
+    assert new_test_user.name == "vagrant"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "vagrant box management"
+    assert new_test_user.expires is None
+    assert new_test_user.authorizedkeys is None
+    assert new_test_user.ipsecpsk is None
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.uid == "1000"
+    assert new_test_user.groupname == ["admins"]
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_with_group_as_string(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "groups": ["test_group"],
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    with UserSet(sample_config_path) as new_user_set:
+        new_test_user = new_user_set.find(name="test")
+        assert "test_group" in new_test_user.groupname
+        new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_with_multiple_groups_as_list(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "groups": ["admins", "test_group"],
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    with UserSet(sample_config_path) as new_user_set:
+        new_test_user = new_user_set.find(name="test")
+
+        assert (
+            "admins" in new_test_user.groupname
+            and "test_group" in new_test_user.groupname
+        )
+        new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_with_no_groups(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    with UserSet(sample_config_path) as new_user_set:
+        new_test_user = new_user_set.find(name="test")
+        assert new_test_user.name == "test"
+        new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_with_not_existing_group(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "groups": ["not_existing_group"],
+    }
+    with UserSet(sample_config_path) as user_set:
+        with pytest.raises(OPNSenseGroupNotFoundError) as excinfo:
+            test_user = User.from_ansible_module_params(test_params)
+            user_set.add_or_update(test_user)
+            user_set.save()
+        assert "Group 'not_existing_group' not found on Instance" in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_single_group_removal(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test_user_23",
+        "password": "test_password_23",
+        "scope": "user",
+        "full_name": "[ ANSIBLE ]",
+        "shell": "/bin/sh",
+        "uid": "2021",
+        "groups": [],
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    with UserSet(sample_config_path) as new_user_set:
+        all_groups = new_user_set._load_groups()
+        test_user: User = user_set.find(name="test_user_23")
+        test_group = all_groups[1]
+        assert "2021" not in test_group.member
+        assert not test_user.groupname
+        new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_multiple_group_removal(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "vagrant",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "/bin/sh",
+        "uid": "1000",
+        "groups": [],
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    with UserSet(sample_config_path) as new_user_set:
+        all_groups = new_user_set._load_groups()
+        admin_group = all_groups[0]
+        test_group = all_groups[1]
+        assert "1000" not in admin_group.member
+        assert "1000" not in test_group.member
+        new_user_set.save()
 
 
 @patch(
@@ -363,27 +710,6 @@ def test_existing_user_from_ansible_module_params_with_multiple_api_keys(
     assert new_test_user.uid == "1000"
 
 
-def test_user_from_ansible_module_params_simple(sample_config_path):
-    test_params: dict = {
-        "username": "vagrant",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-    }
-    new_test_user: User = User.from_ansible_module_params(test_params)
-    assert new_test_user.name == "vagrant"
-    assert new_test_user.password == "vagrant"
-    assert new_test_user.scope == "user"
-    assert new_test_user.descr == "vagrant box management"
-    assert new_test_user.expires is None
-    assert new_test_user.authorizedkeys is None
-    assert new_test_user.ipsecpsk is None
-    assert new_test_user.shell == "/bin/sh"
-    assert new_test_user.uid == "1000"
-
-
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
@@ -401,27 +727,13 @@ def test_user_set_load_simple_user(
         user_set.save()
 
 
-def test_group_from_xml():
-    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
-    test_etree_group: Element = list(list(test_etree_opnsense)[0])[5]
-    test_group: Group = Group.from_xml(test_etree_group)
-    assert test_group.name == "admins"
-    assert test_group.description == "System Administrators"
-    assert test_group.scope == "system"
-    assert test_group.member == [
-        "0",
-        "1000",
-        "2004",
-        "2005",
-        "2006",
-        "2009",
-        "2010",
-        "2014",
-    ]
-    assert test_group.gid == "1999"
-
-
-def test_user_from_ansible_module_params_with_group(sample_config_path):
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+def test_user_from_ansible_module_params_with_provided_otp_seed(
+    mock_set_password, sample_config_path
+):
     test_params: dict = {
         "username": "vagrant",
         "password": "vagrant",
@@ -429,7 +741,7 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
         "full_name": "vagrant box management",
         "shell": "/bin/sh",
         "uid": "1000",
-        "groups": ["admins"],
+        "otp_seed": "some_seed",
     }
     new_test_user: User = User.from_ansible_module_params(test_params)
     assert new_test_user.name == "vagrant"
@@ -437,169 +749,40 @@ def test_user_from_ansible_module_params_with_group(sample_config_path):
     assert new_test_user.scope == "user"
     assert new_test_user.descr == "vagrant box management"
     assert new_test_user.expires is None
-    assert new_test_user.authorizedkeys is None
+    assert new_test_user.otp_seed == "some_seed"
     assert new_test_user.ipsecpsk is None
     assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
-    assert new_test_user.groupname == ["admins"]
 
 
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
     return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
 )
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_with_group_as_string(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
+def test_user_from_ansible_module_params_with_generated_otp_seed(
+    mock_set_password, sample_config_path
 ):
-    test_params = {
-        "username": "test",
+    test_params: dict = {
+        "username": "new_user",
         "password": "vagrant",
         "scope": "user",
         "full_name": "vagrant box management",
         "shell": "/bin/sh",
         "uid": "1000",
-        "groups": ["test_group"],
+        "otp_seed": "",
     }
-    with UserSet(sample_config_path) as user_set:
-        test_user = User.from_ansible_module_params(test_params)
-        user_set.add_or_update(test_user)
 
-        # raise Exception(user_set._users[3].__dict__)
-        assert user_set.changed
-        user_set.save()
-    with UserSet(sample_config_path) as new_user_set:
-        new_test_user = new_user_set.find(name="test")
-        assert "test_group" in new_test_user.groupname
-        new_user_set.save()
+    new_test_user: User = User.from_ansible_module_params(test_params)
 
-
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_with_multiple_groups_as_list(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    test_params = {
-        "username": "test",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-        "groups": ["admins", "test_group"],
-    }
-    with UserSet(sample_config_path) as user_set:
-        test_user = User.from_ansible_module_params(test_params)
-        user_set.add_or_update(test_user)
-        assert user_set.changed
-        user_set.save()
-    with UserSet(sample_config_path) as new_user_set:
-        new_test_user = new_user_set.find(name="test")
-        # Adjust the assertions based on the actual implementation of your User and UserSet classes
-        assert (
-            "admins" in new_test_user.groupname
-            and "test_group" in new_test_user.groupname
-        )
-        new_user_set.save()
-
-
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_with_no_groups(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    test_params = {
-        "username": "test",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-    }
-    with UserSet(sample_config_path) as user_set:
-        test_user = User.from_ansible_module_params(test_params)
-        user_set.add_or_update(test_user)
-        assert user_set.changed
-        user_set.save()
-    with UserSet(sample_config_path) as new_user_set:
-        new_test_user = new_user_set.find(name="test")
-        assert new_test_user.name == "test"
-        new_user_set.save()
-
-
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_with_not_existing_group(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    test_params = {
-        "username": "test",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-        "groups": ["not_existing_group"],
-    }
-    with UserSet(sample_config_path) as user_set:
-        with pytest.raises(OPNSenseGroupNotFoundError) as excinfo:
-            test_user = User.from_ansible_module_params(test_params)
-            user_set.add_or_update(test_user)
-            user_set.save()
-        assert "Group 'not_existing_group' not found on Instance" in str(excinfo.value)
+    assert new_test_user.name == "new_user"
+    assert new_test_user.password == "vagrant"
+    assert new_test_user.scope == "user"
+    assert new_test_user.descr == "vagrant box management"
+    assert new_test_user.expires is None
+    assert new_test_user.otp_seed is None
+    assert new_test_user.ipsecpsk is None
+    assert new_test_user.shell == "/bin/sh"
+    assert new_test_user.uid == "1000"
 
 
 @patch(
@@ -632,90 +815,6 @@ def test_user_from_ansible_module_params_with_authorizedkeys(
     assert new_test_user.ipsecpsk is None
     assert new_test_user.shell == "/bin/sh"
     assert new_test_user.uid == "1000"
-
-
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_single_group_removal(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    test_params = {
-        "username": "test_user_23",
-        "password": "test_password_23",
-        "scope": "user",
-        "full_name": "[ ANSIBLE ]",
-        "shell": "/bin/sh",
-        "uid": "2021",
-        "groups": [],
-    }
-    with UserSet(sample_config_path) as user_set:
-        test_user = User.from_ansible_module_params(test_params)
-        user_set.add_or_update(test_user)
-        assert user_set.changed
-        user_set.save()
-    with UserSet(sample_config_path) as new_user_set:
-        all_groups = new_user_set._load_groups()
-        test_user: User = user_set.find(name="test_user_23")
-        test_group = all_groups[1]
-        assert "2021" not in test_group.member
-        assert not test_user.groupname
-        new_user_set.save()
-
-
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
-    return_value="OPNsense Test",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
-    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
-)
-@patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
-    return_value=True,
-)
-@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_user_from_ansible_module_params_multiple_group_removal(
-    mock_set_password,
-    mock_get_version,
-    mock_password_verify: MagicMock,
-    sample_config_path,
-):
-    test_params = {
-        "username": "vagrant",
-        "password": "vagrant",
-        "scope": "user",
-        "full_name": "vagrant box management",
-        "shell": "/bin/sh",
-        "uid": "1000",
-        "groups": [],
-    }
-    with UserSet(sample_config_path) as user_set:
-        test_user = User.from_ansible_module_params(test_params)
-        user_set.add_or_update(test_user)
-        assert user_set.changed
-        user_set.save()
-    with UserSet(sample_config_path) as new_user_set:
-        all_groups = new_user_set._load_groups()
-        admin_group = all_groups[0]
-        test_group = all_groups[1]
-        assert "1000" not in admin_group.member
-        assert "1000" not in test_group.member
-        new_user_set.save()
 
 
 @patch(
