@@ -720,9 +720,7 @@ class UserSet(OPNsenseModuleConfig):
 
         # load requirements
         configure_function_dict = self._config_maps["password"]["configure_functions"]
-        configure_function_key = next(
-            (key for key in configure_function_dict if key != "name"), None
-        )
+        configure_function_key = "password"
         configure_function = configure_function_dict[configure_function_key]["name"]
         configure_params = configure_function_dict[configure_function_key][
             "configure_params"
