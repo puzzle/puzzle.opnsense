@@ -16,7 +16,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     UserSet,
     Group,
     OPNSenseCryptReturnError,
-    OPNSenseGroupNotFoundError,
+    OPNsenseGroupNotFoundError,
     OPNSenseHashVerifyReturnError,
     hash_verify,
 )
@@ -483,7 +483,7 @@ def test_user_from_ansible_module_params_with_not_existing_group(
         "groups": ["not_existing_group"],
     }
     with UserSet(sample_config_path) as user_set:
-        with pytest.raises(OPNSenseGroupNotFoundError) as excinfo:
+        with pytest.raises(OPNsenseGroupNotFoundError) as excinfo:
             test_user = User.from_ansible_module_params(test_params)
             user_set.add_or_update(test_user)
             user_set.save()

@@ -51,7 +51,7 @@ class OPNSenseCryptReturnError(Exception):
     """
 
 
-class OPNSenseGroupNotFoundError(Exception):
+class OPNsenseGroupNotFoundError(Exception):
     """
     Exception raised when an OPNsense group is not found.
     """
@@ -324,7 +324,6 @@ class User:
         )
 
     def __init__(self, **kwargs):
-
         # set default attributes
         self.authorizedkeys = kwargs.get("authorizedkeys", None)
         self.disabled = kwargs.get("disabled", False)
@@ -337,12 +336,10 @@ class User:
             setattr(self, key, value)
 
     def __eq__(self, other) -> bool:
-
         if not isinstance(other, User):
             return False
 
         if self.__dict__.get("password") and other.__dict__.get("password"):
-
             if not self.__dict__["password"] == other.__dict__["password"]:
                 if not hash_verify(
                     existing_hashed_string=self.__dict__["password"],
@@ -801,7 +798,7 @@ class UserSet(OPNsenseModuleConfig):
                                             the existing group memberships need to be updated.
 
         Raises:
-            OPNSenseGroupNotFoundError: If a specified group does not exist on the instance, this
+            OPNsenseGroupNotFoundError: If a specified group does not exist on the instance, this
                                         exception is raised, indicating the need for corrective
                                         action or error handling.
         """
@@ -836,7 +833,7 @@ class UserSet(OPNsenseModuleConfig):
 
             if not group_found:
                 # Group was not found, raise an exception
-                raise OPNSenseGroupNotFoundError(
+                raise OPNsenseGroupNotFoundError(
                     f"Group '{group_name}' not found on Instance"
                 )
 

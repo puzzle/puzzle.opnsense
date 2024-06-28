@@ -153,7 +153,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     User,
     UserSet,
-    OPNSenseGroupNotFoundError,
+    OPNsenseGroupNotFoundError,
     OPNSenseNotValidBase64APIKeyError,
 )
 
@@ -249,7 +249,7 @@ def main():
                         )
         module.exit_json(**result)
 
-    except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
+    except OPNsenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
     except (
         OPNSenseNotValidBase64APIKeyError
