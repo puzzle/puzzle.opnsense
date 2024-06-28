@@ -66,7 +66,7 @@ options:
         type: str
     expires:
         description:
-            - The expiration date for the OPNsense user account.
+            - "Leave blank if the account shouldn't expire, otherwise enter the expiration date in the following format: mm/dd/yyyy"
         required: false
         type: str
     groups:
@@ -80,7 +80,7 @@ options:
             - A list of apikeys for an OPNsense User. Generates new apikey if "" is provided.
         required: false
         type: list
-        elements: str
+        elements: dict
     otp_seed:
         description:
             - The otp_seed of a OPNsense user.
@@ -153,8 +153,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     User,
     UserSet,
-    OPNSenseGroupNotFoundError,
-    OPNSenseNotValidBase64APIKeyError,
+    OPNsenseGroupNotFoundError,
+    OPNsenseNotValidBase64APIKeyError,
 )
 
 
@@ -184,7 +184,7 @@ def main():
         "apikeys": {
             "type": "list",
             "required": False,
-            "elements": "str",
+            "elements": "dict",
             "no_log": False,
         },
         "scope": {"type": "str", "required": False},
@@ -238,15 +238,8 @@ def main():
                 user_set.save()
                 result["opnsense_configure_output"] = user_set.apply_settings()
 
-                if ansible_user.apikeys:
-                    result["generated_apikeys"] = []
-                    for new_generated_api_key in ansible_user.apikeys:
-                        result["generated_apikeys"].append(
-                            f"key={new_generated_api_key['key']}"
-                        )
-                        result["generated_apikeys"].append(
-                            f"secret={new_generated_api_key['secret']}"
-                        )
+                if hasattr(ansible_user, "apikeys"):
+                    result["generated_apikeys"] = ansible_user.apikeys
 
                 for cmd_result in result["opnsense_configure_output"]:
                     if cmd_result["rc"] != 0:
@@ -256,10 +249,10 @@ def main():
                         )
         module.exit_json(**result)
 
-    except OPNSenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
+    except OPNsenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
     except (
-        OPNSenseNotValidBase64APIKeyError
+        OPNsenseNotValidBase64APIKeyError
     ) as opnsense_not_valid_base64_apikey_error_message:
         module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
