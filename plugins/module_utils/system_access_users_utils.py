@@ -57,7 +57,7 @@ class OPNsenseGroupNotFoundError(Exception):
     """
 
 
-class OPNSenseHashVerifyReturnError(Exception):
+class OPNsenseHashVerifyReturnError(Exception):
     """
     Exception raised when the return value of the instance is not what is expected
     """
@@ -81,7 +81,7 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
         bool: True if the plain string matches the hashed string, otherwise False.
 
     Raises:
-        OPNSenseHashVerifyReturnError: If an error occurs during hash verification.
+        OPNsenseHashVerifyReturnError: If an error occurs during hash verification.
     """
 
     if plain_string is None:
@@ -97,7 +97,7 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
     )
 
     if hash_matches.get("stderr"):
-        raise OPNSenseHashVerifyReturnError(
+        raise OPNsenseHashVerifyReturnError(
             f"error encounterd verifying hash {hash_matches.get('stderr')}"
         )
 

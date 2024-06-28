@@ -17,7 +17,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     Group,
     OPNSenseCryptReturnError,
     OPNsenseGroupNotFoundError,
-    OPNSenseHashVerifyReturnError,
+    OPNsenseHashVerifyReturnError,
     hash_verify,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -897,7 +897,7 @@ def test_password_verify_returns_false_on_difference(mock_run_command: MagicMock
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_command"
 )
-def test_password_verify_returns_OPNSenseHashVerifyReturnError(
+def test_password_verify_returns_OPNsenseHashVerifyReturnError(
     mock_run_command: MagicMock,
 ):
     # Mock the return value of the run_command to simulate a password match
@@ -905,7 +905,7 @@ def test_password_verify_returns_OPNSenseHashVerifyReturnError(
         "stdout": None,
         "stderr": "this an error",
     }
-    with pytest.raises(OPNSenseHashVerifyReturnError) as excinfo:
+    with pytest.raises(OPNsenseHashVerifyReturnError) as excinfo:
         # Call the function with test data
         test_password_matches = hash_verify(
             plain_string="test_password_1",
