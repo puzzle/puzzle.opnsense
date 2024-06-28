@@ -105,7 +105,7 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
     return hash_matches.get("stdout") == "bool(true)"
 
 
-def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
+def apikeys_verify(existing_apikeys: List[Dict], apikeys: Optional[List[Dict]]) -> bool:
     """
     Verifies if a list of API keys matches existing API keys.
 
