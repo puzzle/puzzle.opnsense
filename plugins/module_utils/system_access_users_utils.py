@@ -102,10 +102,7 @@ def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> boo
         )
 
     # if return code of hash_matches is true, it's a match
-    if hash_matches.get("stdout") == "bool(true)":
-        return True
-
-    return False
+    return hash_matches.get("stdout") == "bool(true)"
 
 
 def apikeys_verify(existing_apikeys: List[Dict], apikeys: List[Dict]) -> bool:
