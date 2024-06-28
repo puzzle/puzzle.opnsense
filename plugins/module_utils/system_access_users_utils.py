@@ -747,7 +747,8 @@ class UserSet(OPNsenseModuleConfig):
             configure_params=formatted_params,
         ).get("stdout")
 
-        # since "password" is no longer needed and to avoid the configure_functions in the save() method, it can be popped
+        # since "password" is no longer needed and to avoid the configure_functions in
+        # the save() method, it can be popped
         self._config_maps.pop("password")
 
     @staticmethod
@@ -804,7 +805,9 @@ class UserSet(OPNsenseModuleConfig):
             return
         # ansible_user : no groupname
         # ansible_user: groupname < existing_user
-        if (hasattr(existing_user, "groupname") and existing_user.groupname) and not hasattr(user, "groupname"):
+        if (
+            hasattr(existing_user, "groupname") and existing_user.groupname
+        ) and not hasattr(user, "groupname"):
             for existing_group in self._groups:
                 if existing_group.check_if_user_in_group(target_user):
                     existing_group.remove_user(target_user)
