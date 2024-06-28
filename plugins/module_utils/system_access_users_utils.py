@@ -63,7 +63,7 @@ class OPNSenseHashVerifyReturnError(Exception):
     """
 
 
-class OPNSenseNotValidBase64APIKeyError(Exception):
+class OPNsenseNotValidBase64APIKeyError(Exception):
     """
     Exception raised when a not valid base32 api code is provided
     """
@@ -436,7 +436,7 @@ class User:
                     api_keys.append(apikey)
 
                 except binascii.Error as binascii_error_message:
-                    raise OPNSenseNotValidBase64APIKeyError(
+                    raise OPNsenseNotValidBase64APIKeyError(
                         f"The API key: {apikey} is not a valid base64 string. "
                         f"Error: {str(binascii_error_message)}"
                     ) from binascii_error_message

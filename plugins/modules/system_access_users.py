@@ -154,7 +154,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     User,
     UserSet,
     OPNsenseGroupNotFoundError,
-    OPNSenseNotValidBase64APIKeyError,
+    OPNsenseNotValidBase64APIKeyError,
 )
 
 
@@ -252,7 +252,7 @@ def main():
     except OPNsenseGroupNotFoundError as opnsense_group_not_found_error_error_message:
         module.fail_json(msg=str(opnsense_group_not_found_error_error_message))
     except (
-        OPNSenseNotValidBase64APIKeyError
+        OPNsenseNotValidBase64APIKeyError
     ) as opnsense_not_valid_base64_apikey_error_message:
         module.fail_json(msg=str(opnsense_not_valid_base64_apikey_error_message))
 
