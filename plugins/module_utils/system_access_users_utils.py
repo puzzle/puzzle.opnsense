@@ -748,7 +748,7 @@ class UserSet(OPNsenseModuleConfig):
             configure_params=formatted_params,
         ).get("stdout")
 
-        # since "password" is no longer needed, it can be popped
+        # since "password" is no longer needed and to avoid the configure_functions in the save() method, it can be popped
         self._config_maps.pop("password")
 
     @staticmethod
