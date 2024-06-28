@@ -545,7 +545,6 @@ class User:
             "comment": params.get("comment"),
             "landing_page": params.get("landing_page"),
             "expires": params.get("expires"),
-            "groupname": params.get("groups") if params.get("groups") else [],
             "authorizedkeys": User.encode_authorizedkeys(
                 authorizedkeys=params.get("authorizedkeys", None)
             ),
@@ -557,6 +556,8 @@ class User:
             ),
         }
 
+        if params.get("groups", None):
+            user_dict["groupname"] = params["groups"]
         user_dict = {
             key: value for key, value in user_dict.items() if value is not None
         }
@@ -799,7 +800,11 @@ class UserSet(OPNsenseModuleConfig):
         """
         target_user = existing_user if existing_user else user
 
-        if len(user.groupname) == 0 or not hasattr(user, "groupname"):
+        if not hasattr(existing_user, "groupname") and not hasattr(user, "groupname"):
+            return
+        # ansible_user : no groupname
+        # ansible_user: groupname < existing_user
+        if (hasattr(existing_user, "groupname") and existing_user.groupname) and not hasattr(user, "groupname"):
             for existing_group in self._groups:
                 if existing_group.check_if_user_in_group(target_user):
                     existing_group.remove_user(target_user)

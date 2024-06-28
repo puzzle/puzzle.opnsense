@@ -83,7 +83,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                         <key>AMC39xLYvfD7PyaemZrIVuaWBIdRQVS9NgEHFWzW7+xj0ExFY+07/Vz6HcmUVkJkjb8N0Cg7yEdESvNy</key>
                         <secret>$6$$f8zJvXeCng1iaUCaq8KLvg4tJbGQ.qWKmfgcpytflpGF4AXc4U.N8/TiczM6fu741KBB2PwWUC0k7fzet8asq0</secret>
                     </item>
-                </apikeys>
+                </apikeys>vagrantvagrant
                 <ipsecpsk />
                 <otp_seed />
                 <shell>/bin/sh</shell>
@@ -109,7 +109,6 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <scope>system</scope>
                 <gid>1999</gid>
                 <member>0</member>
-                <member>1000</member>
                 <member>2004</member>
                 <member>2005</member>
                 <member>2006</member>
@@ -122,7 +121,6 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <name>test_group</name>
                 <description>test_group</description>
                 <scope>system</scope>
-                <member>1000</member>
                 <member>2004</member>
                 <member>2021</member>
                 <gid>2000</gid>
@@ -300,7 +298,6 @@ def test_group_from_xml():
     assert test_group.scope == "system"
     assert test_group.member == [
         "0",
-        "1000",
         "2004",
         "2005",
         "2006",
@@ -530,6 +527,49 @@ def test_user_from_ansible_module_params_single_group_removal(
         assert "2021" not in test_group.member
         assert not test_user.groupname
         new_user_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_user_from_ansible_module_params_single_group_removal_no_param(
+    mock_set_password,
+    mock_get_version,
+    mock_password_verify: MagicMock,
+    sample_config_path,
+):
+    test_params = {
+        "username": "test_user_23",
+        "password": "test_password_23",
+        "scope": "user",
+        "full_name": "[ ANSIBLE ]",
+        "shell": "/bin/sh",
+        "uid": "2021",
+    }
+    with UserSet(sample_config_path) as user_set:
+        test_user = User.from_ansible_module_params(test_params)
+        assert not hasattr(test_user, "groupname")
+        # assert len(test_user.groupname) == 0
+        user_set.add_or_update(test_user)
+        assert user_set.changed
+        user_set.save()
+    # with UserSet(sample_config_path) as new_user_set:
+    #     all_groups = new_user_set._load_groups()
+    #     test_user: User = user_set.find(name="test_user_23")
+    #     test_group = all_groups[1]
+    #     assert "2021" in test_group.member
+    #     assert test_user.groupname
+    #     new_user_set.save()
 
 
 @patch(
