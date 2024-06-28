@@ -15,7 +15,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     User,
     UserSet,
     Group,
-    OPNSenseCryptReturnError,
+    OPNsenseCryptReturnError,
     OPNsenseGroupNotFoundError,
     OPNsenseHashVerifyReturnError,
     hash_verify,
@@ -842,7 +842,7 @@ def test_generate_hashed_secret_failure_invalid_hash(mock_run_function):
         "stderr": None,
     }
     user = User(name="test", password="test")
-    with pytest.raises(OPNSenseCryptReturnError) as excinfo:
+    with pytest.raises(OPNsenseCryptReturnError) as excinfo:
         user.generate_hashed_secret("password123")
     assert "validation of the secret failed!" in str(excinfo.value)
 
@@ -853,7 +853,7 @@ def test_generate_hashed_secret_failure_invalid_hash(mock_run_function):
 def test_generate_hashed_secret_error_in_crypt(mock_run_function):
     mock_run_function.return_value = {"stdout": "", "stderr": "error in crypt function"}
     user = User(name="test", password="test")
-    with pytest.raises(OPNSenseCryptReturnError) as excinfo:
+    with pytest.raises(OPNsenseCryptReturnError) as excinfo:
         user.generate_hashed_secret("password123")
     assert "error encounterd while creating secret" in str(excinfo.value)
 

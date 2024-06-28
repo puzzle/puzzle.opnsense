@@ -45,7 +45,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 )
 
 
-class OPNSenseCryptReturnError(Exception):
+class OPNsenseCryptReturnError(Exception):
     """
     Exception raised when the return value of the instance is not what is expected
     """
@@ -305,7 +305,7 @@ class User:
 
         # check if stderr returns value
         if hashed_secret_value.get("stderr"):
-            raise OPNSenseCryptReturnError("error encounterd while creating secret")
+            raise OPNsenseCryptReturnError("error encounterd while creating secret")
 
         # validate secret
         if (
@@ -315,7 +315,7 @@ class User:
             return hashed_secret_value.get("stdout")
 
         # if validation fails,
-        raise OPNSenseCryptReturnError(
+        raise OPNsenseCryptReturnError(
             f"""
             validation of the secret failed!
             Secret must start with $6$ and have a min length of 90
