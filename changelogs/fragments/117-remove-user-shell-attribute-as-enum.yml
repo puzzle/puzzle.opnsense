@@ -1,3 +1,0 @@
----
-bugfixes:
-    - system_access_users - Remove the UserLoginEnum type to prevent strict validation.

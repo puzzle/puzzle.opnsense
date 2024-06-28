@@ -16,6 +16,7 @@ DOCUMENTATION = r'''
 author:
   - Yoan Müller (@LuminatiHD)
 module: system_high_availability_settings
+version_added: "1.2.0"
 short_description: Configure high availability settings
 description:
   - Module to configure high availability system settings
