@@ -1,3 +1,0 @@
----
-minor_changes:
-  - config_utils - Raise exceptions that occur within an OPNsenseConfigContext with traceback.
