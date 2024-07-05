@@ -126,7 +126,7 @@ def test_firewall_alias_from_xml():
     test_alias: FirewallAlias = FirewallAlias.from_xml(test_etree_alias)
 
     assert test_alias.uuid == "18467880-8247-438e-82be-0fa3ef54b0b7"
-    assert test_alias.enabled == "1"
+    assert test_alias.enabled == True
     assert test_alias.name == "test"
     assert test_alias.type == "host"
     assert test_alias.proto is None
@@ -137,7 +137,7 @@ def test_firewall_alias_from_xml():
     assert test_alias.description == "ba"
 
 
-def test_firewall_rule_alias_to_etree():
+def test_firewall_alias_to_etree():
     """
     Test FirewallAlias instance to ElementTree Element conversion.
     :return:
@@ -163,3 +163,29 @@ def test_firewall_rule_alias_to_etree():
     assert elements_equal(test_element, orig_alias), (
         f"{xml_utils.etree_to_dict(test_element)}\n" f"{xml_utils.etree_to_dict(orig_alias)}"
     )
+
+
+def test_firewall_alias_from_ansible_module_params_simple():
+    """
+    Test FirewallAlias instantiation form simple Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": "__lan_network",
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == "host"
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters == "0"
+    assert new_alias.updatefreq is None
+    assert new_alias.content == "__lan_network"
+    assert new_alias.description == "Test Alias"
