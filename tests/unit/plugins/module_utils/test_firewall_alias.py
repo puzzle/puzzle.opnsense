@@ -323,6 +323,35 @@ def test_firewall_alias_to_etree_with_content():
     )
 
 
+def test_firewall_alias_to_etree_with_updatefreq():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="d17640f6-2b57-444b-8370-cbca1db6e612",
+        enabled="1",
+        name="url_table_test",
+        type=FirewallAliasType.URLTABLES.value,
+        proto=None,
+        interface=None,
+        counters="0",
+        updatefreq="2",
+        content="www.puzzle.ch",
+        description="url_table_test",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][4]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
 def test_firewall_alias_from_ansible_module_params_simple():
     """
     Test FirewallAlias instantiation form simple Ansible parameters.
@@ -334,6 +363,7 @@ def test_firewall_alias_from_ansible_module_params_simple():
         "description": "Test Alias",
         "enabled": True,
         "content": "__lan_network",
+        "refreshfrequency": 2,
     }
 
     new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
@@ -344,7 +374,7 @@ def test_firewall_alias_from_ansible_module_params_simple():
     assert new_alias.proto is None
     assert new_alias.interface is None
     assert new_alias.counters is False
-    assert new_alias.updatefreq is None
+    assert new_alias.updatefreq == 2
     assert new_alias.content == "__lan_network"
     assert new_alias.description == "Test Alias"
 
