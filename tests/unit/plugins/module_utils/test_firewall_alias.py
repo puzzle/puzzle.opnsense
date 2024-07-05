@@ -16,6 +16,7 @@ import pytest
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_utils import (
+    IPProtocol,
     FirewallAliasType,
     FirewallAlias,
     FirewallAliasSet,
@@ -122,61 +123,10 @@ TEST_XML: str = """<?xml version="1.0"?>
             <interface/>
             <counters>0</counters>
             <updatefreq/>
-            <content>   CF
-                        DZ
-                        AG
-                        AI
-                        AR
-                        AW
-                        BB
-                        BL
-                        BO
-                        BQ
-                        BR
-                        BS
-                        BZ
-                        CA
-                        CL
-                        CO
-                        CR
-                        CU
-                        CW
-                        DM
-                        DO
-                        EC
-                        GD
-                        GF
-                        GL
-                        GP
-                        GT
-                        GY
-                        HN
-                        HT
-                        JM
-                        KN
-                        KY
-                        LC
-                        MF
-                        MQ
-                        MS
-                        MX
-                        NI
-                        PA
-                        PE
-                        PM
-                        PR
-                        PY
-                        SR
-                        SV
-                        SX
-                        TC
-                        TT
-                        US
-                        UY
-                        VC
-                        VE
-                        VG
-                        VI
+            <content>
+            CF
+            DZ
+            AG
             </content>
             <description>geoip_test</description>
           </alias>
@@ -273,7 +223,7 @@ def sample_config_path(request):
 
 def test_firewall_alias_from_xml():
     """
-    Test xml parsing to FirewallAlias dataclass instance.
+    Test xml parsing to FirewallAlias instance.
     :return:
     """
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
@@ -289,8 +239,30 @@ def test_firewall_alias_from_xml():
     assert test_alias.interface is None
     assert test_alias.counters == "0"
     assert test_alias.updatefreq is None
-    assert test_alias.content == "10.0.0.1"
+    assert test_alias.content == ["10.0.0.1"]
     assert test_alias.description == "host_test"
+
+
+def test_firewall_alias_type_geoip_with_content_from_xml():
+    """
+    Test xml parsing to FirewallAlias geoip_with_content instance.
+    :return:
+    """
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+
+    test_etree_alias: Element = list(list(test_etree_opnsense)[0][0])[1][5]
+    test_alias: FirewallAlias = FirewallAlias.from_xml(test_etree_alias)
+
+    assert test_alias.uuid == "207ac163-9f71-4af2-9c50-937e4a92355e"
+    assert test_alias.enabled is True
+    assert test_alias.name == "geoip_test"
+    assert test_alias.type == FirewallAliasType.GEOIP.value
+    assert test_alias.proto == IPProtocol.IPv4.value
+    assert test_alias.interface is None
+    assert test_alias.counters == "0"
+    assert test_alias.updatefreq is None
+    assert test_alias.content == ["CF", "DZ", "AG"]
+    assert test_alias.description == "geoip_test"
 
 
 def test_firewall_alias_to_etree():
@@ -317,7 +289,37 @@ def test_firewall_alias_to_etree():
     orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][0]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n" f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+def test_firewall_alias_to_etree_with_content():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="207ac163-9f71-4af2-9c50-937e4a92355e",
+        enabled="1",
+        name="geoip_test",
+        type=FirewallAliasType.GEOIP.value,
+        proto=IPProtocol.IPv4.value,
+        interface=None,
+        counters="0",
+        updatefreq=None,
+        content=["CF", "DZ", "AG"],
+        description="geoip_test",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][5]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
     )
 
 
@@ -347,12 +349,66 @@ def test_firewall_alias_from_ansible_module_params_simple():
     assert new_alias.description == "Test Alias"
 
 
+def test_firewall_alias_from_ansible_module_params_empty_content():
+    """
+    Test FirewallAlias instantiation form empty content Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": "",
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.HOSTS
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters == "0"
+    assert new_alias.updatefreq is None
+    assert new_alias.content == ""
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_list_content():
+    """
+    Test FirewallAlias instantiation form empty content Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "geoip",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["CH", "DE"],
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.GEOIP
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters == "0"
+    assert new_alias.updatefreq is None
+    assert new_alias.content == ["CH", "DE"]
+    assert new_alias.description == "Test Alias"
+
+
 @patch(
     "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
     return_value="OPNsense Test",
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_firewall_alias_set_load_simple_rules(mocked_version_utils: MagicMock, sample_config_path):
+def test_firewall_alias_set_load_simple_rules(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     """
     Test correct loading of FirewallAliasSet from XML config without changes.
     """
