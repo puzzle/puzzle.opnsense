@@ -12,6 +12,28 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     OPNsenseModuleConfig,
 )
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
+
+
+class FirewallAliasType(ListEnum):
+    """
+    some docstring
+    """
+
+    HOSTS = "host"
+    NETWORKS = "networks"
+    PORTS = "ports"
+    URLS = "urls"
+    URLTABLES = "urltables"
+    GEOIP = "geoip"
+    NETWORKGROUP = "networkgroup"
+    MACADDRESS = "macaddress"
+    BGPASN = "bgpasn"
+    DYNAMICIPV6HOST = "dynamicipv6host"
+    OPNVPNGROUP = "opnvpngroup"
+    INTERNAL = "internal"
+    EXTERNAL = "external"
+
 
 class FirewallAlias:
     """
@@ -27,9 +49,22 @@ class FirewallAlias:
         self.interface: Optional[str] = None
         self.updatefreq: Optional[str] = None
         self.name = kwargs.get("name", None)
+        self.type: Optional[FirewallAliasType] = None
 
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+    def __post_init__(self):
+        # Manually define the fields and their expected types
+        enum_fields = {"type": FirewallAliasType}
+
+        for field_name, field_type in enum_fields.items():
+            value = getattr(self, field_name)
+
+            # Check if the value is a string and the field_type is a subclass of ListEnum
+            if isinstance(value, str) and issubclass(field_type, ListEnum):
+                # Convert string to ListEnum
+                setattr(self, field_name, field_type.from_string(value))
 
     @staticmethod
     def from_xml(element: Element) -> "FirewallAlias":
@@ -56,7 +91,7 @@ class FirewallAlias:
         firewall_alias_dict: dict = {
             "enabled": params.get("enabled"),
             "name": params.get("name"),
-            "type": params.get("type"),
+            "type": FirewallAliasType(params.get("type")),
             "categories": params.get("categories"),
             "content": params.get("content"),
             "statistics": params.get("statistics"),
