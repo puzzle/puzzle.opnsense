@@ -21,6 +21,9 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_uti
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
 )
+from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
+    elements_equal,
+)
 
 # Test version map for OPNsense versions and modules
 TEST_VERSION_MAP = {
@@ -123,3 +126,40 @@ def test_firewall_alias_from_xml():
     test_alias: FirewallAlias = FirewallAlias.from_xml(test_etree_alias)
 
     assert test_alias.uuid == "18467880-8247-438e-82be-0fa3ef54b0b7"
+    assert test_alias.enabled == "1"
+    assert test_alias.name == "test"
+    assert test_alias.type == "host"
+    assert test_alias.proto is None
+    assert test_alias.interface is None
+    assert test_alias.counters == "0"
+    assert test_alias.updatefreq is None
+    assert test_alias.content == "__lan_network"
+    assert test_alias.description == "ba"
+
+
+def test_firewall_rule_alias_to_etree():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="18467880-8247-438e-82be-0fa3ef54b0b7",
+        enabled="1",
+        name="test",
+        type="host",
+        proto=None,
+        interface=None,
+        counters="0",
+        updatefreq=None,
+        content="__lan_network",
+        description="ba",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][0]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n" f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
