@@ -154,14 +154,14 @@ TEST_XML: str = """<?xml version="1.0"?>
           </alias>
           <alias uuid="a32cac6d-c6d8-4c2c-8e88-bf4a6b787f67">
             <enabled>1</enabled>
-            <name>dynamicipv6host_test</name>
+            <name>dynamicipv6</name>
             <type>dynipv6host</type>
             <proto/>
             <interface>lan</interface>
             <counters>0</counters>
             <updatefreq/>
             <content>::1000</content>
-            <description>dynamicipv6host_test</description>
+            <description>dynamicipv6</description>
           </alias>
           <alias uuid="770afc89-c3e8-4090-b2c3-51372b290dfe">
             <enabled>1</enabled>
@@ -237,7 +237,7 @@ def test_firewall_alias_from_xml():
     assert test_alias.type == FirewallAliasType.HOSTS.value
     assert test_alias.proto is None
     assert test_alias.interface is None
-    assert test_alias.counters == "0"
+    assert test_alias.counters is False
     assert test_alias.updatefreq is None
     assert test_alias.content == ["10.0.0.1"]
     assert test_alias.description == "host_test"
@@ -259,7 +259,7 @@ def test_firewall_alias_type_geoip_with_content_from_xml():
     assert test_alias.type == FirewallAliasType.GEOIP.value
     assert test_alias.proto == IPProtocol.IPv4.value
     assert test_alias.interface is None
-    assert test_alias.counters == "0"
+    assert test_alias.counters is False
     assert test_alias.updatefreq is None
     assert test_alias.content == ["CF", "DZ", "AG"]
     assert test_alias.description == "geoip_test"
@@ -343,7 +343,7 @@ def test_firewall_alias_from_ansible_module_params_simple():
     assert new_alias.type == FirewallAliasType.HOSTS
     assert new_alias.proto is None
     assert new_alias.interface is None
-    assert new_alias.counters == "0"
+    assert new_alias.counters is False
     assert new_alias.updatefreq is None
     assert new_alias.content == "__lan_network"
     assert new_alias.description == "Test Alias"
@@ -369,9 +369,35 @@ def test_firewall_alias_from_ansible_module_params_empty_content():
     assert new_alias.type == FirewallAliasType.HOSTS
     assert new_alias.proto is None
     assert new_alias.interface is None
-    assert new_alias.counters == "0"
+    assert new_alias.counters is False
     assert new_alias.updatefreq is None
     assert new_alias.content == ""
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_exclusion_content():
+    """
+    Test FirewallAlias instantiation form empty content Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "network",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": "!192.168.1.0/24",
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.NETWORKS
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq is None
+    assert new_alias.content == "!192.168.1.0/24"
     assert new_alias.description == "Test Alias"
 
 
@@ -395,9 +421,35 @@ def test_firewall_alias_from_ansible_module_params_list_content():
     assert new_alias.type == FirewallAliasType.GEOIP
     assert new_alias.proto is None
     assert new_alias.interface is None
-    assert new_alias.counters == "0"
+    assert new_alias.counters is False
     assert new_alias.updatefreq is None
     assert new_alias.content == ["CH", "DE"]
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_list_exclusion_content():
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "port",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["!30", "!34:40"],
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.PORTS
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq is None
+    assert new_alias.content == ["!30", "!34:40"]
     assert new_alias.description == "Test Alias"
 
 
