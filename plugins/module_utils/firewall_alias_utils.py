@@ -20,7 +20,6 @@ class IPProtocol(ListEnum):
 
     IPv4 = "IPv4"
     IPv6 = "IPv6"
-    IPv4_IPv6 = "inet46"
 
 
 class FirewallAliasType(ListEnum):
@@ -53,7 +52,7 @@ class FirewallAlias:
         self.uuid: Optional[str] = None
         self.enabled: bool = True
         self.proto: Optional[IPProtocol] = None
-        self.counters: Optional[str] = "0"
+        self.counters: Optional[bool] = False
         self.interface: Optional[str] = None
         self.updatefreq: Optional[str] = None
         self.content: Optional[List[str]] = []
@@ -87,6 +86,7 @@ class FirewallAlias:
         firewall_alias_dict.update(
             uuid=element.attrib.get("uuid"),
             enabled=firewall_alias_dict.get("enabled", "0") == "1",
+            counters=firewall_alias_dict.get("counters", "0") == "1",
         )
 
         # process attribute content to a list
@@ -111,7 +111,7 @@ class FirewallAlias:
             "type": FirewallAliasType(params.get("type")),
             "categories": params.get("categories"),
             "content": params.get("content"),
-            "statistics": params.get("statistics"),
+            "counters": params.get("statistics"),
             "description": params.get("description"),
             "updatefreq": params.get("refreshfrequency"),
         }
