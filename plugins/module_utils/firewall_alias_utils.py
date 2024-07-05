@@ -35,3 +35,18 @@ class FirewallAlias:
         firewall_alias_dict.update(uuid=element.attrib.get("uuid"))
 
         return FirewallAlias(**firewall_alias_dict)
+
+    def to_etree(self) -> Element:
+        """
+        some docstring
+        """
+
+        firewall_alias_dict: dict = self.__dict__.copy()
+        del firewall_alias_dict["uuid"]
+
+        element: Element = xml_utils.dict_to_etree("alias", firewall_alias_dict)[0]
+
+        if self.uuid:
+            element.attrib["uuid"] = self.uuid
+
+        return element
