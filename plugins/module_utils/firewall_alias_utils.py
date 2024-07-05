@@ -15,6 +15,14 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
+class IPProtocol(ListEnum):
+    """Represents the IPProtocol."""
+
+    IPv4 = "IPv4"
+    IPv6 = "IPv6"
+    IPv4_IPv6 = "inet46"
+
+
 class FirewallAliasType(ListEnum):
     """
     some docstring
@@ -44,10 +52,11 @@ class FirewallAlias:
         # set default attributes
         self.uuid: Optional[str] = None
         self.enabled: bool = True
-        self.proto: Optional[str] = None
+        self.proto: Optional[IPProtocol] = None
         self.counters: Optional[str] = "0"
         self.interface: Optional[str] = None
         self.updatefreq: Optional[str] = None
+        self.content: Optional[List[str]] = []
         self.name = kwargs.get("name", None)
         self.type: Optional[FirewallAliasType] = None
 
@@ -80,6 +89,14 @@ class FirewallAlias:
             enabled=firewall_alias_dict.get("enabled", "0") == "1",
         )
 
+        # process attribute content to a list
+        if firewall_alias_dict.get("content"):
+            firewall_alias_dict["content"] = [
+                line.strip()
+                for line in firewall_alias_dict["content"].splitlines()
+                if line.strip()
+            ]
+
         return FirewallAlias(**firewall_alias_dict)
 
     @classmethod
@@ -96,10 +113,13 @@ class FirewallAlias:
             "content": params.get("content"),
             "statistics": params.get("statistics"),
             "description": params.get("description"),
+            "updatefreq": params.get("refreshfrequency"),
         }
 
         firewall_alias_dict = {
-            key: value for key, value in firewall_alias_dict.items() if value is not None
+            key: value
+            for key, value in firewall_alias_dict.items()
+            if value is not None
         }
 
         return cls(**firewall_alias_dict)
@@ -111,6 +131,16 @@ class FirewallAlias:
 
         firewall_alias_dict: dict = self.__dict__.copy()
         del firewall_alias_dict["uuid"]
+
+        # Handle content field if it is a list
+        if isinstance(firewall_alias_dict.get("content"), list):
+            firewall_alias_dict["content"] = (
+                "\n"
+                + "\n".join(
+                    [f"            {item}" for item in firewall_alias_dict["content"]]
+                )
+                + "\n            "
+            )
 
         element: Element = xml_utils.dict_to_etree("alias", firewall_alias_dict)[0]
 
