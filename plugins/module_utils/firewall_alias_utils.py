@@ -8,6 +8,9 @@ from typing import List, Optional
 
 from xml.etree.ElementTree import Element, ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
+from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
+    OPNsenseModuleConfig,
+)
 
 
 class FirewallAlias:
@@ -80,3 +83,28 @@ class FirewallAlias:
             element.attrib["uuid"] = self.uuid
 
         return element
+
+
+class FirewallAliasSet(OPNsenseModuleConfig):
+    """
+    some docstring
+    """
+
+    _aliases: List[FirewallAlias]
+
+    def __init__(self, path: str = "/conf/config.xml"):
+        super().__init__(
+            module_name="firewall_alias",
+            config_context_names=["firewall_alias"],
+            path=path,
+        )
+        self._aliases = self._load_aliases()
+
+    def _load_aliases(self) -> List[FirewallAlias]:
+        """
+        some doctring
+        """
+
+        element_tree_alias: Element = self.get("alias")
+
+        return [FirewallAlias.from_xml(element) for element in element_tree_alias]
