@@ -54,7 +54,7 @@ class FirewallAlias:
         self.proto: Optional[IPProtocol] = None
         self.counters: Optional[bool] = False
         self.interface: Optional[str] = None
-        self.updatefreq: Optional[str] = None
+        self.updatefreq: Optional[int] = None
         self.content: Optional[List[str]] = []
         self.name = kwargs.get("name", None)
         self.type: Optional[FirewallAliasType] = None
