@@ -17,6 +17,7 @@ import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_utils import (
     FirewallAlias,
+    FirewallAliasSet,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
     VERSION_MAP,
@@ -29,7 +30,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
 TEST_VERSION_MAP = {
     "OPNsense Test": {
         "firewall_alias": {
-            "rules": "filter",
+            "alias": "Firewall/Alias/aliases",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
@@ -189,3 +190,17 @@ def test_firewall_alias_from_ansible_module_params_simple():
     assert new_alias.updatefreq is None
     assert new_alias.content == "__lan_network"
     assert new_alias.description == "Test Alias"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_set_load_simple_rules(mocked_version_utils: MagicMock, sample_config_path):
+    """
+    Test correct loading of FirewallAliasSet from XML config without changes.
+    """
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        assert len(alias_set._aliases) == 2
+        alias_set.save()
