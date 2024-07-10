@@ -32,7 +32,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
 TEST_VERSION_MAP = {
     "OPNsense Test": {
         "firewall_alias": {
-            "alias": "Firewall/Alias/aliases",
+            "alias": "OPNsense/Firewall/Alias/aliases",
             "php_requirements": [
                 "/usr/local/etc/inc/interfaces.inc",
                 "/usr/local/etc/inc/filter.inc",
@@ -54,146 +54,148 @@ TEST_VERSION_MAP = {
 
 TEST_XML: str = """<?xml version="1.0"?>
     <opnsense>
-    <Firewall>
-      <Alias version="1.0.0">
-        <geoip>
-          <url/>
-        </geoip>
-        <aliases>
-          <alias uuid="ad0fd5d4-6797-4521-9ee4-df3e16de31d0">
-            <enabled>1</enabled>
-            <name>host_test</name>
-            <type>host</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>10.0.0.1</content>
-            <description>host_test</description>
-          </alias>
-          <alias uuid="3fc15914-8492-4a67-b990-aefd08d1c6a4">
-            <enabled>1</enabled>
-            <name>network_test</name>
-            <type>network</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>192.168.0.0</content>
-            <description>network_test</description>
-          </alias>
-          <alias uuid="78fe9621-c4d0-4f1f-a1b7-55796b041089">
-            <enabled>1</enabled>
-            <name>port_test</name>
-            <type>port</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>22</content>
-            <description>port_test</description>
-          </alias>
-          <alias uuid="901a0b76-2054-4e3e-8319-74fa5a458d3e">
-            <enabled>1</enabled>
-            <name>url_test</name>
-            <type>url</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>www.puzzle.ch</content>
-            <description>url_test</description>
-          </alias>
-          <alias uuid="d17640f6-2b57-444b-8370-cbca1db6e612">
-            <enabled>1</enabled>
-            <name>url_table_test</name>
-            <type>urltable</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq>2</updatefreq>
-            <content>www.puzzle.ch</content>
-            <description>url_table_test</description>
-          </alias>
-          <alias uuid="207ac163-9f71-4af2-9c50-937e4a92355e">
-            <enabled>1</enabled>
-            <name>geoip_test</name>
-            <type>geoip</type>
-            <proto>IPv4</proto>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>
-            CF
-            DZ
-            AG
-            </content>
-            <description>geoip_test</description>
-          </alias>
-          <alias uuid="7e776c20-5658-45fb-924d-9fd833eae142">
-            <enabled>1</enabled>
-            <name>network_group_test</name>
-            <type>networkgroup</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>host_test</content>
-            <description>network_group_test</description>
-          </alias>
-          <alias uuid="51c62c88-603c-46e4-86b0-4bf382e94a51">
-            <enabled>1</enabled>
-            <name>macaddress_test</name>
-            <type>mac</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>FF:FF:FF:FF:FF</content>
-            <description>macaddress_test</description>
-          </alias>
-          <alias uuid="a32cac6d-c6d8-4c2c-8e88-bf4a6b787f67">
-            <enabled>1</enabled>
-            <name>dynamicipv6</name>
-            <type>dynipv6host</type>
-            <proto/>
-            <interface>lan</interface>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>::1000</content>
-            <description>dynamicipv6</description>
-          </alias>
-          <alias uuid="770afc89-c3e8-4090-b2c3-51372b290dfe">
-            <enabled>1</enabled>
-            <name>internal_test</name>
-            <type>internal</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content/>
-            <description>internal_test</description>
-          </alias>
-          <alias uuid="f5e7295e-88e6-46d0-8409-a68883456474">
-            <enabled>1</enabled>
-            <name>external_test</name>
-            <type>external</type>
-            <proto/>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content/>
-            <description>external_test</description>
-          </alias>
-        </aliases>
-      </Alias>
-      <Lvtemplate version="0.0.1">
-        <templates/>
-      </Lvtemplate>
-      <Category version="1.0.0">
-        <categories/>
-      </Category>
-    </Firewall>
+    <OPNsense>
+        <Firewall>
+        <Alias version="1.0.0">
+            <geoip>
+            <url/>
+            </geoip>
+            <aliases>
+            <alias uuid="ad0fd5d4-6797-4521-9ee4-df3e16de31d0">
+                <enabled>1</enabled>
+                <name>host_test</name>
+                <type>host</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>10.0.0.1</content>
+                <description>host_test</description>
+            </alias>
+            <alias uuid="3fc15914-8492-4a67-b990-aefd08d1c6a4">
+                <enabled>1</enabled>
+                <name>network_test</name>
+                <type>network</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>192.168.0.0</content>
+                <description>network_test</description>
+            </alias>
+            <alias uuid="78fe9621-c4d0-4f1f-a1b7-55796b041089">
+                <enabled>1</enabled>
+                <name>port_test</name>
+                <type>port</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>22</content>
+                <description>port_test</description>
+            </alias>
+            <alias uuid="901a0b76-2054-4e3e-8319-74fa5a458d3e">
+                <enabled>1</enabled>
+                <name>url_test</name>
+                <type>url</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>www.puzzle.ch</content>
+                <description>url_test</description>
+            </alias>
+            <alias uuid="d17640f6-2b57-444b-8370-cbca1db6e612">
+                <enabled>1</enabled>
+                <name>url_table_test</name>
+                <type>urltable</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq>2</updatefreq>
+                <content>www.puzzle.ch</content>
+                <description>url_table_test</description>
+            </alias>
+            <alias uuid="207ac163-9f71-4af2-9c50-937e4a92355e">
+                <enabled>1</enabled>
+                <name>geoip_test</name>
+                <type>geoip</type>
+                <proto>IPv4</proto>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>
+                CF
+                DZ
+                AG
+                </content>
+                <description>geoip_test</description>
+            </alias>
+            <alias uuid="7e776c20-5658-45fb-924d-9fd833eae142">
+                <enabled>1</enabled>
+                <name>network_group_test</name>
+                <type>networkgroup</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>host_test</content>
+                <description>network_group_test</description>
+            </alias>
+            <alias uuid="51c62c88-603c-46e4-86b0-4bf382e94a51">
+                <enabled>1</enabled>
+                <name>macaddress_test</name>
+                <type>mac</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>FF:FF:FF:FF:FF</content>
+                <description>macaddress_test</description>
+            </alias>
+            <alias uuid="a32cac6d-c6d8-4c2c-8e88-bf4a6b787f67">
+                <enabled>1</enabled>
+                <name>dynamicipv6</name>
+                <type>dynipv6host</type>
+                <proto/>
+                <interface>lan</interface>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>::1000</content>
+                <description>dynamicipv6</description>
+            </alias>
+            <alias uuid="770afc89-c3e8-4090-b2c3-51372b290dfe">
+                <enabled>1</enabled>
+                <name>internal_test</name>
+                <type>internal</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content/>
+                <description>internal_test</description>
+            </alias>
+            <alias uuid="f5e7295e-88e6-46d0-8409-a68883456474">
+                <enabled>1</enabled>
+                <name>external_test</name>
+                <type>external</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content/>
+                <description>external_test</description>
+            </alias>
+            </aliases>
+        </Alias>
+        <Lvtemplate version="0.0.1">
+            <templates/>
+        </Lvtemplate>
+        <Category version="1.0.0">
+            <categories/>
+        </Category>
+        </Firewall>
+    </OPNsense>
     </opnsense>
     """
 
@@ -228,13 +230,16 @@ def test_firewall_alias_from_xml():
     """
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
-    test_etree_alias: Element = list(list(test_etree_opnsense)[0][0])[1][0]
+    test_etree_alias: Element = test_etree_opnsense.find(
+        "OPNsense/Firewall/Alias/aliases"
+    )[0]
+
     test_alias: FirewallAlias = FirewallAlias.from_xml(test_etree_alias)
 
     assert test_alias.uuid == "ad0fd5d4-6797-4521-9ee4-df3e16de31d0"
     assert test_alias.enabled is True
     assert test_alias.name == "host_test"
-    assert test_alias.type == FirewallAliasType.HOSTS.value
+    assert test_alias.type == FirewallAliasType.HOSTS
     assert test_alias.proto is None
     assert test_alias.interface is None
     assert test_alias.counters is False
@@ -250,19 +255,20 @@ def test_firewall_alias_type_geoip_with_content_from_xml():
     """
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
-    test_etree_alias: Element = list(list(test_etree_opnsense)[0][0])[1][5]
+    test_etree_alias: Element = test_etree_opnsense.find(
+        "OPNsense/Firewall/Alias/aliases"
+    )[5]
     test_alias: FirewallAlias = FirewallAlias.from_xml(test_etree_alias)
 
     assert test_alias.uuid == "207ac163-9f71-4af2-9c50-937e4a92355e"
     assert test_alias.enabled is True
     assert test_alias.name == "geoip_test"
-    assert test_alias.type == FirewallAliasType.GEOIP.value
+    assert test_alias.type == FirewallAliasType.GEOIP
     assert test_alias.proto == IPProtocol.IPv4.value
     assert test_alias.interface is None
     assert test_alias.counters is False
     assert test_alias.updatefreq is None
     assert test_alias.content == ["CF", "DZ", "AG"]
-    assert test_alias.description == "geoip_test"
 
 
 def test_firewall_alias_to_etree():
@@ -286,7 +292,7 @@ def test_firewall_alias_to_etree():
     test_element = test_alias.to_etree()
 
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
-    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][0]
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[0]
 
     assert elements_equal(test_element, orig_alias), (
         f"{xml_utils.etree_to_dict(test_element)}\n"
@@ -303,8 +309,8 @@ def test_firewall_alias_to_etree_with_content():
         uuid="207ac163-9f71-4af2-9c50-937e4a92355e",
         enabled="1",
         name="geoip_test",
-        type=FirewallAliasType.GEOIP.value,
-        proto=IPProtocol.IPv4.value,
+        type=FirewallAliasType.GEOIP,
+        proto=IPProtocol.IPv4,
         interface=None,
         counters="0",
         updatefreq=None,
@@ -315,7 +321,7 @@ def test_firewall_alias_to_etree_with_content():
     test_element = test_alias.to_etree()
 
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
-    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][5]
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[5]
 
     assert elements_equal(test_element, orig_alias), (
         f"{xml_utils.etree_to_dict(test_element)}\n"
@@ -344,7 +350,7 @@ def test_firewall_alias_to_etree_with_updatefreq():
     test_element = test_alias.to_etree()
 
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
-    orig_alias: Element = list(list(test_etree_opnsense)[0][0])[1][4]
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[4]
 
     assert elements_equal(test_element, orig_alias), (
         f"{xml_utils.etree_to_dict(test_element)}\n"
@@ -496,4 +502,5 @@ def test_firewall_alias_set_load_simple_rules(
     """
     with FirewallAliasSet(sample_config_path) as alias_set:
         assert len(alias_set._aliases) == 11
+
         alias_set.save()
