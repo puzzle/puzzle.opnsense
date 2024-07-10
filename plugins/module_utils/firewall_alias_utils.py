@@ -98,8 +98,15 @@ class FirewallAlias:
             counters=firewall_alias_dict.get("counters", "0") == "1",
         )
 
+        if isinstance(firewall_alias_dict.get("content"), str):
+            firewall_alias_dict["content"] = [
+                line.strip()
+                for line in firewall_alias_dict["content"].splitlines()
+                if line.strip()
+            ]
+
         # process attribute content to a list
-        if isinstance(firewall_alias_dict.get("content"), list):
+        elif isinstance(firewall_alias_dict.get("content"), list):
             firewall_alias_dict["content"] = [
                 line.strip()
                 for line in firewall_alias_dict["content"].splitlines()
