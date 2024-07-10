@@ -49,6 +49,7 @@ class FirewallAlias:
     """
 
     def __init__(self, **kwargs):
+
         # set default attributes
         self.uuid: Optional[str] = kwargs.get("uuid", str(uuid.uuid4()))
         self.enabled: bool = True
@@ -220,8 +221,12 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         some docstring
         """
 
-        if alias in self._aliases:
-            self._aliases.remove(alias)
+        existing_alias: Optional[FirewallAlias] = next(
+            (a for a in self._aliases if a.name == alias.name), None
+        )
+
+        if existing_alias:
+            self._aliases.remove(existing_alias)
             return True
         return False
 
