@@ -152,9 +152,9 @@ def main():
             "type": "str",
             "choices": [
                 "host",
-                "networks",
-                "ports",
-                "urls",
+                "network",
+                "port",
+                "url",
                 "urltables",
                 "geoip",
                 "networkgroup",
@@ -171,6 +171,7 @@ def main():
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
         "refreshfrequency": {"type": "int", "required": False},
+        "state": {"type": "str", "required": False, "default": True},
     }
 
     module: AnsibleModule = AnsibleModule(
