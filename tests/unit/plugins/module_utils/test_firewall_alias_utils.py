@@ -525,7 +525,7 @@ def test_firewall_alias_from_ansible_module_params_with_unknown_content_type_val
     assert new_alias.description == "Test Alias"
 
 
-def atest_firewall_alias_from_ansible_module_params_list_content():
+def test_firewall_alias_from_ansible_module_params_list_content():
     """
     Test FirewallAlias instantiation form empty content Ansible parameters.
     :return:
