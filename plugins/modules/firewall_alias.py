@@ -118,21 +118,6 @@ opnsense_configure_output:
     description: A List of the executed OPNsense configure function along with their respective stdout, stderr and rc
     returned: always
     type: list
-    sample:
-      - function: "system_cron_configure"
-        params: ["true"]
-        rc: 0
-        stderr: ""
-        stderr_lines: []
-        stdout: "Configuring CRON...done."
-        stdout_lines: ["Configuring CRON...done."]
-      - function: "filter_configure"
-        params: []
-        rc: 0
-        stderr: ""
-        stderr_lines: []
-        stdout: ""
-        stdout_lines: []
 '''
 # fmt: on
 from typing import Optional
