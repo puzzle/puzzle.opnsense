@@ -6,6 +6,7 @@ Utilities for alias related operations.
 """
 import uuid
 import re
+import ipaddress
 from typing import List, Optional
 
 from xml.etree.ElementTree import Element, ElementTree
@@ -15,6 +16,12 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
+
+
+class OPNsenseContentValidationError(Exception):
+    """
+    Exception raised when the validation of a specific value does not succeed
+    """
 
 
 class IPProtocol(ListEnum):
@@ -50,21 +57,45 @@ class FirewallAlias:
     """
 
     @staticmethod
-    def is_hostname(hostname: str) -> bool:
+    def is_hostname_ip_or_range(host: str) -> bool:
         """
-        Validates hostnames
+        Validates if the entry is a hostname, an IP address, or an IP range.
 
-        :param hostname: A string containing the hostname
+        :param entry: A string containing the entry
 
-        :return: True if the provided hostname is valid, False if it's invalid
+        :return: True if the provided entry is valid, False if it's invalid
         """
 
-        # https://github.com/opnsense/core/blob/cbaf7cee1f0a6fabd1ec4c752a5d169c402976dc/src/etc/inc/util.inc#L704
         hostname_regex = (
-            r"^!?(?:(?:[a-z0-9_]|[a-z0-9_][a-z0-9_\-]"
-            r"*[a-z0-9_])\.)*(?:[a-z0-9_]|[a-z0-9_][a-z0-9_\-]*[a-z0-9_])$"
+            r"^!?(?:(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]"
+            r"*[a-zA-Z0-9_])\.)*(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]*[a-zA-Z0-9_])$"
         )
-        return re.match(hostname_regex, hostname) is not None
+
+        if re.match(hostname_regex, host):
+            return True
+
+        try:
+            ipaddress.ip_address(host)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_network(network: str) -> bool:
+        """
+        Validates network addresses (including optional '!' at the beginning).
+
+        :param network: A string containing the network address.
+
+        :return: True if the provided network address is valid, False if it's invalid.
+        """
+        if network.startswith("!"):
+            network = network[1:]
+        try:
+            ipaddress.ip_network(network, strict=False)
+            return True
+        except ValueError:
+            return False
 
     @staticmethod
     def validate_content(content_type: str, content_values: List[str]) -> bool:
@@ -74,10 +105,11 @@ class FirewallAlias:
 
         content_type_map = {
             "host": {
-                "validation_function": FirewallAlias.is_hostname,
+                "validation_function": FirewallAlias.is_hostname_ip_or_range,
                 "error_message": "Entry {entry} is not a valid hostname, IP address or range.",
             },
             "network": {
+                "validation_function": FirewallAlias.is_network,
                 "error_message": "Entry {entry} is not a network.",
             },
             "networkgroup": {
@@ -102,13 +134,23 @@ class FirewallAlias:
 
         for content_value in content_values:
 
+            # since not all types need validation, unhandled types are ingnored
+            if not content_type_map.get(content_type):
+                return True
+
             validation_function = content_type_map[content_type].get(
                 "validation_function"
             )
 
             if not validation_function(content_value):
 
-                raise ValueError(content_type_map[content_type]["error_message"])
+                raise OPNsenseContentValidationError(
+                    content_type_map[content_type]["error_message"].format(
+                        entry=content_value
+                    )
+                )
+
+        return True
 
     def __init__(self, **kwargs):
 
