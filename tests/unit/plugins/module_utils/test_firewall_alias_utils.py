@@ -667,7 +667,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_host_valida
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -676,7 +675,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_host_valida
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -713,7 +711,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_host_valida
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -747,7 +744,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_network_val
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -756,7 +752,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_network_val
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -793,7 +788,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_network_val
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -824,7 +818,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_networkgrou
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -833,7 +826,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_networkgrou
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -870,14 +862,13 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_networkgrou
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
             alias_set.add_or_update(new_alias)
             alias_set.save()
 
-        assert "Entry Test_Group is not a type NetworkAlias or InternalAlias." in str(
+        assert "Entry Test_Group is not of type NetworkAlias or InternalAlias." in str(
             excinfo.value
         )
 
@@ -903,7 +894,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_port_valida
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -912,7 +902,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_port_valida
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -949,7 +938,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_port_valida
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -980,7 +968,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_macaddress_
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -989,7 +976,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_macaddress_
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -1026,7 +1012,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_macaddress_
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -1059,7 +1044,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -1068,7 +1052,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -1105,7 +1088,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -1142,7 +1124,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -1151,7 +1132,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -1194,7 +1174,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -1230,7 +1209,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseInterfaceNotFoundError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
@@ -1263,7 +1241,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
-
         new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
         alias_set.add_or_update(new_alias)
 
@@ -1272,7 +1249,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-
         new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
 
         assert new_alias.enabled is True
@@ -1309,7 +1285,6 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup
 
     with FirewallAliasSet(sample_config_path) as alias_set:
         with pytest.raises(OPNsenseContentValidationError) as excinfo:
-
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params
             )
