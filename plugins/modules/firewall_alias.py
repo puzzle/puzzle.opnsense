@@ -42,13 +42,13 @@ options:
             - networks (Entire network p.e. 192.168.1.1/24 or network exclusion eg !192.168.1.0/24)
             - ports (Port numbers or a port range like 20:30)
             - urls (A table of IP addresses that are fetched once)
-            - urltables (A table of IP addresses that are fetched on regular intervals.)
-            - geoip (Select countries or whole regions)
+            - urltable (A table of IP addresses that are fetched on regular intervals.)
+            - geoip (Select countries or whole regions) disclaimer: validation is not supported at this point
             - networkgroup (Combine different network type aliases into one)
             - macaddress (MAC address or partial mac addresses like f4:90:ea)
-            - bgpasn (Maps autonomous system (AS) numbers to networks where they are responsible for)
-            - dynamicipv6host (A Host entry that will auto update on a prefixchange)
-            - opnvpngroup (Map user groups to logged in OpenVPN users)
+            - bgpasn (Maps autonomous system (AS) numbers to networks where they are responsible for) supported >= version 23.7
+            - dynamicipv6host (A Host entry that will auto update on a prefixchange) supported >= version 23.7
+            - opnvpngroup (Map user groups to logged in OpenVPN users) supported >= version 23.1
             - internal (Internal aliases which are managed by the product)
             - external (Externally managed alias, this only handles the placeholder. Content is set from another source (plugin, api call, etc))
     type: str
@@ -57,7 +57,7 @@ options:
         - networks
         - ports
         - urls
-        - urltables
+        - urltable
         - geoip
         - networkgroup
         - macaddress
@@ -70,7 +70,7 @@ options:
   content:
     description:
       - Content of the alias
-    type: str
+    type: list
     required: true
   statistics:
     description:
@@ -87,6 +87,11 @@ options:
     description:
       -  The frequency that the list will be refreshed, in days + hours, so 1 day and 8 hours means the alias will be refreshed after 32 hours.
     type: int
+    required: false
+  Interface:
+    description:
+      - Select the interface for the V6 dynamic IP
+    type: str
     required: false
 '''
 
@@ -138,6 +143,9 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_uti
     FirewallAlias,
     FirewallAliasSet,
 )
+from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
+    UnsupportedModuleSettingError,
+)
 
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
@@ -155,7 +163,7 @@ def main():
                 "network",
                 "port",
                 "url",
-                "urltables",
+                "urltable",
                 "geoip",
                 "networkgroup",
                 "macaddress",
@@ -167,11 +175,17 @@ def main():
             ],
             "required": True,
         },
-        "content": {"type": "str", "required": False},
+        "content": {"type": "list", "required": False},
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
-        "refreshfrequency": {"type": "int", "required": False},
-        "state": {"type": "str", "required": False, "default": True},
+        "refreshfrequency": {"type": "str", "required": False},
+        "interface": {"type": "str", "required": False},
+        "state": {
+            "type": "str",
+            "required": False,
+            "default": "present",
+            "choices": ["present", "absent"],
+        },
     }
 
     module: AnsibleModule = AnsibleModule(
@@ -203,7 +217,38 @@ def main():
 
     ansible_alias_state: str = module.params.get("state")
 
+    type_bgpasn_param: str = (
+        module.params.get("content") if module.params.get("type") == "bgpasn" else None
+    )
+    type_dynamicipv6host_param: str = (
+        module.params.get("content")
+        if module.params.get("type") == "dynamicipv6host"
+        else None
+    )
+    type_opnvpngroup_param: str = (
+        module.params.get("content")
+        if module.params.get("type") == "opnvpngroup"
+        else None
+    )
+
     with FirewallAliasSet() as alias_set:
+
+        if type_opnvpngroup_param and alias_set.opnsense_version <= "23.1":
+            module.fail_json(
+                msg=f"Parameter is not supported in OPNsense {alias_set.opnsense_version}",
+                details=str(UnsupportedModuleSettingError),
+            )
+
+        if (
+            type_dynamicipv6host_param
+            or type_bgpasn_param
+            and alias_set.opnsense_version < "23.7"
+        ):
+            module.fail_json(
+                msg=f"Parameter is not supported in OPNsense {alias_set.opnsense_version}",
+                details=str(UnsupportedModuleSettingError),
+            )
+
         if ansible_alias_state == "present":
             alias_set.add_or_update(ansible_alias)
         else:
