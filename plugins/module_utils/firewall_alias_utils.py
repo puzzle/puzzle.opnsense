@@ -35,6 +35,9 @@ class OPNsenseInterfaceNotFoundError(Exception):
     """
 
 
+# pylint: disable=too-few-public-methods
+
+
 class IPProtocol(ListEnum):
     """Represents the IPProtocol."""
 
@@ -42,9 +45,25 @@ class IPProtocol(ListEnum):
     IPv6 = "IPv6"
 
 
+# pylint: disable=too-few-public-methods
 class FirewallAliasType(ListEnum):
     """
-    some docstring
+    Enumeration of firewall alias types.
+
+    Attributes:
+        HOSTS (str): Host alias type.
+        NETWORKS (str): Network alias type.
+        PORTS (str): Port alias type.
+        URLS (str): URL alias type.
+        URLTABLES (str): URL table alias type.
+        GEOIP (str): GeoIP alias type.
+        NETWORKGROUP (str): Network group alias type.
+        MACADDRESS (str): MAC address alias type.
+        BGPASN (str): BGP ASN alias type.
+        DYNAMICIPV6HOST (str): Dynamic IPv6 host alias type.
+        OPNVPNGROUP (str): OpenVPN group alias type.
+        INTERNAL (str): Internal alias type.
+        EXTERNAL (str): External alias type.
     """
 
     HOSTS = "host"
@@ -64,9 +83,21 @@ class FirewallAliasType(ListEnum):
 
 class FirewallAlias:
     """
-    some docstring
+    FirewallAlias represents a firewall alias with various attributes.
+
+    Attributes:
+        uuid (Optional[str]): Unique identifier for the alias.
+        enabled (bool): Whether the alias is enabled.
+        proto (Optional[IPProtocol]): Protocol associated with the alias.
+        counters (Optional[bool]): Whether to count hits for the alias.
+        interface (Optional[str]): Interface associated with the alias.
+        updatefreq (Optional[int]): Update frequency for dynamic aliases.
+        content (Optional[List[str]]): List of contents for the alias.
+        name (Optional[str]): Name of the alias.
+        type (Optional[FirewallAliasType]): Type of the alias.
     """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
 
         # set default attributes
@@ -106,7 +137,13 @@ class FirewallAlias:
     @staticmethod
     def from_xml(element: Element) -> "FirewallAlias":
         """
-        some docstring
+        Create a FirewallAlias instance from an XML element.
+
+        Args:
+            element (Element): XML element to parse.
+
+        Returns:
+            FirewallAlias: Parsed FirewallAlias instance.
         """
 
         firewall_alias_dict: dict = xml_utils.etree_to_dict(element)["alias"]
@@ -138,7 +175,13 @@ class FirewallAlias:
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "FirewallAlias":
         """
-        some docstring
+        Create a FirewallAlias instance from Ansible module parameters.
+
+        Args:
+            params (dict): Parameters from Ansible module.
+
+        Returns:
+            FirewallAlias: Parsed FirewallAlias instance.
         """
         if params.get("type") == "macaddress":
             params["type"] = "mac"
@@ -169,7 +212,10 @@ class FirewallAlias:
 
     def to_etree(self) -> Element:
         """
-        some docstring
+        Convert the FirewallAlias instance to an XML element.
+
+        Returns:
+            Element: XML element representing the FirewallAlias instance.
         """
 
         firewall_alias_dict: dict = self.__dict__.copy()
@@ -207,7 +253,10 @@ class FirewallAlias:
 
 class FirewallAliasSet(OPNsenseModuleConfig):
     """
-    some docstring
+    FirewallAliasSet manages a collection of firewall aliases.
+
+    Attributes:
+        _aliases (List[FirewallAlias]): List of firewall aliases.
     """
 
     _aliases: List[FirewallAlias]
@@ -223,10 +272,14 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             path=path,
         )
         self._aliases = self._load_aliases()
+        self._config_xml_tree = self._load_config()
 
     def _load_aliases(self) -> List[FirewallAlias]:
         """
-        some doctring
+        Load firewall aliases from the XML configuration.
+
+        Returns:
+            List[FirewallAlias]: List of FirewallAlias objects.
         """
 
         element_tree_alias: Element = self.get("alias")
@@ -284,8 +337,10 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         :return: True if the provided port number is valid, False if it's invalid.
         """
         port_regex = (
-            r"^(?!.*!)([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
-            r"|^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
+            r"^(?!.*!)([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|"
+            r"655[0-2][0-9]|6553[0-5])$|^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|"
+            r"65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|"
+            r"6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
         )
 
         return re.match(port_regex, port) is not None
@@ -311,23 +366,34 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         :return: True if the provided BGP ASN is valid, False if it's invalid.
         """
-        bgpasn_regex = r"^!?([1-9][0-9]{0,4}|[1-3][0-9]{5}|4[0-2][0-9]{4}|43[0-1][0-9]{3}|432[0-6][0-9]{2}|4327[0-6][0-9]|43277[0-5])$"
+        bgpasn_regex = (
+            r"^!?([1-9][0-9]{0,4}|[1-3][0-9]{5}|4[0-2][0-9]{4}|43[0-1][0-9]{3}|"
+            r"432[0-6][0-9]{2}|4327[0-6][0-9]|43277[0-5])$"
+        )
+
         return re.match(bgpasn_regex, bgpasn) is not None
 
+    @staticmethod
     def is_dynamicipv6host(ipv6_address: str) -> bool:
         """
         Validates IPv6 addresses for dynamic IPv6 hosts.
 
         :param ipv6_address: A string containing the IPv6 address.
 
-        :return: True if the provided IPv6 address is valid for dynamic IPv6 hosts, False if it's invalid.
+        :return: True if the IPv6 address is valid for dynamic IPv6 hosts, False if it's invalid.
         """
         ipv6_regex = r"^::([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}$"
         return re.match(ipv6_regex, ipv6_address) is not None
 
     def is_networkgroup(self, type_network_alias: str) -> bool:
         """
-        some docstring
+        Validates if a network alias is a valid network group.
+
+        Args:
+            type_network_alias (str): Network alias to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
         """
 
         existing_alias: Optional[FirewallAlias] = next(
@@ -344,16 +410,22 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
     def is_opnvpngroup(self, type_opnvpngroup_alias: str) -> bool:
         """
-        some docstring
+        Validates if an OpenVPN group alias exists.
+
+        Args:
+            type_opnvpngroup_alias (str): OpenVPN group alias to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
         """
 
         # load groups
-        element_tree_groups: Element = self.get("system")
+        element_tree_opnvpn_groups: Element = self.get("system")
 
-        element_tree_groups.findall("group")
+        element_tree_opnvpn_groups.findall("group")
 
         group_list = []
-        for group in element_tree_groups:
+        for group in element_tree_opnvpn_groups:
             if group.tag == "group":
                 group_list.append(Group.from_xml(group))
 
@@ -366,7 +438,13 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
     def is_interface(self, interface_name: str) -> bool:
         """
-        some docstring
+        Validates if an interface exists.
+
+        Args:
+            interface_name (str): Interface name to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
         """
 
         element_tree_interfaces: Element = self.get("interfaces")
@@ -391,7 +469,14 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         self, content_type: FirewallAliasType, content_values: List[str]
     ) -> bool:
         """
-        some docstring
+        Validates the content of a firewall alias based on its type.
+
+        Args:
+            content_type (FirewallAliasType): Type of the alias content.
+            content_values (List[str]): List of content values to validate.
+
+        Returns:
+            bool: True if all content values are valid, False otherwise.
         """
 
         content_type_map = {
@@ -405,7 +490,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             },
             "networkgroup": {
                 "validation_function": self.is_networkgroup,
-                "error_message": "Entry {entry} is not a type NetworkAlias or InternalAlias.",
+                "error_message": "Entry {entry} is not of type NetworkAlias or InternalAlias.",
             },
             "port": {
                 "validation_function": FirewallAliasSet.is_port,
@@ -421,7 +506,10 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             },
             "dynipv6host": {
                 "validation_function": FirewallAliasSet.is_dynamicipv6host,
-                "error_message": "Entry {entry} is not a valid partial IPv6 address definition (e.g. ::1000).",
+                "error_message": (
+                    "Entry {entry} is not a valid partial IPv6 address definition "
+                    "(e.g. ::1000)."
+                ),
             },
             "opnvpngroup": {
                 "validation_function": self.is_opnvpngroup,
@@ -452,13 +540,19 @@ class FirewallAliasSet(OPNsenseModuleConfig):
     @property
     def changed(self) -> bool:
         """
-        some docstring
+        Checks if there are changes in the aliases.
+
+        Returns:
+            bool: True if aliases have changed, False otherwise.
         """
         return self._load_aliases() != self._aliases
 
     def add_or_update(self, alias: FirewallAlias) -> None:
         """
-        some docstring.
+        Adds a new alias or updates an existing one.
+
+        Args:
+            alias (FirewallAlias): Alias to add or update.
         """
 
         if self.validate_content(content_type=alias.type, content_values=alias.content):
@@ -478,7 +572,13 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
     def find(self, **kwargs) -> Optional[FirewallAlias]:
         """
-        some docstring
+        Finds an alias based on given attributes.
+
+        Args:
+            kwargs: Attributes to match.
+
+        Returns:
+            Optional[FirewallAlias]: Found alias or None.
         """
 
         for alias in self._aliases:
@@ -491,7 +591,13 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
     def delete(self, alias: FirewallAlias) -> bool:
         """
-        some docstring
+        Deletes an existing alias.
+
+        Args:
+            alias (FirewallAlias): Alias to delete.
+
+        Returns:
+            bool: True if deleted, False otherwise.
         """
 
         existing_alias: Optional[FirewallAlias] = next(
@@ -505,8 +611,17 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
     def save(self) -> bool:
         """
-        some doctsring
+        Saves the changes to the XML configuration.
+
+        Returns:
+            bool: True if changes were saved, False otherwise.
         """
+
+        # since "system_access_users" and "interfaces_assignments" are no
+        # longer needed and to avoid the configure_functions in
+        # the save() method, they can be popped
+        self._config_maps.pop("system_access_users")
+        self._config_maps.pop("interfaces_assignments")
 
         if not self.changed:
             return False
