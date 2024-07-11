@@ -174,6 +174,11 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -318,6 +323,11 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/plugins.inc",
             ],
+            "configure_functions": {},
+        },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "php_requirements": [],
             "configure_functions": {},
         },
     },
@@ -466,6 +476,11 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
     "24.1": {
         "system_settings_general": {
@@ -611,6 +626,11 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/plugins.inc",
             ],
+            "configure_functions": {},
+        },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "php_requirements": [],
             "configure_functions": {},
         },
     },
