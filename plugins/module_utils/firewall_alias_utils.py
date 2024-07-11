@@ -5,6 +5,7 @@
 Utilities for alias related operations.
 """
 import uuid
+import re
 from typing import List, Optional
 
 from xml.etree.ElementTree import Element, ElementTree
@@ -48,6 +49,67 @@ class FirewallAlias:
     some docstring
     """
 
+    @staticmethod
+    def is_hostname(hostname: str) -> bool:
+        """
+        Validates hostnames
+
+        :param hostname: A string containing the hostname
+
+        :return: True if the provided hostname is valid, False if it's invalid
+        """
+
+        # https://github.com/opnsense/core/blob/cbaf7cee1f0a6fabd1ec4c752a5d169c402976dc/src/etc/inc/util.inc#L704
+        hostname_regex = (
+            r"^!?(?:(?:[a-z0-9_]|[a-z0-9_][a-z0-9_\-]"
+            r"*[a-z0-9_])\.)*(?:[a-z0-9_]|[a-z0-9_][a-z0-9_\-]*[a-z0-9_])$"
+        )
+        return re.match(hostname_regex, hostname) is not None
+
+    @staticmethod
+    def validate_content(content_type: str, content_values: List[str]) -> bool:
+        """
+        some docstring
+        """
+
+        content_type_map = {
+            "host": {
+                "validation_function": FirewallAlias.is_hostname,
+                "error_message": "Entry {entry} is not a valid hostname, IP address or range.",
+            },
+            "network": {
+                "error_message": "Entry {entry} is not a network.",
+            },
+            "networkgroup": {
+                "error_message": "Entry {entry} is not a network.",
+            },
+            "port": {
+                "error_message": "Entry {entry} is not a valid port number.",
+            },
+            "macadress": {
+                "error_message": "Entry {entry} is not a valid (partial) MAC address.",
+            },
+            "bgpasn": {
+                "error_message": "Entry {entry} is not a valid ASN.",
+            },
+            "dynamicipv6host": {
+                "error_message": "Entry {entry} is not a valid partial IPv6 address definition (e.g. ::1000).",
+            },
+            "opnvpngroup": {
+                "error_message": "Entry {entry} was not found on the Instance.",
+            },
+        }
+
+        for content_value in content_values:
+
+            validation_function = content_type_map[content_type].get(
+                "validation_function"
+            )
+
+            if not validation_function(content_value):
+
+                raise ValueError(content_type_map[content_type]["error_message"])
+
     def __init__(self, **kwargs):
 
         # set default attributes
@@ -75,6 +137,7 @@ class FirewallAlias:
 
             # Check if the value is a string and the field_type is a subclass of ListEnum
             if isinstance(value, str) and issubclass(field_type, ListEnum):
+
                 # Convert string to ListEnum
                 setattr(self, field_name, field_type.from_string(value))
 
@@ -120,12 +183,24 @@ class FirewallAlias:
         """
         some docstring
         """
+        if params.get("type") == "macaddress":
+            params["type"] = "mac"
+
+        if params.get("type") == "dynamicipv6host":
+            params["type"] = "dynipv6host"
 
         firewall_alias_dict: dict = {
             "enabled": params.get("enabled"),
             "name": params.get("name"),
             "type": params.get("type"),
-            "content": params.get("content"),
+            "content": (
+                params.get("content")
+                if FirewallAlias.validate_content(
+                    content_type=params.get("type"),
+                    content_values=params.get("content"),
+                )
+                else None
+            ),
             "counters": params.get("statistics"),
             "description": params.get("description"),
             "updatefreq": params.get("refreshfrequency"),
