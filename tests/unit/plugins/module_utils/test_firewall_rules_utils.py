@@ -226,6 +226,10 @@ def test_firewall_rule_to_etree():
 
 
 def test_firewall_rule_to_etree_with_extra_attributes():
+    """
+    An extra non dataclass relevant field in the xml should be
+    persisted.
+    """
     test_rule: FirewallRule = FirewallRule(
         interface="wan",
         type=FirewallRuleAction.PASS,
@@ -235,7 +239,7 @@ def test_firewall_rule_to_etree_with_extra_attributes():
         source=FirewallRuleTarget("source"),
         destination=FirewallRuleTarget("destination", port="22"),
         statetype=FirewallRuleStateType.KEEP_STATE,
-        extra_attributes={"extra": "this is an extra attribute"}
+        extra_attributes={"extra": "this is an extra attribute"},
     )
 
     test_element = test_rule.to_etree()
