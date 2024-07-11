@@ -50,11 +50,46 @@ TEST_VERSION_MAP = {
                 },
             },
         },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
     }
 }
 
 TEST_XML: str = """<?xml version="1.0"?>
     <opnsense>
+     <system>
+        <group>
+            <name>admins</name>
+            <description>System Administrators</description>
+            <scope>system</scope>
+            <gid>1999</gid>
+            <member>0</member>
+            <member>2004</member>
+            <member>2005</member>
+            <member>2006</member>
+            <member>2009</member>
+            <member>2010</member>
+            <member>2014</member>
+            <priv>page-all</priv>
+        </group>
+        <group>
+            <name>test_group</name>
+            <description>test_group</description>
+            <scope>system</scope>
+            <member>2004</member>
+            <member>2021</member>
+            <gid>2000</gid>
+            <priv>page-all</priv>
+        </group>
+    </system>
     <OPNsense>
         <Firewall>
         <Alias version="1.0.0">
@@ -411,7 +446,7 @@ def test_firewall_alias_from_ansible_module_params_network():
     assert new_alias.description == "Test Alias"
 
 
-def atest_firewall_alias_from_ansible_module_params_macaddress():
+def test_firewall_alias_from_ansible_module_params_macaddress():
     """
     Test FirewallAlias instantiation form macaddress Ansible parameters.
     :return:
@@ -438,7 +473,7 @@ def atest_firewall_alias_from_ansible_module_params_macaddress():
     assert new_alias.description == "Test Alias"
 
 
-def atest_firewall_alias_from_ansible_module_params_empty_content():
+def test_firewall_alias_from_ansible_module_params_empty_content():
     """
     Test FirewallAlias instantiation form empty content Ansible parameters.
     :return:
@@ -461,84 +496,6 @@ def atest_firewall_alias_from_ansible_module_params_empty_content():
     assert new_alias.counters is False
     assert new_alias.updatefreq is None
     assert new_alias.content == ""
-    assert new_alias.description == "Test Alias"
-
-
-def atest_firewall_alias_from_ansible_module_params_exclusion_content():
-    """
-    Test FirewallAlias instantiation form empty content Ansible parameters.
-    :return:
-    """
-    test_params: dict = {
-        "name": "test_alias",
-        "type": "network",
-        "description": "Test Alias",
-        "enabled": True,
-        "content": "!192.168.1.0/24",
-    }
-
-    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
-
-    assert new_alias.enabled is True
-    assert new_alias.name == "test_alias"
-    assert new_alias.type == FirewallAliasType.NETWORKS
-    assert new_alias.proto is None
-    assert new_alias.interface is None
-    assert new_alias.counters is False
-    assert new_alias.updatefreq is None
-    assert new_alias.content == "!192.168.1.0/24"
-    assert new_alias.description == "Test Alias"
-
-
-def atest_firewall_alias_from_ansible_module_params_list_content():
-    """
-    Test FirewallAlias instantiation form empty content Ansible parameters.
-    :return:
-    """
-    test_params: dict = {
-        "name": "test_alias",
-        "type": "geoip",
-        "description": "Test Alias",
-        "enabled": True,
-        "content": ["CH", "DE"],
-    }
-
-    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
-
-    assert new_alias.enabled is True
-    assert new_alias.name == "test_alias"
-    assert new_alias.type == FirewallAliasType.GEOIP
-    assert new_alias.proto is None
-    assert new_alias.interface is None
-    assert new_alias.counters is False
-    assert new_alias.updatefreq is None
-    assert new_alias.content == ["CH", "DE"]
-    assert new_alias.description == "Test Alias"
-
-
-def atest_firewall_alias_from_ansible_module_params_list_exclusion_content():
-    """
-    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
-    :return:
-    """
-    test_params: dict = {
-        "name": "test_alias",
-        "type": "port",
-        "description": "Test Alias",
-        "enabled": True,
-        "content": ["!30", "!34:40"],
-    }
-
-    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
-
-    assert new_alias.enabled is True
-    assert new_alias.name == "test_alias"
-    assert new_alias.type == FirewallAliasType.PORTS
-    assert new_alias.proto is None
-    assert new_alias.interface is None
-    assert new_alias.counters is False
-    assert new_alias.updatefreq is None
-    assert new_alias.content == ["!30", "!34:40"]
     assert new_alias.description == "Test Alias"
 
 
@@ -568,7 +525,90 @@ def test_firewall_alias_from_ansible_module_params_with_unknown_content_type_val
     assert new_alias.description == "Test Alias"
 
 
-def test_firewall_alias_from_ansible_module_params_with_content_type_host_validation_error():
+def atest_firewall_alias_from_ansible_module_params_list_content():
+    """
+    Test FirewallAlias instantiation form empty content Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "geoip",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["CH", "DE"],
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.GEOIP
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq is None
+    assert new_alias.content == ["CH", "DE"]
+    assert new_alias.description == "Test Alias"
+
+
+############################
+# content_type validations #
+############################
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_host_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["8.8.8.8-9.9.9.9", "TestHost", "192.168.0.0"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.HOSTS
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["8.8.8.8-9.9.9.9", "TestHost", "192.168.0.0"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_host_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     """
     Test FirewallAlias instantiation with not valid Ansible parameters.
     :return:
@@ -581,16 +621,29 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_host_valida
         "content": ["8.8.8.8-9.9.9.9", "192.168.0.0/24", "192.168.0.0"],
     }
 
-    with pytest.raises(OPNsenseContentValidationError) as excinfo:
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
 
-        FirewallAlias.from_ansible_module_params(test_params)
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
 
-    assert "Entry 192.168.0.0/24 is not a valid hostname, IP address or range." in str(
-        excinfo.value
-    )
+        assert (
+            "Entry 192.168.0.0/24 is not a valid hostname, IP address or range."
+            in str(excinfo.value)
+        )
 
 
-def test_firewall_alias_from_ansible_module_params_with_content_type_network_validation_error():
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_network_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
     """
     Test FirewallAlias instantiation with not valid Ansible parameters.
     :return:
@@ -600,14 +653,543 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_network_val
         "type": "network",
         "description": "Test Alias",
         "enabled": True,
-        "content": ["Test_Host"],
+        "content": ["192.168.0.0/24", "!192.168.1.0/24"],
     }
 
-    with pytest.raises(OPNsenseContentValidationError) as excinfo:
+    with FirewallAliasSet(sample_config_path) as alias_set:
 
-        FirewallAlias.from_ansible_module_params(test_params)
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
 
-    assert "Entry Test_Host is not a network." in str(excinfo.value)
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.NETWORKS
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["192.168.0.0/24", "!192.168.1.0/24"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_network_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with not valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "network",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["Test_Network"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Entry Test_Network is not a network." in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_networkgroup_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with not valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "networkgroup",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["network_test", "network_group_test"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.NETWORKGROUP
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["network_test", "network_group_test"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_networkgroup_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with not valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "networkgroup",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["Test_Group"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Entry Test_Group is not a type NetworkAlias or InternalAlias." in str(
+            excinfo.value
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_port_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "port",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["30:90", "22", "5000:5002"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.PORTS
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["30:90", "22", "5000:5002"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_port_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "port",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["!30", "!34:40"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Entry !30 is not a valid port number." in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_macaddress_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "macaddress",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["08:5b:0c:a3:f1:9e", "1a:2b:3c:4d:5e:6f"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.MACADDRESS
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["08:5b:0c:a3:f1:9e", "1a:2b:3c:4d:5e:6f"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_macaddress_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "macaddress",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["test_mac", "!test_mac"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Entry test_mac is not a valid (partial) MAC address." in str(
+            excinfo.value
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "bgpasn",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["64512", "64512"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.BGPASN
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["64512", "64512"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "bgpasn",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["test_asn", "!test_asn"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Entry test_asn is not a valid ASN." in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6host_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "dynamicipv6host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": [
+            "::1000",
+            "::abcd:1234:5678:abcd",
+            "::aaaa:bbbb:cccc:0001",
+            "::1234:5678:abcd:1234",
+        ],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.DYNAMICIPV6HOST
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == [
+            "::1000",
+            "::abcd:1234:5678:abcd",
+            "::aaaa:bbbb:cccc:0001",
+            "::1234:5678:abcd:1234",
+        ]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6host_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "dynamicipv6host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["2001::10", "2002::10"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert (
+            "Entry 2001::10 is not a valid partial IPv6 address definition (e.g. ::1000)."
+            in str(excinfo.value)
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "opnvpngroup",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["admins", "test_group"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+        alias_set.add_or_update(new_alias)
+
+        assert alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+
+        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == FirewallAliasType.OPNVPNGROUP
+        assert new_alias.proto is None
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["admins", "test_group"]
+        assert new_alias.description == "Test Alias"
+
+        alias_set.save()
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "opnvpngroup",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["test_group_2", "test_group_3"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "Group test_group_2 was not found on the Instance." in str(excinfo.value)
 
 
 @patch(
