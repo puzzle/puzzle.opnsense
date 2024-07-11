@@ -5,7 +5,7 @@
 Test suite for the firewall_alias module.
 """
 
-# pylint: disable=duplicate-code
+# pylint: skip-file
 import os
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch, MagicMock
