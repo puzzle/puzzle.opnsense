@@ -1,0 +1,268 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Converge - Get OPNsense version
+      ansible.builtin.command: opnsense-version -O
+      register: opnsense_version_cmd
+      changed_when: false
+
+    - name: Converge - Set OPNsense version fact
+      ansible.builtin.set_fact:
+        opnsense_version: "{{ opnsense_version_cmd.stdout | from_json }}"
+
+    - name: Create a Host Alias with the content 10.0.0.1
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeHost
+        type: host
+        statistics: false
+        description: Test Alias with type Host
+        content: 10.0.0.1
+        state: present
+
+    - name: Create a Host Alias with an unsupported content 192.168.0.0/24
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeHost
+        type: host
+        statistics: false
+        description: Test Alias with type Host
+        content: 192.168.0.0/24
+        state: present
+      register: unsupported_content_for_type_host_result
+      ignore_errors: yes
+
+    - name: Verify that the alias update failed since the defined content is not supported for type host
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_host_result is failed
+        fail_msg: "Content 192.168.0.0/24 for type host should fail"
+        success_msg: "Content 192.168.0.0/24 failed as expected due to unsupported content for type host"
+
+
+    - name: Create a Host Alias with the content 10.0.0.1, 10.0.0.2
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeHostList
+        type: host
+        statistics: false
+        description: Test Alias with type Host
+        content:
+            - 10.0.0.1
+            - 10.0.0.2
+
+    - name: Create a Network Alias with the content 192.168.0.0/24
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeNetwork
+        type: network
+        statistics: false
+        description: Test Alias with type Network
+        content: 192.168.0.0/24
+
+    - name: Create a Network Alias with an unsupported content test_content
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeNetwork
+        type: network
+        statistics: false
+        description: Test Alias with type Network
+        content: test_content
+        state: present
+      register: unsupported_content_for_type_network_result
+      ignore_errors: yes
+
+    - name: Verify that the alias update failed since the defined content is not supported for type network
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_network_result is failed
+        fail_msg: "Content test_content for type network should fail"
+        success_msg: "Content test_content failed as expected due to unsupported content for type network"
+
+    - name: Create a NetworkGroup Alias with the content TestAliasTypeNetwork
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeNetworkGroup
+        type: networkgroup
+        description: Test Alias with type NetworkGroup
+        content:
+            - TestAliasTypeNetwork
+
+    - name: Create a NetworkGroup Alias with an unsupported content test_content
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeNetworkGroup
+        type: networkgroup
+        statistics: false
+        description: Test Alias with type NetworkGroup
+        content: test_content
+        state: present
+      register: unsupported_content_for_type_networkgroup_result
+      ignore_errors: yes
+
+    - name: Verify that the alias update failed since the defined content is not supported for type networkgroup
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_networkgroup_result is failed
+        fail_msg: "Content test_content for type networkgroup should fail"
+        success_msg: "Content test_content failed as expected due to unsupported content for type networkgroup"
+
+    - name: Create a Port Alias with the content 80
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypePort
+        type: port
+        statistics: false
+        description: Test Alias with type Port
+        content: 80
+
+    - name: Create a Port Alias with an unsupported content !30
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypePort
+        type: port
+        statistics: false
+        description: Test Alias with type Port
+        content: "!30"
+        state: present
+      register: unsupported_content_for_type_port_result
+      ignore_errors: yes
+
+    - name: Verify that the alias update failed since the defined content is not supported for type port
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_port_result is failed
+        fail_msg: "Content test_content for type port should fail"
+        success_msg: "Content !30 failed as expected due to unsupported content for type port"
+
+    - name: Create an MAC Alias with the content FF:FF:FF:FF:FF
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeMAC
+        type: macaddress
+        statistics: false
+        description: Test Alias with type MAC
+        content: FF:FF:FF:FF:FF:FF
+
+    - name: Create a MACAddress Alias with an unsupported content 11:AA:22:BB:33
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeMACAddress
+        type: macaddress
+        statistics: false
+        description: Test Alias with type MACAddress
+        content: 11:AA:22:BB:33
+        state: present
+      register: unsupported_content_for_type_macaddress_result
+      ignore_errors: yes
+
+    - name: Verify that the alias update failed since the defined content is not supported for type macaddress
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_macaddress_result is failed
+        fail_msg: "Content 11:AA:22:BB:33 for type macaddress should fail"
+        success_msg: "Content 11:AA:22:BB:33 failed as expected due to unsupported content for type macaddress"
+
+    - name: Create an URL Alias with the content www.puzzle.ch
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeURL
+        type: url
+        statistics: false
+        description: Test Alias with type URL
+        content: www.puzzle.ch
+
+    - name: Create a URLTable Alias with the content www.google.ch, www.puzzle.ch
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeURLTable
+        type: urltable
+        refreshfrequency: 3
+        description: Test Alias with type URLTable
+        content:
+            - www.google.ch
+            - www.puzzle.ch
+
+    - name: Create a GeoIP Alias with the content CH, DE
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeGeoIP
+        type: geoip
+        description: Test Alias with type GeoIP
+        content:
+            - CH
+            - DE
+
+    - name: Create an BGPASN Alias with the content 65000
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeBGPASN
+        type: bgpasn
+        statistics: false
+        description: Test Alias with type BGPASN
+        content: 65000
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create a BGPASN Alias with an unsupported content test_asn
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeBGPASN
+        type: bgpasn
+        statistics: false
+        description: Test Alias with type BGPASN
+        content: test_asn
+        state: present
+      register: unsupported_content_for_type_bgpasn_result
+      ignore_errors: yes
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Verify that the alias update failed since the defined content is not supported for type bgpasn
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_bgpasn_result is failed
+        fail_msg: "Content test_asn for type bgpasn should fail"
+        success_msg: "Content test_asn failed as expected due to unsupported content for type bgpasn"
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create an DYNAMICIPV6HOST Alias with the content ::abcd:1234:5678:abcd
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeDYNAMICIPV6HOST
+        type: dynamicipv6host
+        statistics: false
+        description: Test Alias with type DYNAMICIPV6HOST
+        content: ::abcd:1234:5678:abcd
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create a DYNAMICIPV6HOST Alias with an unsupported content 2001::10
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeDYNAMICIPV6HOST
+        type: dynamicipv6host
+        statistics: false
+        description: Test Alias with type DYNAMICIPV6HOST
+        content: 2001::10
+        state: present
+      register: unsupported_content_for_type_dynamicipv6host_result
+      ignore_errors: yes
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Verify that the alias update failed since the defined content is not supported for type dynamicipv6host
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_dynamicipv6host_result is failed
+        fail_msg: "Content 2001::10 for type dynamicipv6host should fail"
+        success_msg: "Content 2001::10 failed as expected due to unsupported content for type dynamicipv6host"
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create an OPNVPNGROUP Alias with the content admin
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeOPNVPNGROUP
+        type: opnvpngroup
+        statistics: false
+        description: Test Alias with type OPNVPNGROUP
+        content: admin
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create a OPNVPNGROUP Alias with an unsupported content test_group
+      puzzle.opnsense.firewall_alias:
+        name: UnsupportedTestAliasTypeOPNVPNGROUP
+        type: opnvpngroup
+        statistics: false
+        description: Test Alias with type OPNVPNGROUP
+        content: test_group
+        state: present
+      ignore_errors: yes
+      register: unsupported_content_for_type_opnvpngroup_result
+
+    - name: Verify that the alias update failed since the defined content is not supported for type opnvpngroup
+      ansible.builtin.assert:
+        that:
+          - unsupported_content_for_type_opnvpngroup_result is failed
+        fail_msg: "Content test_group for type opnvpngroup should fail"
+        success_msg: "Content test_group failed as expected due to unsupported content for type opnvpngroup"
