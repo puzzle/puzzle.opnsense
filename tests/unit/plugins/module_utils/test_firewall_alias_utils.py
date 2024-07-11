@@ -17,6 +17,7 @@ import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_utils import (
     OPNsenseContentValidationError,
+    OPNsenseInterfaceNotFoundError,
     IPProtocol,
     FirewallAliasType,
     FirewallAlias,
@@ -60,6 +61,11 @@ TEST_VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     }
 }
 
@@ -90,6 +96,90 @@ TEST_XML: str = """<?xml version="1.0"?>
             <priv>page-all</priv>
         </group>
     </system>
+    <interfaces>
+        <wan>
+            <if>em2</if>
+            <ipaddr>dhcp</ipaddr>
+            <dhcphostname/>
+            <mtu/>
+            <subnet/>
+            <gateway/>
+            <media/>
+            <mediaopt/>
+            <blockbogons>1</blockbogons>
+            <ipaddrv6>dhcp6</ipaddrv6>
+            <dhcp6-ia-pd-len>0</dhcp6-ia-pd-len>
+            <blockpriv>1</blockpriv>
+            <descr>WAN</descr>
+            <lock>1</lock>
+        </wan>
+        <lan>
+            <if>em1</if>
+            <descr>LAN</descr>
+            <enable>1</enable>
+            <lock>1</lock>
+            <spoofmac/>
+            <blockbogons>1</blockbogons>
+            <ipaddr>192.168.56.10</ipaddr>
+            <subnet>21</subnet>
+            <ipaddrv6>track6</ipaddrv6>
+            <track6-interface>wan</track6-interface>
+            <track6-prefix-id>0</track6-prefix-id>
+        </lan>
+        <opt1>
+            <if>em3</if>
+            <descr>DMZ</descr>
+            <spoofmac/>
+            <lock>1</lock>
+        </opt1>
+        <opt2>
+            <if>em0</if>
+            <descr>VAGRANT</descr>
+            <enable>1</enable>
+            <lock>1</lock>
+            <spoofmac/>
+            <ipaddr>dhcp</ipaddr>
+            <dhcphostname/>
+            <alias-address/>
+            <alias-subnet>32</alias-subnet>
+            <dhcprejectfrom/>
+            <adv_dhcp_pt_timeout/>
+            <adv_dhcp_pt_retry/>
+            <adv_dhcp_pt_select_timeout/>
+            <adv_dhcp_pt_reboot/>
+            <adv_dhcp_pt_backoff_cutoff/>
+            <adv_dhcp_pt_initial_interval/>
+            <adv_dhcp_pt_values>SavedCfg</adv_dhcp_pt_values>
+            <adv_dhcp_send_options/>
+            <adv_dhcp_request_options/>
+            <adv_dhcp_required_options/>
+            <adv_dhcp_option_modifiers/>
+            <adv_dhcp_config_advanced/>
+            <adv_dhcp_config_file_override/>
+        <adv_dhcp_config_file_override_path/>
+        </opt2>
+        <lo0>
+            <internal_dynamic>1</internal_dynamic>
+            <descr>Loopback</descr>
+            <enable>1</enable>
+            <if>lo0</if>
+            <ipaddr>127.0.0.1</ipaddr>
+            <ipaddrv6>::1</ipaddrv6>
+            <subnet>8</subnet>
+            <subnetv6>128</subnetv6>
+            <type>none</type>
+            <virtual>1</virtual>
+        </lo0>
+        <openvpn>
+            <internal_dynamic>1</internal_dynamic>
+            <enable>1</enable>
+            <if>openvpn</if>
+            <descr>OpenVPN</descr>
+            <type>group</type>
+            <virtual>1</virtual>
+            <networks/>
+        </openvpn>
+    </interfaces>
     <OPNsense>
         <Firewall>
         <Alias version="1.0.0">
@@ -1042,6 +1132,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
         "type": "dynamicipv6host",
         "description": "Test Alias",
         "enabled": True,
+        "interface": "WAN",
         "content": [
             "::1000",
             "::abcd:1234:5678:abcd",
@@ -1067,7 +1158,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
         assert new_alias.name == "test_alias"
         assert new_alias.type == FirewallAliasType.DYNAMICIPV6HOST
         assert new_alias.proto is None
-        assert new_alias.interface is None
+        assert new_alias.interface == "WAN"
         assert new_alias.counters is False
         assert new_alias.content == [
             "::1000",
@@ -1096,6 +1187,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
         "name": "test_alias",
         "type": "dynamicipv6host",
         "description": "Test Alias",
+        "interface": "WAN",
         "enabled": True,
         "content": ["2001::10", "2002::10"],
     }
@@ -1112,6 +1204,41 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6
         assert (
             "Entry 2001::10 is not a valid partial IPv6 address definition (e.g. ::1000)."
             in str(excinfo.value)
+        )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_dynamicipv6host_interface_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "dynamicipv6host",
+        "description": "Test Alias",
+        "interface": "test_interface",
+        "enabled": True,
+        "content": ["::1000", "::abcd:1234:5678:abcd"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseInterfaceNotFoundError) as excinfo:
+
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert "interface test_interface was not found on the device" in str(
+            excinfo.value
         )
 
 
