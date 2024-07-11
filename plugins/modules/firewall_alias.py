@@ -11,7 +11,7 @@ __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 # fmt: off
-# pylint: disable=duplicate-code
+
 DOCUMENTATION = r'''
 ---
 author:
