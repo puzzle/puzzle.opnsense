@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 # Copyright: (c) 2024, Kilian Soltermann <soltermann@puzzle.ch>, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -16,11 +13,10 @@ DOCUMENTATION = r'''
 ---
 author:
   - Kilian Soltermann (@killuuuhh)
-module: system_settings_logging
+module: firewall_alias
 short_description: Configure firewall aliases.
-version_added: "1.3.0"
-description:
-  - Module to configure opnsense firewall aliases
+version_added: 1.3.0
+description: Module to configure opnsense firewall aliases
 options:
   enabled:
     description:
@@ -31,68 +27,84 @@ options:
     default: true
   name:
     description:
-      - The name of the alias may only consist of the characters "a-z, A-Z, 0-9 and _"
+      - The name of the alias may only consist of the characters "a-z, A-Z, 0-9
+        and _"
     type: str
     required: true
   type:
     description:
       - The type used for the Alias
-      - Supported types are:
-            - hosts (Single hosts by IP or Fully Qualified Domain Name or host exclusions (starts with “!” sign))
-            - networks (Entire network p.e. 192.168.1.1/24 or network exclusion eg !192.168.1.0/24)
-            - ports (Port numbers or a port range like 20:30)
-            - urls (A table of IP addresses that are fetched once)
-            - urltable (A table of IP addresses that are fetched on regular intervals.)
-            - geoip (Select countries or whole regions) disclaimer: validation is not supported at this point
-            - networkgroup (Combine different network type aliases into one)
-            - macaddress (MAC address or partial mac addresses like f4:90:ea)
-            - bgpasn (Maps autonomous system (AS) numbers to networks where they are responsible for) supported >= version 23.7
-            - dynamicipv6host (A Host entry that will auto update on a prefixchange) supported >= version 23.7
-            - opnvpngroup (Map user groups to logged in OpenVPN users) supported >= version 23.1
-            - internal (Internal aliases which are managed by the product)
-            - external (Externally managed alias, this only handles the placeholder. Content is set from another source (plugin, api call, etc))
+      - hosts (Single hosts by IP or Fully Qualified Domain Name or host
+        exclusions (starts with '!' sign))
+      - networks (Entire network p.e. 192.168.1.1/24 or network exclusion eg
+        !192.168.1.0/24)
+      - ports (Port numbers or a port range like 20:30)
+      - urls (A table of IP addresses that are fetched once)
+      - urltable (A table of IP addresses that are fetched on regular
+        intervals.)
+      - geoip (Select countries or whole regions) disclaimer -> validation is not supported at this point
+      - networkgroup (Combine different network type aliases into one)
+      - macaddress (MAC address or partial mac addresses like f4:90:ea)
+      - bgpasn (Maps autonomous system (AS) numbers to networks where they
+        are responsible for) supported >= version 23.7
+      - dynamicipv6host (A Host entry that will auto update on a
+        prefixchange) supported >= version 23.7
+      - opnvpngroup (Map user groups to logged in OpenVPN users) supported
+        >= version 23.1
+      - internal (Internal aliases which are managed by the product)
+      - external (Externally managed alias, this only handles the
+        placeholder. Content is set from another source (plugin, api call,
+        etc))
     type: str
     choices:
-        - host
-        - networks
-        - ports
-        - urls
-        - urltable
-        - geoip
-        - networkgroup
-        - macaddress
-        - bgpasn
-        - dynamicipv6host
-        - opnvpngroup
-        - internal
-        - external
+      - host
+      - network
+      - port
+      - url
+      - urltable
+      - geoip
+      - networkgroup
+      - macaddress
+      - bgpasn
+      - dynamicipv6host
+      - opnvpngroup
+      - internal
+      - external
     required: true
   content:
     description:
       - Content of the alias
     type: list
-    required: true
+    elements: str
+    required: false
   statistics:
     description:
-      -  Maintain a set of counters for each table entry
+      - Maintain a set of counters for each table entry
     type: bool
     required: false
     default: false
   description:
     description:
-      -  Description of the Alias
+      - Description of the Alias
     type: str
     required: false
   refreshfrequency:
     description:
-      -  The frequency that the list will be refreshed, in days + hours, so 1 day and 8 hours means the alias will be refreshed after 32 hours.
+      - The frequency that the list will be refreshed, in days + hours, so 1 day
+        and 8 hours means the alias will be refreshed after 32 hours.
     type: int
     required: false
-  Interface:
+  interface:
     description:
       - Select the interface for the V6 dynamic IP
     type: str
     required: false
+  state:
+    description: Weather alias should be added or removed.
+    required: false
+    type: str
+    default: present
+    choices: [present, absent]
 '''
 
 EXAMPLES = r'''
@@ -160,10 +172,10 @@ def main():
             ],
             "required": True,
         },
-        "content": {"type": "list", "required": False},
+        "content": {"type": "list", "elements": "str", "required": False},
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
-        "refreshfrequency": {"type": "str", "required": False},
+        "refreshfrequency": {"type": "int", "required": False},
         "interface": {"type": "str", "required": False},
         "state": {
             "type": "str",
@@ -217,7 +229,6 @@ def main():
     )
 
     with FirewallAliasSet() as alias_set:
-
         if type_opnvpngroup_param and alias_set.opnsense_version <= "23.1":
             module.fail_json(
                 msg=f"Parameter is not supported in OPNsense {alias_set.opnsense_version}",
