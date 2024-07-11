@@ -14,13 +14,24 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
 )
-
+from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
+    Group,
+)
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+    InterfaceAssignment,
+)
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
 class OPNsenseContentValidationError(Exception):
     """
     Exception raised when the validation of a specific value does not succeed
+    """
+
+
+class OPNsenseInterfaceNotFoundError(Exception):
+    """
+    Exception raised if the defined interface is not found on the device
     """
 
 
@@ -141,6 +152,9 @@ class FirewallAlias:
             "type": params.get("type"),
             "content": params.get("content"),
             "counters": params.get("statistics"),
+            "interface": (
+                params.get("interface") if params.get("type") == "dynipv6host" else None
+            ),
             "description": params.get("description"),
             "updatefreq": params.get("refreshfrequency"),
         }
@@ -201,7 +215,11 @@ class FirewallAliasSet(OPNsenseModuleConfig):
     def __init__(self, path: str = "/conf/config.xml"):
         super().__init__(
             module_name="firewall_alias",
-            config_context_names=["firewall_alias"],
+            config_context_names=[
+                "firewall_alias",
+                "system_access_users",
+                "interfaces_assignments",
+            ],
             path=path,
         )
         self._aliases = self._load_aliases()
@@ -284,6 +302,29 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         macaddress_regex = r"^!?([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$"
         return re.match(macaddress_regex, macaddress) is not None
 
+    @staticmethod
+    def is_bgpasn(bgpasn: str) -> bool:
+        """
+        Validates BGP Autonomous System Numbers (including optional '!' at the beginning).
+
+        :param bgpasn: A string containing the BGP ASN.
+
+        :return: True if the provided BGP ASN is valid, False if it's invalid.
+        """
+        bgpasn_regex = r"^!?([1-9][0-9]{0,4}|[1-3][0-9]{5}|4[0-2][0-9]{4}|43[0-1][0-9]{3}|432[0-6][0-9]{2}|4327[0-6][0-9]|43277[0-5])$"
+        return re.match(bgpasn_regex, bgpasn) is not None
+
+    def is_dynamicipv6host(ipv6_address: str) -> bool:
+        """
+        Validates IPv6 addresses for dynamic IPv6 hosts.
+
+        :param ipv6_address: A string containing the IPv6 address.
+
+        :return: True if the provided IPv6 address is valid for dynamic IPv6 hosts, False if it's invalid.
+        """
+        ipv6_regex = r"^::([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}$"
+        return re.match(ipv6_regex, ipv6_address) is not None
+
     def is_networkgroup(self, type_network_alias: str) -> bool:
         """
         some docstring
@@ -294,12 +335,57 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 a
                 for a in self._aliases
                 if a.name == type_network_alias
-                and a.type in {"network", "networkgroup", "internal"}
+                and a.type.value in {"network", "networkgroup", "internal"}
             ),
             None,
         )
 
         return existing_alias is not None
+
+    def is_opnvpngroup(self, type_opnvpngroup_alias: str) -> bool:
+        """
+        some docstring
+        """
+
+        # load groups
+        element_tree_groups: Element = self.get("system")
+
+        element_tree_groups.findall("group")
+
+        group_list = []
+        for group in element_tree_groups:
+            if group.tag == "group":
+                group_list.append(Group.from_xml(group))
+
+        existing_group: Optional[Group] = next(
+            (g for g in group_list if g.name == type_opnvpngroup_alias),
+            None,
+        )
+
+        return existing_group is not None
+
+    def is_interface(self, interface_name: str) -> bool:
+        """
+        some docstring
+        """
+
+        element_tree_interfaces: Element = self.get("interfaces")
+
+        interfaces_list: List = []
+        for interface in element_tree_interfaces:
+            interfaces_list.append(InterfaceAssignment.from_xml(interface))
+
+        existing_interface: Optional[Group] = next(
+            (i for i in interfaces_list if i.descr == interface_name),
+            None,
+        )
+
+        if not existing_interface:
+            raise OPNsenseInterfaceNotFoundError(
+                f"interface {interface_name} was not found on the device"
+            )
+
+        return existing_interface
 
     def validate_content(
         self, content_type: FirewallAliasType, content_values: List[str]
@@ -325,17 +411,21 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 "validation_function": FirewallAliasSet.is_port,
                 "error_message": "Entry {entry} is not a valid port number.",
             },
-            "macadress": {
+            "mac": {
+                "validation_function": FirewallAliasSet.is_macaddress,
                 "error_message": "Entry {entry} is not a valid (partial) MAC address.",
             },
             "bgpasn": {
+                "validation_function": FirewallAliasSet.is_bgpasn,
                 "error_message": "Entry {entry} is not a valid ASN.",
             },
-            "dynamicipv6host": {
+            "dynipv6host": {
+                "validation_function": FirewallAliasSet.is_dynamicipv6host,
                 "error_message": "Entry {entry} is not a valid partial IPv6 address definition (e.g. ::1000).",
             },
             "opnvpngroup": {
-                "error_message": "Entry {entry} was not found on the Instance.",
+                "validation_function": self.is_opnvpngroup,
+                "error_message": "Group {entry} was not found on the Instance.",
             },
         }
 
@@ -373,6 +463,9 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         if self.validate_content(content_type=alias.type, content_values=alias.content):
 
+            if alias.interface:
+                self.is_interface(alias.interface)
+
             existing_alias: Optional[FirewallAlias] = next(
                 (a for a in self._aliases if a.name == alias.name), None
             )
@@ -382,6 +475,19 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 existing_alias.__dict__.update(alias.__dict__)
             else:
                 self._aliases.append(alias)
+
+    def find(self, **kwargs) -> Optional[FirewallAlias]:
+        """
+        some docstring
+        """
+
+        for alias in self._aliases:
+            match = all(
+                getattr(alias, key, None) == value for key, value in kwargs.items()
+            )
+            if match:
+                return alias
+        return None
 
     def delete(self, alias: FirewallAlias) -> bool:
         """
