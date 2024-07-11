@@ -5,9 +5,7 @@ Test suite for the firewall_alias module.
 """
 
 import os
-import sys
 from tempfile import NamedTemporaryFile
-from typing import Optional
 from unittest.mock import patch, MagicMock
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
