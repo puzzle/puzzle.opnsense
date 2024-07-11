@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Copyright: (c) 2024, Kilian Soltermann <soltermann@puzzle.ch>, Puzzle ITC
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -92,7 +93,7 @@ options:
     description:
       - The frequency that the list will be refreshed, in days + hours, so 1 day
         and 8 hours means the alias will be refreshed after 32 hours.
-    type: int
+    type: str
     required: false
   interface:
     description:
@@ -175,7 +176,7 @@ def main():
         "content": {"type": "list", "elements": "str", "required": False},
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
-        "refreshfrequency": {"type": "int", "required": False},
+        "refreshfrequency": {"type": "str", "required": False},
         "interface": {"type": "str", "required": False},
         "state": {
             "type": "str",
