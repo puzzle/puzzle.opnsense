@@ -56,102 +56,6 @@ class FirewallAlias:
     some docstring
     """
 
-    @staticmethod
-    def is_hostname_ip_or_range(host: str) -> bool:
-        """
-        Validates if the entry is a hostname, an IP address, or an IP range.
-
-        :param entry: A string containing the entry
-
-        :return: True if the provided entry is valid, False if it's invalid
-        """
-
-        hostname_regex = (
-            r"^!?(?:(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]"
-            r"*[a-zA-Z0-9_])\.)*(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]*[a-zA-Z0-9_])$"
-        )
-
-        if re.match(hostname_regex, host):
-            return True
-
-        try:
-            ipaddress.ip_address(host)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def is_network(network: str) -> bool:
-        """
-        Validates network addresses (including optional '!' at the beginning).
-
-        :param network: A string containing the network address.
-
-        :return: True if the provided network address is valid, False if it's invalid.
-        """
-        if network.startswith("!"):
-            network = network[1:]
-        try:
-            ipaddress.ip_network(network, strict=False)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def validate_content(content_type: str, content_values: List[str]) -> bool:
-        """
-        some docstring
-        """
-
-        content_type_map = {
-            "host": {
-                "validation_function": FirewallAlias.is_hostname_ip_or_range,
-                "error_message": "Entry {entry} is not a valid hostname, IP address or range.",
-            },
-            "network": {
-                "validation_function": FirewallAlias.is_network,
-                "error_message": "Entry {entry} is not a network.",
-            },
-            "networkgroup": {
-                "error_message": "Entry {entry} is not a network.",
-            },
-            "port": {
-                "error_message": "Entry {entry} is not a valid port number.",
-            },
-            "macadress": {
-                "error_message": "Entry {entry} is not a valid (partial) MAC address.",
-            },
-            "bgpasn": {
-                "error_message": "Entry {entry} is not a valid ASN.",
-            },
-            "dynamicipv6host": {
-                "error_message": "Entry {entry} is not a valid partial IPv6 address definition (e.g. ::1000).",
-            },
-            "opnvpngroup": {
-                "error_message": "Entry {entry} was not found on the Instance.",
-            },
-        }
-
-        for content_value in content_values:
-
-            # since not all types need validation, unhandled types are ingnored
-            if not content_type_map.get(content_type):
-                return True
-
-            validation_function = content_type_map[content_type].get(
-                "validation_function"
-            )
-
-            if not validation_function(content_value):
-
-                raise OPNsenseContentValidationError(
-                    content_type_map[content_type]["error_message"].format(
-                        entry=content_value
-                    )
-                )
-
-        return True
-
     def __init__(self, **kwargs):
 
         # set default attributes
@@ -235,14 +139,7 @@ class FirewallAlias:
             "enabled": params.get("enabled"),
             "name": params.get("name"),
             "type": params.get("type"),
-            "content": (
-                params.get("content")
-                if FirewallAlias.validate_content(
-                    content_type=params.get("type"),
-                    content_values=params.get("content"),
-                )
-                else None
-            ),
+            "content": params.get("content"),
             "counters": params.get("statistics"),
             "description": params.get("description"),
             "updatefreq": params.get("refreshfrequency"),
@@ -318,6 +215,150 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         return [FirewallAlias.from_xml(element) for element in element_tree_alias]
 
+    @staticmethod
+    def is_hostname_ip_or_range(host: str) -> bool:
+        """
+        Validates if the entry is a hostname, an IP address, or an IP range.
+
+        :param entry: A string containing the entry
+
+        :return: True if the provided entry is valid, False if it's invalid
+        """
+
+        hostname_regex = (
+            r"^!?(?:(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]"
+            r"*[a-zA-Z0-9_])\.)*(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]*[a-zA-Z0-9_])$"
+        )
+
+        if re.match(hostname_regex, host):
+            return True
+
+        try:
+            ipaddress.ip_address(host)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_network(network: str) -> bool:
+        """
+        Validates network addresses (including optional '!' at the beginning).
+
+        :param network: A string containing the network address.
+
+        :return: True if the provided network address is valid, False if it's invalid.
+        """
+        if network.startswith("!"):
+            network = network[1:]
+        try:
+            ipaddress.ip_network(network, strict=False)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_port(port: str) -> bool:
+        """
+        Validates port numbers (including optional '!' at the beginning).
+
+        :param port: A string containing the port number.
+
+        :return: True if the provided port number is valid, False if it's invalid.
+        """
+        port_regex = (
+            r"^(?!.*!)([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
+            r"|^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
+        )
+
+        return re.match(port_regex, port) is not None
+
+    @staticmethod
+    def is_macaddress(macaddress: str) -> bool:
+        """
+        Validates MAC addresses (including optional '!' at the beginning).
+
+        :param macaddress: A string containing the MAC address.
+
+        :return: True if the provided MAC address is valid, False if it's invalid.
+        """
+        macaddress_regex = r"^!?([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$"
+        return re.match(macaddress_regex, macaddress) is not None
+
+    def is_networkgroup(self, type_network_alias: str) -> bool:
+        """
+        some docstring
+        """
+
+        existing_alias: Optional[FirewallAlias] = next(
+            (
+                a
+                for a in self._aliases
+                if a.name == type_network_alias
+                and a.type in {"network", "networkgroup", "internal"}
+            ),
+            None,
+        )
+
+        return existing_alias is not None
+
+    def validate_content(
+        self, content_type: FirewallAliasType, content_values: List[str]
+    ) -> bool:
+        """
+        some docstring
+        """
+
+        content_type_map = {
+            "host": {
+                "validation_function": FirewallAliasSet.is_hostname_ip_or_range,
+                "error_message": "Entry {entry} is not a valid hostname, IP address or range.",
+            },
+            "network": {
+                "validation_function": FirewallAliasSet.is_network,
+                "error_message": "Entry {entry} is not a network.",
+            },
+            "networkgroup": {
+                "validation_function": self.is_networkgroup,
+                "error_message": "Entry {entry} is not a type NetworkAlias or InternalAlias.",
+            },
+            "port": {
+                "validation_function": FirewallAliasSet.is_port,
+                "error_message": "Entry {entry} is not a valid port number.",
+            },
+            "macadress": {
+                "error_message": "Entry {entry} is not a valid (partial) MAC address.",
+            },
+            "bgpasn": {
+                "error_message": "Entry {entry} is not a valid ASN.",
+            },
+            "dynamicipv6host": {
+                "error_message": "Entry {entry} is not a valid partial IPv6 address definition (e.g. ::1000).",
+            },
+            "opnvpngroup": {
+                "error_message": "Entry {entry} was not found on the Instance.",
+            },
+        }
+
+        for content_value in content_values:
+
+            # since not all types need validation, unhandled types are ingnored
+            if not content_type_map.get(content_type.value):
+                return True
+
+            validation_function = content_type_map[content_type.value].get(
+                "validation_function"
+            )
+
+            if not validation_function(content_value):
+
+                raise OPNsenseContentValidationError(
+                    content_type_map[content_type.value]["error_message"].format(
+                        entry=content_value
+                    )
+                )
+
+        return True
+
     @property
     def changed(self) -> bool:
         """
@@ -330,15 +371,17 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         some docstring.
         """
 
-        existing_alias: Optional[FirewallAlias] = next(
-            (a for a in self._aliases if a.name == alias.name), None
-        )
+        if self.validate_content(content_type=alias.type, content_values=alias.content):
 
-        if existing_alias:
-            alias.__dict__.pop("uuid")
-            existing_alias.__dict__.update(alias.__dict__)
-        else:
-            self._aliases.append(alias)
+            existing_alias: Optional[FirewallAlias] = next(
+                (a for a in self._aliases if a.name == alias.name), None
+            )
+
+            if existing_alias:
+                alias.__dict__.pop("uuid")
+                existing_alias.__dict__.update(alias.__dict__)
+            else:
+                self._aliases.append(alias)
 
     def delete(self, alias: FirewallAlias) -> bool:
         """
