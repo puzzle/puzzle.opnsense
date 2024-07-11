@@ -80,6 +80,24 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <interface>wan</interface>
                 <ipprotocol>inet</ipprotocol>
                 <statetype>keep state</statetype>
+                <descr>Allow SSH access</descr>
+                <protocol>tcp</protocol>
+                <source>
+                   <any/>
+                </source>
+                <destination>
+                   <any/>
+                   <port>22</port>
+                </destination>
+                <extra>
+                    this is an extra attribute
+                </extra>
+            </rule>
+            <rule>
+                <type>pass</type>
+                <interface>wan</interface>
+                <ipprotocol>inet</ipprotocol>
+                <statetype>keep state</statetype>
                 <descr>Allow incoming WebGUI access</descr>
                 <protocol>tcp</protocol>
                 <source>
@@ -207,6 +225,29 @@ def test_firewall_rule_to_etree():
     )
 
 
+def test_firewall_rule_to_etree_with_extra_attributes():
+    test_rule: FirewallRule = FirewallRule(
+        interface="wan",
+        type=FirewallRuleAction.PASS,
+        descr="Allow SSH access",
+        ipprotocol=IPProtocol.IPv4,
+        protocol=FirewallRuleProtocol.TCP,
+        source=FirewallRuleTarget("source"),
+        destination=FirewallRuleTarget("destination", port="22"),
+        statetype=FirewallRuleStateType.KEEP_STATE,
+        extra_attributes={"extra": "this is an extra attribute"}
+    )
+
+    test_element = test_rule.to_etree()
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_rule: Element = orig_etree.find("filter")[1]
+
+    assert elements_equal(test_element, orig_rule), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_rule)}"
+    )
+
+
 def test_firewall_rule_from_ansible_module_params_simple():
     """
     Test FirewallRule instantiation form simple Ansible parameters.
@@ -257,7 +298,7 @@ def test_rule_set_load_simple_rules(
     Test correct loading of FirewallRuleSet from XML config without changes.
     """
     with FirewallRuleSet(sample_config_path) as rule_set:
-        assert len(rule_set._rules) == 4
+        assert len(rule_set._rules) == 5
         rule_set.save()
 
 
