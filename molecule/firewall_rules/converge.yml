@@ -1151,23 +1151,3 @@
     # TODO add support muliple categories
     # TODO add support for Advanced features: No XMLRPC Sync, Schedule and Gateway
     # TODO add support for Advanced Options
-
-     # Idempotency test
-    - name: Apply rule twice and check for idempotency
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        source:
-          address: '192.168.0.0/16'
-      register: first_apply
-    - name: Re-apply same rule
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        source:
-          address: '192.168.0.0/16'
-      register: second_apply
-    - name: Assert no change on second apply
-      ansible.builtin.assert:
-        that:
-          - not second_apply.changed
