@@ -296,7 +296,6 @@ class FirewallRule:
     disabled: bool = False
     log: bool = False
     category: Optional[str] = None
-    statetype: FirewallRuleStateType = FirewallRuleStateType.KEEP_STATE
 
     extra_attributes: dict = field(default_factory=dict)
 
@@ -306,7 +305,6 @@ class FirewallRule:
             "type": FirewallRuleAction,
             "ipprotocol": IPProtocol,
             "protocol": FirewallRuleProtocol,
-            "statetype": FirewallRuleStateType,
             "direction": FirewallRuleDirection,
         }
 
