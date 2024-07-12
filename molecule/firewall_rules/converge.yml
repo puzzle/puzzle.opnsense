@@ -41,29 +41,16 @@
         description: "New Test pass Rule with quick disabled"
 
       # Test different Interfaces
-    - name: "Interface: Test pass Rule"
+    - name: "Interface: Test pass Rules"
       puzzle.opnsense.firewall_rules:
-        interface: 'lan'
+        interface: "{{ item }}"
         action: 'pass'
-        description: "New Test pass Rule of Interface lan"
-
-    - name: "Interface: Test pass Rule"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lo0'
-        action: 'pass'
-        description: "New Test pass Rule of Interface Loopback"
-
-    - name: "Interface: Test pass Rule"
-      puzzle.opnsense.firewall_rules:
-        interface: 'openvpn'
-        action: 'pass'
-        description: "New Test pass Rule of Interface OpenVPN"
-
-    - name: "Interface: Test pass Rule"
-      puzzle.opnsense.firewall_rules:
-        interface: 'opt2'
-        action: 'pass'
-        description: "New Test pass Rule of Interface VAGRANT"
+        description: "New Test pass Rule of Interface {{ item }}"
+      loop:
+        - "lan"
+        - "lo0"
+        - "openvpn"
+        - "opt2"
 
       # Test different Directions
     - name: "Direction: Test pass Rule with Direction in"
@@ -103,937 +90,145 @@
         description: "New Test pass Rule with IPProtocol IPv4 + IPv6"
 
     # Test different Protocols
-    - name: "Protocol: Test pass Rule with Protocol any"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'any'
-        description: "New Test pass Rule with Protocol any"
-
-    - name: "Protocol: Test pass Rule with Protocol tcp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'tcp'
-        description: "New Test pass Rule with Protocol tcp"
-
-    - name: "Protocol: Test pass Rule with Protocol udp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'udp'
-        description: "New Test pass Rule with Protocol udp"
-
-    - name: "Protocol: Test pass Rule with Protocol tcp/udp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'tcp/udp'
-        description: "New Test pass Rule with Protocol tcp/udp"
-
-    - name: "Protocol: Test pass Rule with Protocol icmp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'icmp'
-        description: "New Test pass Rule with Protocol icmp"
-
-    - name: "Protocol: Test pass Rule with Protocol esp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'esp'
-        description: "New Test pass Rule with Protocol esp"
-
-    - name: "Protocol: Test pass Rule with Protocol ah"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ah'
-        description: "New Test pass Rule with Protocol ah"
-
-    - name: "Protocol: Test pass Rule with Protocol gre"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'gre'
-        description: "New Test pass Rule with Protocol gre"
-
-    - name: "Protocol: Test pass Rule with Protocol igmp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'igmp'
-        description: "New Test pass Rule with Protocol igmp"
-
-    - name: "Protocol: Test pass Rule with Protocol pim"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pim'
-        description: "New Test pass Rule with Protocol pim"
-
-    - name: "Protocol: Test pass Rule with Protocol ospf"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ospf'
-        description: "New Test pass Rule with Protocol ospf"
-
-    - name: "Protocol: Test pass Rule with Protocol ggp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ggp'
-        description: "New Test pass Rule with Protocol ggp"
-
-    - name: "Protocol: Test pass Rule with Protocol ipencap"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipencap'
-        description: "New Test pass Rule with Protocol ipencap"
-
-    - name: "Protocol: Test pass Rule with Protocol st2"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'st2'
-        description: "New Test pass Rule with Protocol st2"
-
-    - name: "Protocol: Test pass Rule with Protocol cbt"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'cbt'
-        description: "New Test pass Rule with Protocol cbt"
-
-    - name: "Protocol: Test pass Rule with Protocol egp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'egp'
-        description: "New Test pass Rule with Protocol egp"
-
-    - name: "Protocol: Test pass Rule with Protocol igp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'igp'
-        description: "New Test pass Rule with Protocol igp"
-
-    - name: "Protocol: Test pass Rule with Protocol bbn-rcc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'bbn-rcc'
-        description: "New Test pass Rule with Protocol bbn-rcc"
-
-    - name: "Protocol: Test pass Rule with Protocol nvp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'nvp'
-        description: "New Test pass Rule with Protocol nvp"
-
-    - name: "Protocol: Test pass Rule with Protocol pup"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pup'
-        description: "New Test pass Rule with Protocol pup"
-
-    - name: "Protocol: Test pass Rule with Protocol argus"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'argus'
-        description: "New Test pass Rule with Protocol argus"
-
-    - name: "Protocol: Test pass Rule with Protocol emcon"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'emcon'
-        description: "New Test pass Rule with Protocol emcon"
-
-    - name: "Protocol: Test pass Rule with Protocol xnet"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'xnet'
-        description: "New Test pass Rule with Protocol xnet"
-
-    - name: "Protocol: Test pass Rule with Protocol chaos"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'chaos'
-        description: "New Test pass Rule with Protocol chaos"
-
-    - name: "Protocol: Test pass Rule with Protocol mux"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'mux'
-        description: "New Test pass Rule with Protocol mux"
-
-    - name: "Protocol: Test pass Rule with Protocol dcn"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'dcn'
-        description: "New Test pass Rule with Protocol dcn"
-
-    - name: "Protocol: Test pass Rule with Protocol hmp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'hmp'
-        description: "New Test pass Rule with Protocol hmp"
-
-    - name: "Protocol: Test pass Rule with Protocol prm"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'prm'
-        description: "New Test pass Rule with Protocol prm"
-
-    - name: "Protocol: Test pass Rule with Protocol xns-idp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'xns-idp'
-        description: "New Test pass Rule with Protocol xns-idp"
-
-    - name: "Protocol: Test pass Rule with Protocol trunk-1"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'trunk-1'
-        description: "New Test pass Rule with Protocol trunk-1"
-
-    - name: "Protocol: Test pass Rule with Protocol trunk-2"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'trunk-2'
-        description: "New Test pass Rule with Protocol trunk-2"
-
-    - name: "Protocol: Test pass Rule with Protocol leaf-1"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'leaf-1'
-        description: "New Test pass Rule with Protocol leaf-1"
-
-    - name: "Protocol: Test pass Rule with Protocol leaf-2"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'leaf-2'
-        description: "New Test pass Rule with Protocol leaf-2"
-
-    - name: "Protocol: Test pass Rule with Protocol rdp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'rdp'
-        description: "New Test pass Rule with Protocol rdp"
-
-    - name: "Protocol: Test pass Rule with Protocol irtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'irtp'
-        description: "New Test pass Rule with Protocol irtp"
-
-    - name: "Protocol: Test pass Rule with Protocol iso-tp4"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'iso-tp4'
-        description: "New Test pass Rule with Protocol iso-tp4"
-
-    - name: "Protocol: Test pass Rule with Protocol netblt"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'netblt'
-        description: "New Test pass Rule with Protocol netblt"
-
-    - name: "Protocol: Test pass Rule with Protocol mfe-nsp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'mfe-nsp'
-        description: "New Test pass Rule with Protocol mfe-nsp"
-
-    - name: "Protocol: Test pass Rule with Protocol merit-inp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'merit-inp'
-        description: "New Test pass Rule with Protocol merit-inp"
-
-    - name: "Protocol: Test pass Rule with Protocol dccp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'dccp'
-        description: "New Test pass Rule with Protocol dccp"
-
-    - name: "Protocol: Test pass Rule with Protocol 3pc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: '3pc'
-        description: "New Test pass Rule with Protocol 3pc"
-
-    - name: "Protocol: Test pass Rule with Protocol idpr"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'idpr'
-        description: "New Test pass Rule with Protocol idpr"
-
-    - name: "Protocol: Test pass Rule with Protocol xtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'xtp'
-        description: "New Test pass Rule with Protocol xtp"
-
-    - name: "Protocol: Test pass Rule with Protocol ddp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ddp'
-        description: "New Test pass Rule with Protocol ddp"
-
-    - name: "Protocol: Test pass Rule with Protocol idpr-cmtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'idpr-cmtp'
-        description: "New Test pass Rule with Protocol idpr-cmtp"
-
-    - name: "Protocol: Test pass Rule with Protocol tp++"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'tp++'
-        description: "New Test pass Rule with Protocol tp++"
-
-    - name: "Protocol: Test pass Rule with Protocol il"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'il'
-        description: "New Test pass Rule with Protocol il"
-
-    - name: "Protocol: Test pass Rule with Protocol ipv6"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipv6'
-        description: "New Test pass Rule with Protocol ipv6"
-
-    - name: "Protocol: Test pass Rule with Protocol sdrp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sdrp'
-        description: "New Test pass Rule with Protocol sdrp"
-
-    - name: "Protocol: Test pass Rule with Protocol idrp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'idrp'
-        description: "New Test pass Rule with Protocol idrp"
-
-    - name: "Protocol: Test pass Rule with Protocol rsvp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'rsvp'
-        description: "New Test pass Rule with Protocol rsvp"
-
-    - name: "Protocol: Test pass Rule with Protocol dsr"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'dsr'
-        description: "New Test pass Rule with Protocol dsr"
-
-    - name: "Protocol: Test pass Rule with Protocol bna"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'bna'
-        description: "New Test pass Rule with Protocol bna"
-
-    - name: "Protocol: Test pass Rule with Protocol i-nlsp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'i-nlsp'
-        description: "New Test pass Rule with Protocol i-nlsp"
-
-    - name: "Protocol: Test pass Rule with Protocol swipe"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'swipe'
-        description: "New Test pass Rule with Protocol swipe"
-
-    - name: "Protocol: Test pass Rule with Protocol narp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'narp'
-        description: "New Test pass Rule with Protocol narp"
-
-    - name: "Protocol: Test pass Rule with Protocol mobile"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'mobile'
-        description: "New Test pass Rule with Protocol mobile"
-
-    - name: "Protocol: Test pass Rule with Protocol tlsp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'tlsp'
-        description: "New Test pass Rule with Protocol tlsp"
-
-
-    - name: "Protocol: Test pass Rule with Protocol skip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'skip'
-        description: "New Test pass Rule with Protocol skip"
-
-    - name: "Protocol: Test pass Rule with Protocol ipv6-icmp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipv6-icmp'
-        description: "New Test pass Rule with Protocol ipv6-icmp"
-
-    - name: "Protocol: Test pass Rule with Protocol cftp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'cftp'
-        description: "New Test pass Rule with Protocol cftp"
-
-    - name: "Protocol: Test pass Rule with Protocol sat-expak"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sat-expak'
-        description: "New Test pass Rule with Protocol sat-expak"
-
-    - name: "Protocol: Test pass Rule with Protocol kryptolan"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'kryptolan'
-        description: "New Test pass Rule with Protocol kryptolan"
-
-    - name: "Protocol: Test pass Rule with Protocol rvd"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'rvd'
-        description: "New Test pass Rule with Protocol rvd"
-
-    - name: "Protocol: Test pass Rule with Protocol ippc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ippc'
-        description: "New Test pass Rule with Protocol ippc"
-
-    - name: "Protocol: Test pass Rule with Protocol sat-mon"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sat-mon'
-        description: "New Test pass Rule with Protocol sat-mon"
-
-    - name: "Protocol: Test pass Rule with Protocol visa"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'visa'
-        description: "New Test pass Rule with Protocol visa"
-
-    - name: "Protocol: Test pass Rule with Protocol ipcv"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipcv'
-        description: "New Test pass Rule with Protocol ipcv"
-
-    - name: "Protocol: Test pass Rule with Protocol cpnx"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'cpnx'
-        description: "New Test pass Rule with Protocol cpnx"
-
-    - name: "Protocol: Test pass Rule with Protocol cphb"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'cphb'
-        description: "New Test pass Rule with Protocol cphb"
-
-    - name: "Protocol: Test pass Rule with Protocol wsn"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'wsn'
-        description: "New Test pass Rule with Protocol wsn"
-
-    - name: "Protocol: Test pass Rule with Protocol pvp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pvp'
-        description: "New Test pass Rule with Protocol pvp"
-
-    - name: "Protocol: Test pass Rule with Protocol br-sat-mon"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'br-sat-mon'
-        description: "New Test pass Rule with Protocol br-sat-mon"
-
-    - name: "Protocol: Test pass Rule with Protocol sun-nd"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sun-nd'
-        description: "New Test pass Rule with Protocol sun-nd"
-
-    - name: "Protocol: Test pass Rule with Protocol wb-mon"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'wb-mon'
-        description: "New Test pass Rule with Protocol wb-mon"
-
-    - name: "Protocol: Test pass Rule with Protocol wb-expak"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'wb-expak'
-        description: "New Test pass Rule with Protocol wb-expak"
-
-    - name: "Protocol: Test pass Rule with Protocol iso-ip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'iso-ip'
-        description: "New Test pass Rule with Protocol iso-ip"
-
-    - name: "Protocol: Test pass Rule with Protocol vmtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'vmtp'
-        description: "New Test pass Rule with Protocol vmtp"
-
-    - name: "Protocol: Test pass Rule with Protocol secure-vmtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'secure-vmtp'
-        description: "New Test pass Rule with Protocol secure-vmtp"
-
-    - name: "Protocol: Test pass Rule with Protocol vines"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'vines'
-        description: "New Test pass Rule with Protocol vines"
-
-    - name: "Protocol: Test pass Rule with Protocol ttp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ttp'
-        description: "New Test pass Rule with Protocol ttp"
-
-    - name: "Protocol: Test pass Rule with Protocol nsfnet-igp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'nsfnet-igp'
-        description: "New Test pass Rule with Protocol nsfnet-igp"
-
-    - name: "Protocol: Test pass Rule with Protocol dgp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'dgp'
-        description: "New Test pass Rule with Protocol dgp"
-
-    - name: "Protocol: Test pass Rule with Protocol tcf"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'tcf'
-        description: "New Test pass Rule with Protocol tcf"
-
-    - name: "Protocol: Test pass Rule with Protocol eigrp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'eigrp'
-        description: "New Test pass Rule with Protocol eigrp"
-
-    - name: "Protocol: Test pass Rule with Protocol sprite-rpc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sprite-rpc'
-        description: "New Test pass Rule with Protocol sprite-rpc"
-
-    - name: "Protocol: Test pass Rule with Protocol larp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'larp'
-        description: "New Test pass Rule with Protocol larp"
-
-    - name: "Protocol: Test pass Rule with Protocol mtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'mtp'
-        description: "New Test pass Rule with Protocol mtp"
-
-    - name: "Protocol: Test pass Rule with Protocol ax.25"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ax.25'
-        description: "New Test pass Rule with Protocol ax.25"
-
-    - name: "Protocol: Test pass Rule with Protocol ipip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipip'
-        description: "New Test pass Rule with Protocol ipip"
-
-    - name: "Protocol: Test pass Rule with Protocol micp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'micp'
-        description: "New Test pass Rule with Protocol micp"
-
-    - name: "Protocol: Test pass Rule with Protocol scc-sp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'scc-sp'
-        description: "New Test pass Rule with Protocol scc-sp"
-
-    - name: "Protocol: Test pass Rule with Protocol etherip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'etherip'
-        description: "New Test pass Rule with Protocol etherip"
-
-    - name: "Protocol: Test pass Rule with Protocol encap"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'encap'
-        description: "New Test pass Rule with Protocol encap"
-
-    - name: "Protocol: Test pass Rule with Protocol gmtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'gmtp'
-        description: "New Test pass Rule with Protocol gmtp"
-
-    - name: "Protocol: Test pass Rule with Protocol ifmp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ifmp'
-        description: "New Test pass Rule with Protocol ifmp"
-
-    - name: "Protocol: Test pass Rule with Protocol pnni"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pnni'
-        description: "New Test pass Rule with Protocol pnni"
-
-    - name: "Protocol: Test pass Rule with Protocol aris"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'aris'
-        description: "New Test pass Rule with Protocol aris"
-
-    - name: "Protocol: Test pass Rule with Protocol scps"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'scps'
-        description: "New Test pass Rule with Protocol scps"
-
-    - name: "Protocol: Test pass Rule with Protocol qnx"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'qnx'
-        description: "New Test pass Rule with Protocol qnx"
-
-    - name: "Protocol: Test pass Rule with Protocol a/n"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'a/n'
-        description: "New Test pass Rule with Protocol a/n"
-
-    - name: "Protocol: Test pass Rule with Protocol ipcomp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipcomp'
-        description: "New Test pass Rule with Protocol ipcomp"
-
-    - name: "Protocol: Test pass Rule with Protocol snp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'snp'
-        description: "New Test pass Rule with Protocol snp"
-
-    - name: "Protocol: Test pass Rule with Protocol compaq-peer"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'compaq-peer'
-        description: "New Test pass Rule with Protocol compaq-peer"
-
-    - name: "Protocol: Test pass Rule with Protocol ipx-in-ip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ipx-in-ip'
-        description: "New Test pass Rule with Protocol ipx-in-ip"
-
-    - name: "Protocol: Test pass Rule with Protocol carp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'carp'
-        description: "New Test pass Rule with Protocol carp"
-
-    - name: "Protocol: Test pass Rule with Protocol pgm"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pgm'
-        description: "New Test pass Rule with Protocol pgm"
-
-    - name: "Protocol: Test pass Rule with Protocol l2tp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'l2tp'
-        description: "New Test pass Rule with Protocol l2tp"
-
-    - name: "Protocol: Test pass Rule with Protocol ddx"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ddx'
-        description: "New Test pass Rule with Protocol ddx"
-
-    - name: "Protocol: Test pass Rule with Protocol iatp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'iatp'
-        description: "New Test pass Rule with Protocol iatp"
-
-    - name: "Protocol: Test pass Rule with Protocol stp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'stp'
-        description: "New Test pass Rule with Protocol stp"
-
-    - name: "Protocol: Test pass Rule with Protocol srp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'srp'
-        description: "New Test pass Rule with Protocol srp"
-
-    - name: "Protocol: Test pass Rule with Protocol uti"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'uti'
-        description: "New Test pass Rule with Protocol uti"
-
-    - name: "Protocol: Test pass Rule with Protocol smp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'smp'
-        description: "New Test pass Rule with Protocol smp"
-
-    - name: "Protocol: Test pass Rule with Protocol sm"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sm'
-        description: "New Test pass Rule with Protocol sm"
-
-    - name: "Protocol: Test pass Rule with Protocol ptp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'ptp'
-        description: "New Test pass Rule with Protocol ptp"
-
-    - name: "Protocol: Test pass Rule with Protocol isis"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'isis'
-        description: "New Test pass Rule with Protocol isis"
-
-    - name: "Protocol: Test pass Rule with Protocol crtp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'crtp'
-        description: "New Test pass Rule with Protocol crtp"
-
-    - name: "Protocol: Test pass Rule with Protocol crudp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'crudp'
-        description: "New Test pass Rule with Protocol crudp"
-
-    - name: "Protocol: Test pass Rule with Protocol sps"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sps'
-        description: "New Test pass Rule with Protocol sps"
-
-    - name: "Protocol: Test pass Rule with Protocol pipe"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pipe'
-        description: "New Test pass Rule with Protocol pipe"
-
-    - name: "Protocol: Test pass Rule with Protocol sctp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'sctp'
-        description: "New Test pass Rule with Protocol sctp"
-
-    - name: "Protocol: Test pass Rule with Protocol fc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'fc'
-        description: "New Test pass Rule with Protocol fc"
-
-    - name: "Protocol: Test pass Rule with Protocol rsvp-e2e-ignore"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'rsvp-e2e-ignore'
-        description: "New Test pass Rule with Protocol rsvp-e2e-ignore"
-
-    - name: "Protocol: Test pass Rule with Protocol udplite"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'udplite'
-        description: "New Test pass Rule with Protocol udplite"
-
-    - name: "Protocol: Test pass Rule with Protocol mpls-in-ip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'mpls-in-ip'
-        description: "New Test pass Rule with Protocol mpls-in-ip"
-
-    - name: "Protocol: Test pass Rule with Protocol manet"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'manet'
-        description: "New Test pass Rule with Protocol manet"
-
-    - name: "Protocol: Test pass Rule with Protocol hip"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'hip'
-        description: "New Test pass Rule with Protocol hip"
-
-    - name: "Protocol: Test pass Rule with Protocol shim6"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'shim6'
-        description: "New Test pass Rule with Protocol shim6"
-
-    - name: "Protocol: Test pass Rule with Protocol wesp"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'wesp'
-        description: "New Test pass Rule with Protocol wesp"
-
-    - name: "Protocol: Test pass Rule with Protocol rohc"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'rohc'
-        description: "New Test pass Rule with Protocol rohc"
-
-    - name: "Protocol: Test pass Rule with Protocol pfsync"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'pfsync'
-        description: "New Test pass Rule with Protocol pfsync"
-
-    - name: "Protocol: Test pass Rule with Protocol divert"
-      puzzle.opnsense.firewall_rules:
-        interface: 'lan'
-        action: 'pass'
-        protocol: 'divert'
-        description: "New Test pass Rule with Protocol divert"
+    - name: "Protocol: Test pass rule for all protocols"
+      puzzle.opnsense.firewall_rules:
+        interface: "lan"
+        action: "pass"
+        protocol: "{{ item }}"
+      loop:
+        - "any"
+        - "tcp"
+        - "udp"
+        - "tcp/udp"
+        - "icmp"
+        - "esp"
+        - "ah"
+        - "gre"
+        - "igmp"
+        - "pim"
+        - "ospf"
+        - "ggp"
+        - "ipencap"
+        - "st2"
+        - "cbt"
+        - "egp"
+        - "igp"
+        - "bbn-rcc"
+        - "nvp"
+        - "pup"
+        - "argus"
+        - "emcon"
+        - "xnet"
+        - "chaos"
+        - "mux"
+        - "dcn"
+        - "hmp"
+        - "prm"
+        - "xns-idp"
+        - "trunk-1"
+        - "trunk-2"
+        - "leaf-1"
+        - "leaf-2"
+        - "rdp"
+        - "irtp"
+        - "iso-tp4"
+        - "netblt"
+        - "mfe-nsp"
+        - "merit-inp"
+        - "dccp"
+        - "3pc"
+        - "idpr"
+        - "xtp"
+        - "ddp"
+        - "idpr-cmtp"
+        - "tp++"
+        - "il"
+        - "ipv6"
+        - "sdrp"
+        - "idrp"
+        - "rsvp"
+        - "dsr"
+        - "bna"
+        - "i-nlsp"
+        - "swipe"
+        - "narp"
+        - "mobile"
+        - "tlsp"
+        - "skip"
+        - "ipv6-icmp"
+        - "cftp"
+        - "sat-expak"
+        - "kryptolan"
+        - "rvd"
+        - "ippc"
+        - "sat-mon"
+        - "visa"
+        - "ipcv"
+        - "cpnx"
+        - "cphb"
+        - "wsn"
+        - "pvp"
+        - "br-sat-mon"
+        - "sun-nd"
+        - "wb-mon"
+        - "wb-expak"
+        - "iso-ip"
+        - "vmtp"
+        - "secure-vmtp"
+        - "vines"
+        - "ttp"
+        - "nsfnet-igp"
+        - "dgp"
+        - "tcf"
+        - "eigrp"
+        - "sprite-rpc"
+        - "larp"
+        - "mtp"
+        - "ax.25"
+        - "ipip"
+        - "micp"
+        - "scc-sp"
+        - "etherip"
+        - "encap"
+        - "gmtp"
+        - "ifmp"
+        - "pnni"
+        - "aris"
+        - "scps"
+        - "qnx"
+        - "a/n"
+        - "ipcomp"
+        - "snp"
+        - "compaq-peer"
+        - "ipx-in-ip"
+        - "carp"
+        - "pgm"
+        - "l2tp"
+        - "ddx"
+        - "iatp"
+        - "stp"
+        - "srp"
+        - "uti"
+        - "smp"
+        - "sm"
+        - "ptp"
+        - "isis"
+        - "crtp"
+        - "crudp"
+        - "sps"
+        - "pipe"
+        - "sctp"
+        - "fc"
+        - "rsvp-e2e-ignore"
+        - "udplite"
+        - "mpls-in-ip"
+        - "manet"
+        - "hip"
+        - "shim6"
+        - "wesp"
+        - "rohc"
+        - "pfsync"
+        - "divert"
 
       # Source / Invert: Test basic functionality of the source/invert button
     - name: "Source / Invert: Test basic functionality of the source/invert button"
