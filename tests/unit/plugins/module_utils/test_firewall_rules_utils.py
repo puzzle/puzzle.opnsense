@@ -179,7 +179,6 @@ def test_firewall_rule_from_xml():
     assert test_rule.type == FirewallRuleAction.PASS
     assert test_rule.interface == "wan"
     assert test_rule.ipprotocol == IPProtocol.IPv4
-    assert test_rule.statetype == FirewallRuleStateType.KEEP_STATE
     assert test_rule.descr == "Allow SSH access"
     assert test_rule.protocol == FirewallRuleProtocol.TCP
     assert test_rule.source.port == "any"
@@ -211,9 +210,8 @@ def test_firewall_rule_to_etree():
         protocol=FirewallRuleProtocol.TCP,
         source=FirewallRuleTarget("source"),
         destination=FirewallRuleTarget("destination", port="22"),
-        statetype=FirewallRuleStateType.KEEP_STATE,
     )
-
+    test_rule.extra_attributes["statetype"] = "keep state"
     test_element = test_rule.to_etree()
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
@@ -238,10 +236,10 @@ def test_firewall_rule_to_etree_with_extra_attributes():
         protocol=FirewallRuleProtocol.TCP,
         source=FirewallRuleTarget("source"),
         destination=FirewallRuleTarget("destination", port="22"),
-        statetype=FirewallRuleStateType.KEEP_STATE,
         extra_attributes={"extra": "this is an extra attribute"},
     )
-
+    
+    test_rule.extra_attributes["statetype"] = "keep state"
     test_element = test_rule.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
     orig_rule: Element = orig_etree.find("filter")[1]
