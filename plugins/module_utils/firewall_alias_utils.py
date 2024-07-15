@@ -431,17 +431,37 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         element_tree_opnvpn_groups.findall("group")
 
-        group_list = []
+        self.group_list = []
         for group in element_tree_opnvpn_groups:
             if group.tag == "group":
-                group_list.append(Group.from_xml(group))
+                self.group_list.append(Group.from_xml(group))
 
         existing_group: Optional[Group] = next(
-            (g for g in group_list if g.name == type_opnvpngroup_alias),
+            (g for g in self.group_list if g.name == type_opnvpngroup_alias),
             None,
         )
 
         return existing_group is not None
+
+    def set_authgroup(self, type_opnvpngroup_alias: FirewallAlias) -> None:
+        """
+        Sets the gids for the given OpenVPN group alias.
+
+        Args:
+            type_opnvpngroup_alias (FirewallAlias): OpenVPN group alias with group names.
+
+        Returns:
+            None
+        """
+
+        gid_content = []
+        for group in type_opnvpngroup_alias.content:
+
+            gid_content.append(
+                next((g for g in self.group_list if g.name == group), None).gid
+            )
+
+        type_opnvpngroup_alias.content = gid_content
 
     def is_interface(self, interface_name: str) -> bool:
         """
@@ -566,6 +586,9 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
             if alias.interface:
                 self.is_interface(alias.interface)
+
+            if alias.type == FirewallAliasType.OPNVPNGROUP:
+                self.set_authgroup(type_opnvpngroup_alias=alias)
 
             existing_alias: Optional[FirewallAlias] = next(
                 (a for a in self._aliases if a.name == alias.name), None
