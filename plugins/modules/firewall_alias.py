@@ -101,7 +101,7 @@ options:
     type: str
     required: false
   state:
-    description: Weather alias should be added or removed.
+    description: Whether alias should be added or removed.
     required: false
     type: str
     default: present
@@ -120,7 +120,7 @@ EXAMPLES = r'''
 - name: Create a URL Alias with the content www.puzzle.ch
   puzzle.opnsense.firewall_alias:
     name: TestAliasTypeURL
-    type: urls
+    type: url
     statistics: false
     description: Test Alias with type URL
     content: www.puzzle.ch
