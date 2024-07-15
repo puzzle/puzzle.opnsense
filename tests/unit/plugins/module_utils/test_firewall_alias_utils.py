@@ -1298,7 +1298,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup
         assert new_alias.proto is None
         assert new_alias.interface is None
         assert new_alias.counters is False
-        assert new_alias.content == ["admins", "test_group"]
+        assert new_alias.content == ["1999", "2000"]
         assert new_alias.description == "Test Alias"
 
         alias_set.save()
