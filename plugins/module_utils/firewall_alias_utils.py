@@ -77,7 +77,7 @@ class FirewallAliasType(ListEnum):
     MACADDRESS = "mac"
     BGPASN = "asn"
     DYNAMICIPV6HOST = "dynipv6host"
-    OPNVPNGROUP = "opnvpngroup"
+    OPNVPNGROUP = "authgroup"
     INTERNAL = "internal"
     EXTERNAL = "external"
 
@@ -189,6 +189,12 @@ class FirewallAlias:
 
         if params.get("type") == "dynamicipv6host":
             params["type"] = "dynipv6host"
+
+        if params.get("type") == "bgpasn":
+            params["type"] = "asn"
+
+        if params.get("type") == "opnvpngroup":
+            params["type"] = "authgroup"
 
         firewall_alias_dict: dict = {
             "enabled": params.get("enabled"),
@@ -512,7 +518,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                     "(e.g. ::1000)."
                 ),
             },
-            "opnvpngroup": {
+            "authgroup": {
                 "validation_function": self.is_opnvpngroup,
                 "error_message": "Group {entry} was not found on the Instance.",
             },
