@@ -312,6 +312,17 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <content/>
                 <description>external_test</description>
             </alias>
+                <alias uuid="5b1f6121-4395-4529-ad43-1d59aa06de79">
+                <enabled>1</enabled>
+                <name>bgp_test</name>
+                <type>asn</type>
+                <proto/>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>123456</content>
+                <description>test_asn</description>
+          </alias>
             </aliases>
         </Alias>
         <Lvtemplate version="0.0.1">
@@ -477,6 +488,36 @@ def test_firewall_alias_to_etree_with_updatefreq():
 
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
     orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[4]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+def test_firewall_alias_to_etree_with_bgpasn():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="5b1f6121-4395-4529-ad43-1d59aa06de79",
+        enabled="1",
+        name="bgp_test",
+        type=FirewallAliasType.BGPASN.value,
+        proto=None,
+        interface=None,
+        counters="0",
+        content="123456",
+        description="test_asn",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        11
+    ]
 
     assert elements_equal(test_element, orig_alias), (
         f"{xml_utils.etree_to_dict(test_element)}\n"
@@ -1037,7 +1078,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
     """
     test_params: dict = {
         "name": "test_alias",
-        "type": "bgpasn",
+        "type": "asn",
         "description": "Test Alias",
         "enabled": True,
         "content": ["64512", "64512"],
@@ -1080,7 +1121,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
     """
     test_params: dict = {
         "name": "test_alias",
-        "type": "bgpasn",
+        "type": "asn",
         "description": "Test Alias",
         "enabled": True,
         "content": ["test_asn", "!test_asn"],
@@ -1306,6 +1347,6 @@ def test_firewall_alias_set_load_simple_rules(
     Test correct loading of FirewallAliasSet from XML config without changes.
     """
     with FirewallAliasSet(sample_config_path) as alias_set:
-        assert len(alias_set._aliases) == 11
+        assert len(alias_set._aliases) == 12
 
         alias_set.save()
