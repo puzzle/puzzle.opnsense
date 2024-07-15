@@ -75,7 +75,7 @@ class FirewallAliasType(ListEnum):
     GEOIP = "geoip"
     NETWORKGROUP = "networkgroup"
     MACADDRESS = "mac"
-    BGPASN = "bgpasn"
+    BGPASN = "asn"
     DYNAMICIPV6HOST = "dynipv6host"
     OPNVPNGROUP = "opnvpngroup"
     INTERNAL = "internal"
@@ -501,7 +501,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 "validation_function": FirewallAliasSet.is_macaddress,
                 "error_message": "Entry {entry} is not a valid (partial) MAC address.",
             },
-            "bgpasn": {
+            "asn": {
                 "validation_function": FirewallAliasSet.is_bgpasn,
                 "error_message": "Entry {entry} is not a valid ASN.",
             },
