@@ -191,6 +191,38 @@
         content: 65000
       when: opnsense_version["product_version"] is version('23.7', '>=')
 
+    - name: Create an BGPASN Alias with the content 65001 and protocol ipv4
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeBGPASN
+        type: bgpasn
+        statistics: false
+        description: Test Alias with type BGPASN
+        content: 65001
+        protocol: ipv4
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create an BGPASN Alias with the content 65002 and protocol ipv6
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeBGPASN
+        type: bgpasn
+        statistics: false
+        description: Test Alias with type BGPASN
+        content: 65002
+        protocol: ipv6
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
+    - name: Create an BGPASN Alias with the content 65003 and protocol ipv4,ipv6
+      puzzle.opnsense.firewall_alias:
+        name: TestAliasTypeBGPASN
+        type: bgpasn
+        statistics: false
+        description: Test Alias with type BGPASN
+        content: 65003
+        protocol:
+          - ipv4
+          - ipv6
+      when: opnsense_version["product_version"] is version('23.7', '>=')
+
     - name: Create a BGPASN Alias with an unsupported content test_asn
       puzzle.opnsense.firewall_alias:
         name: UnsupportedTestAliasTypeBGPASN
