@@ -312,16 +312,53 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <content/>
                 <description>external_test</description>
             </alias>
-                <alias uuid="5b1f6121-4395-4529-ad43-1d59aa06de79">
+            <alias uuid="cbdf5dfb-7121-4db2-bdf4-e46be8acf026">
                 <enabled>1</enabled>
-                <name>bgp_test</name>
+                <name>bgp_test_none</name>
                 <type>asn</type>
                 <proto/>
                 <interface/>
                 <counters>0</counters>
                 <updatefreq/>
                 <content>123456</content>
-                <description>test_asn</description>
+                <categories/>
+                <description>bgp_test_none</description>
+            </alias>
+            <alias uuid="f37cc8be-2533-42f0-8581-65ef1df5e5b4">
+                <enabled>1</enabled>
+                <name>bgp_test_ipv4</name>
+                <type>asn</type>
+                <proto>IPv4</proto>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>123456</content>
+                <categories/>
+                <description>bgp_test_ipv4</description>
+          </alias>
+          <alias uuid="ccab3bc6-004c-4587-ac8c-72f191c2f461">
+            <enabled>1</enabled>
+            <name>bgp_test_ipv6</name>
+            <type>asn</type>
+            <proto>IPv4,IPv6</proto>
+            <interface/>
+            <counters>0</counters>
+            <updatefreq/>
+            <content>123456</content>
+            <categories/>
+            <description>bgp_test_ipv6</description>
+          </alias>
+          <alias uuid="7289199d-3b53-478d-b827-2ef10c112a5e">
+            <enabled>1</enabled>
+            <name>bgp_test_ipv4_ipv6</name>
+            <type>asn</type>
+            <proto>IPv4,IPv6</proto>
+            <interface/>
+            <counters>0</counters>
+            <updatefreq/>
+            <content>123456</content>
+            <categories/>
+            <description>bgp_test_ipv4_ipv6</description>
           </alias>
             </aliases>
         </Alias>
@@ -495,21 +532,22 @@ def test_firewall_alias_to_etree_with_updatefreq():
     )
 
 
-def test_firewall_alias_to_etree_with_bgpasn():
+def test_firewall_alias_to_etree_with_bgpasn_none():
     """
     Test FirewallAlias instance to ElementTree Element conversion.
     :return:
     """
     test_alias: FirewallAlias = FirewallAlias(
-        uuid="5b1f6121-4395-4529-ad43-1d59aa06de79",
+        uuid="cbdf5dfb-7121-4db2-bdf4-e46be8acf026",
         enabled="1",
-        name="bgp_test",
+        name="bgp_test_none",
         type=FirewallAliasType.BGPASN.value,
         proto=None,
         interface=None,
         counters="0",
+        categories=None,
         content="123456",
-        description="test_asn",
+        description="bgp_test_none",
     )
 
     test_element = test_alias.to_etree()
@@ -517,6 +555,99 @@ def test_firewall_alias_to_etree_with_bgpasn():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
     orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
         11
+    ]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+def test_firewall_alias_to_etree_with_bgpasn_ipv4():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="f37cc8be-2533-42f0-8581-65ef1df5e5b4",
+        enabled="1",
+        name="bgp_test_ipv4",
+        type=FirewallAliasType.BGPASN.value,
+        proto="IPv4",
+        interface=None,
+        counters="0",
+        categories=None,
+        content="123456",
+        description="bgp_test_ipv4",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        12
+    ]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+def test_firewall_alias_to_etree_with_bgpasn_ipv6():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="ccab3bc6-004c-4587-ac8c-72f191c2f461",
+        enabled="1",
+        name="bgp_test_ipv6",
+        type=FirewallAliasType.BGPASN.value,
+        proto="IPv6",
+        interface=None,
+        counters="0",
+        categories=None,
+        content="123456",
+        description="bgp_test_ipv6",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        13
+    ]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+def test_firewall_alias_to_etree_with_bgpasn_ipv4_ipv6():
+    """
+    Test FirewallAlias instance to ElementTree Element conversion.
+    :return:
+    """
+    test_alias: FirewallAlias = FirewallAlias(
+        uuid="7289199d-3b53-478d-b827-2ef10c112a5e",
+        enabled="1",
+        name="bgp_test_ipv4_ipv6",
+        type=FirewallAliasType.BGPASN.value,
+        proto="IPv4,IPv6",
+        interface=None,
+        counters="0",
+        categories=None,
+        content="123456",
+        description="bgp_test_ipv4_ipv6",
+    )
+
+    test_element = test_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        14
     ]
 
     assert elements_equal(test_element, orig_alias), (
@@ -1347,6 +1478,6 @@ def test_firewall_alias_set_load_simple_rules(
     Test correct loading of FirewallAliasSet from XML config without changes.
     """
     with FirewallAliasSet(sample_config_path) as alias_set:
-        assert len(alias_set._aliases) == 12
+        assert len(alias_set._aliases) == 15
 
         alias_set.save()
