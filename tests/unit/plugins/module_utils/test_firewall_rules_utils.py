@@ -13,7 +13,6 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 import pytest
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleAction,
@@ -21,7 +20,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_uti
     FirewallRule,
     IPProtocol,
     FirewallRuleProtocol,
-    FirewallRuleStateType,
     FirewallRuleTarget,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -238,7 +236,7 @@ def test_firewall_rule_to_etree_with_extra_attributes():
         destination=FirewallRuleTarget("destination", port="22"),
         extra_attributes={"extra": "this is an extra attribute"},
     )
-    
+
     test_rule.extra_attributes["statetype"] = "keep state"
     test_element = test_rule.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
