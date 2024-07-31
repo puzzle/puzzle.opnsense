@@ -8,7 +8,7 @@ Utilities for alias related operations.
 import uuid
 import re
 import ipaddress
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 from xml.etree.ElementTree import Element, ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -115,7 +115,7 @@ class FirewallAlias:
         self.proto: Optional[List[IPProtocol]] = None
         self.counters: Optional[bool] = False
         self.interface: Optional[str] = None
-        self.updatefreq: Optional[Union[int, float]] = None
+        self.updatefreq: Optional[Union[int, str]] = None
         self.content: Optional[List[str]] = []
         self.name = kwargs.get("name", None)
         self.type: Optional[FirewallAliasType] = None
@@ -181,11 +181,11 @@ class FirewallAlias:
 
     @staticmethod
     def refreshfrequency_to_updatefreq(
-        refreshfrequency: dict[str, int]
-    ) -> Optional[Union[int, float]]:
+        refreshfrequency: Dict[str, int]
+    ) -> Optional[Union[int, str]]:
         """
         Converts a dictionary with 'days' and 'hours' to a total number of days,
-        returning an int if there's no fractional part, or a float otherwise.
+        returning an int if there's no fractional part, or a str otherwise.
         """
 
         if refreshfrequency is None:
@@ -199,7 +199,7 @@ class FirewallAlias:
         if total.is_integer():
             return int(total)
 
-        return total
+        return str(total)
 
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "FirewallAlias":
@@ -324,12 +324,16 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             path=path,
         )
         self._aliases = self._load_aliases()
-        self.maximumtableentries = int(
-            xml_utils.etree_to_dict(self.get("maximumtableentries"))[
-                "maximumtableentries"
-            ]
-        )
         self._config_xml_tree = self._load_config()
+
+        try:
+            self.maximumtableentries = int(
+                xml_utils.etree_to_dict(self.get("maximumtableentries"))[
+                    "maximumtableentries"
+                ]
+            )
+        except (KeyError, TypeError, ValueError):
+            self.maximumtableentries = 100000
 
     def _load_aliases(self) -> List[FirewallAlias]:
         """

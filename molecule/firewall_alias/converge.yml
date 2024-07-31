@@ -167,7 +167,9 @@
       puzzle.opnsense.firewall_alias:
         name: TestAliasTypeURLTable
         type: urltable
-        refreshfrequency: 3
+        refreshfrequency:
+          days: 1
+          hours: 2
         description: Test Alias with type URLTable
         content:
             - www.google.ch
@@ -179,8 +181,18 @@
         type: geoip
         description: Test Alias with type GeoIP
         content:
-            - CH
-            - DE
+          - CH
+          - DE
+      ignore_errors: yes
+      register: unconfigured_geoip_result
+
+    - name: Verify that the creation failed, since the GeoIP settings are not configured
+      ansible.builtin.assert:
+        that:
+          - unconfigured_geoip_result is failed
+        fail_msg: "Setting of GeoIP should fail"
+        success_msg: "Setting of GeoIP should fail as expected due to unconfigured GeoIP settings"
+      when: opnsense_version["product_version"] is version('23.7', '>=')
 
     - name: Create an BGPASN Alias with the content 65000
       puzzle.opnsense.firewall_alias:
@@ -193,34 +205,34 @@
 
     - name: Create an BGPASN Alias with the content 65001 and protocol ipv4
       puzzle.opnsense.firewall_alias:
-        name: TestAliasTypeBGPASN
+        name: TestAliasTypeBGPASN_ipv4
         type: bgpasn
         statistics: false
-        description: Test Alias with type BGPASN
+        description: Test Alias with type BGPASN with the content 65001 and protocol ipv4
         content: 65001
-        protocol: ipv4
+        protocol: IPv4
       when: opnsense_version["product_version"] is version('23.7', '>=')
 
     - name: Create an BGPASN Alias with the content 65002 and protocol ipv6
       puzzle.opnsense.firewall_alias:
-        name: TestAliasTypeBGPASN
+        name: TestAliasTypeBGPASN_ipv6
         type: bgpasn
         statistics: false
-        description: Test Alias with type BGPASN
+        description: Test Alias with type BGPASN with the content 65002 and protocol ipv6
         content: 65002
-        protocol: ipv6
+        protocol: IPv6
       when: opnsense_version["product_version"] is version('23.7', '>=')
 
     - name: Create an BGPASN Alias with the content 65003 and protocol ipv4,ipv6
       puzzle.opnsense.firewall_alias:
-        name: TestAliasTypeBGPASN
+        name: TestAliasTypeBGPASN_ipv4_ipv6
         type: bgpasn
         statistics: false
-        description: Test Alias with type BGPASN
+        description: Test Alias with type BGPASN with the content 65003 and protocol ipv4,ipv6
         content: 65003
         protocol:
-          - ipv4
-          - ipv6
+          - IPv4
+          - IPv6
       when: opnsense_version["product_version"] is version('23.7', '>=')
 
     - name: Create a BGPASN Alias with an unsupported content test_asn

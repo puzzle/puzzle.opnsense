@@ -101,7 +101,8 @@ options:
     required: false
   refreshfrequency:
     description:
-      - Specifies the refresh frequency.
+      - The frequency that the list will be refreshed, in days + hours,
+        so 1 day and 8 hours means the alias will be refreshed after 32 hours.
     type: dict
     required: false
     suboptions:
@@ -145,6 +146,35 @@ EXAMPLES = r'''
     description: Test Alias with type URL
     content: www.puzzle.ch
 
+- name: Create a URLTable Alias with the content www.google.ch, www.puzzle.ch
+  puzzle.opnsense.firewall_alias:
+    name: TestAliasTypeURLTable
+    type: urltable
+    description: Test Alias with type URLTable
+    refreshfrequency:
+      days: 1
+      hours: 2
+    content:
+      - www.google.ch
+      - www.puzzle.ch
+
+- name: Create a GeoIP Alias with the content CH, DE
+  puzzle.opnsense.firewall_alias:
+    name: TestAliasTypeGeoIP
+    type: geoip
+    description: Test Alias with type GeoIP
+    content:
+        - CH
+        - DE
+
+- name: Create an MAC Alias with the content FF:FF:FF:FF:FF
+  puzzle.opnsense.firewall_alias:
+    name: TestAliasTypeMAC
+    type: macaddress
+    statistics: false
+    description: Test Alias with type MAC
+    content: FF:FF:FF:FF:FF:FF
+
 - name: Create a BGP ASN Alias with the content 65001 and protocol IPv4
   puzzle.opnsense.firewall_alias:
     name: TestAliasTypeBGPASN_ipv4
@@ -153,6 +183,14 @@ EXAMPLES = r'''
     statistics: false
     description: Test Alias with type BGPASN with the content 65001 and protocol IPv4
     content: 65001
+
+- name: Create an OPNVPNGROUP Alias with the content admins
+  puzzle.opnsense.firewall_alias:
+    name: TestAliasTypeOPNVPNGROUP
+    type: opnvpngroup
+    statistics: false
+    description: Test Alias with type OPNVPNGROUP
+    content: admins
 '''
 
 RETURN = '''
