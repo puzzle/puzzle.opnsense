@@ -44,6 +44,8 @@ class IPProtocol(ListEnum):
 
     IPv4 = "IPv4"
     IPv6 = "IPv6"
+    IPv4_IPv6 = "IPv4,IPv6"
+    NONE = None
 
 
 # pylint: disable=too-few-public-methods
@@ -104,7 +106,7 @@ class FirewallAlias:
         # set default attributes
         self.uuid: Optional[str] = kwargs.get("uuid", str(uuid.uuid4()))
         self.enabled: bool = True
-        self.proto: Optional[IPProtocol] = None
+        self.proto: Optional[List[IPProtocol]] = None
         self.counters: Optional[bool] = False
         self.interface: Optional[str] = None
         self.updatefreq: Optional[int] = None
@@ -119,7 +121,7 @@ class FirewallAlias:
 
     def __post_init__(self):
         # Manually define the fields and their expected types
-        enum_fields = {"type": FirewallAliasType}
+        enum_fields = {"type": FirewallAliasType, "proto": IPProtocol}
 
         for field_name, field_type in enum_fields.items():
             value = getattr(self, field_name)
@@ -128,6 +130,10 @@ class FirewallAlias:
             if isinstance(value, str) and issubclass(field_type, ListEnum):
 
                 # Convert string to ListEnum
+                setattr(self, field_name, field_type.from_string(value))
+
+            if isinstance(value, list) and issubclass(field_type, ListEnum):
+                value = ",".join(value)
                 setattr(self, field_name, field_type.from_string(value))
 
     def __eq__(self, other):
@@ -156,20 +162,14 @@ class FirewallAlias:
             counters=firewall_alias_dict.get("counters", "0") == "1",
         )
 
-        if isinstance(firewall_alias_dict.get("content"), str):
-            firewall_alias_dict["content"] = [
-                line.strip()
-                for line in firewall_alias_dict["content"].splitlines()
-                if line.strip()
-            ]
-
-        # process attribute content to a list
-        elif isinstance(firewall_alias_dict.get("content"), list):
-            firewall_alias_dict["content"] = [
-                line.strip()
-                for line in firewall_alias_dict["content"].splitlines()
-                if line.strip()
-            ]
+        # handle lists
+        for key in ["content", "proto"]:
+            if firewall_alias_dict[key]:
+                firewall_alias_dict[key] = [
+                    line.strip()
+                    for line in firewall_alias_dict[key].splitlines()
+                    if line.strip()
+                ]
 
         return FirewallAlias(**firewall_alias_dict)
 
@@ -201,6 +201,11 @@ class FirewallAlias:
             "name": params.get("name"),
             "type": params.get("type"),
             "content": params.get("content"),
+            "proto": (
+                params.get("protocol")
+                if params.get("type") in ["asn", "geoip"]
+                else None
+            ),
             "counters": params.get("statistics"),
             "interface": (
                 params.get("interface") if params.get("type") == "dynipv6host" else None
@@ -226,6 +231,7 @@ class FirewallAlias:
         """
 
         firewall_alias_dict: dict = self.__dict__.copy()
+
         del firewall_alias_dict["uuid"]
 
         for alias_key, alias_val in firewall_alias_dict.copy().items():
@@ -243,6 +249,11 @@ class FirewallAlias:
                 continue
 
         # Handle content field if it is a list
+        if isinstance(firewall_alias_dict.get("proto"), list):
+            firewall_alias_dict["proto"] = ",".join(
+                item.value for item in firewall_alias_dict["proto"]
+            )
+
         if isinstance(firewall_alias_dict.get("content"), list):
             firewall_alias_dict["content"] = (
                 "\n"
