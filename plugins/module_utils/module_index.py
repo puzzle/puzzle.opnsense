@@ -97,6 +97,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -249,6 +250,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -401,6 +403,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -554,6 +557,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
