@@ -282,12 +282,6 @@ class FirewallAlias:
                 firewall_alias_dict[alias_key] = alias_val.value
                 continue
 
-        # Handle content field if it is a list
-        if isinstance(firewall_alias_dict.get("proto"), list):
-            firewall_alias_dict["proto"] = ",".join(
-                item.value for item in firewall_alias_dict["proto"]
-            )
-
         if isinstance(firewall_alias_dict.get("content"), list):
             firewall_alias_dict["content"] = (
                 "\n"
@@ -325,6 +319,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         )
         self._aliases = self._load_aliases()
         self._config_xml_tree = self._load_config()
+        self.group_list = []
 
         try:
             self.maximumtableentries = int(
@@ -484,7 +479,6 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         element_tree_opnvpn_groups.findall("group")
 
-        self.group_list = []
         for group in element_tree_opnvpn_groups:
             if group.tag == "group":
                 self.group_list.append(Group.from_xml(group))
@@ -545,12 +539,12 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         return existing_interface
 
-    def is_geoip_configured(self, type_geoip_alias: str) -> bool:
+    def is_geoip_configured(self, _type_geoip_alias: str) -> bool:
         """
         Checks if GeoIP is configured by validating the presence of a GeoIP URL.
 
         Args:
-            type_geoip_alias (str): The type of GeoIP alias.
+            _type_geoip_alias (str): The type of GeoIP alias.
 
         Returns:
             bool: True if GeoIP URL is present and configured, False otherwise.
@@ -613,7 +607,10 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             },
             "geoip": {
                 "validation_function": self.is_geoip_configured,
-                "error_message": "In order to use GeoIP, you need to configure a source in the GeoIP settings tab",
+                "error_message": (
+                    "In order to use GeoIP, "
+                    "you need to configure a source in the GeoIP settings tab"
+                ),
             },
         }
 
