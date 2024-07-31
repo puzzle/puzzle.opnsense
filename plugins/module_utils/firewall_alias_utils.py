@@ -8,7 +8,7 @@ Utilities for alias related operations.
 import uuid
 import re
 import ipaddress
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from xml.etree.ElementTree import Element, ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
@@ -33,6 +33,12 @@ class OPNsenseContentValidationError(Exception):
 class OPNsenseInterfaceNotFoundError(Exception):
     """
     Exception raised if the defined interface is not found on the device
+    """
+
+
+class OPNsenseMaximumTableEntriesExceededError(Exception):
+    """
+    Exception raised if the defined maximumtableentries is exceeded
     """
 
 
@@ -109,7 +115,7 @@ class FirewallAlias:
         self.proto: Optional[List[IPProtocol]] = None
         self.counters: Optional[bool] = False
         self.interface: Optional[str] = None
-        self.updatefreq: Optional[int] = None
+        self.updatefreq: Optional[Union[int, float]] = None
         self.content: Optional[List[str]] = []
         self.name = kwargs.get("name", None)
         self.type: Optional[FirewallAliasType] = None
@@ -173,6 +179,28 @@ class FirewallAlias:
 
         return FirewallAlias(**firewall_alias_dict)
 
+    @staticmethod
+    def refreshfrequency_to_updatefreq(
+        refreshfrequency: dict[str, int]
+    ) -> Optional[Union[int, float]]:
+        """
+        Converts a dictionary with 'days' and 'hours' to a total number of days,
+        returning an int if there's no fractional part, or a float otherwise.
+        """
+
+        if refreshfrequency is None:
+            return None
+
+        days: int = refreshfrequency.get("days", 0)
+        hours: float = refreshfrequency.get("hours", 0) / 24
+
+        total = days + hours
+
+        if total.is_integer():
+            return int(total)
+
+        return total
+
     @classmethod
     def from_ansible_module_params(cls, params: dict) -> "FirewallAlias":
         """
@@ -211,7 +239,13 @@ class FirewallAlias:
                 params.get("interface") if params.get("type") == "dynipv6host" else None
             ),
             "description": params.get("description"),
-            "updatefreq": params.get("refreshfrequency"),
+            "updatefreq": (
+                FirewallAlias.refreshfrequency_to_updatefreq(
+                    refreshfrequency=params.get("refreshfrequency")
+                )
+                if params.get("type") == "urltable"
+                else None
+            ),
         }
 
         firewall_alias_dict = {
@@ -290,6 +324,11 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             path=path,
         )
         self._aliases = self._load_aliases()
+        self.maximumtableentries = int(
+            xml_utils.etree_to_dict(self.get("maximumtableentries"))[
+                "maximumtableentries"
+            ]
+        )
         self._config_xml_tree = self._load_config()
 
     def _load_aliases(self) -> List[FirewallAlias]:
@@ -503,6 +542,22 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         return existing_interface
 
+    def is_geoip_configured(self, type_geoip_alias: str) -> bool:
+        """
+        Checks if GeoIP is configured by validating the presence of a GeoIP URL.
+
+        Args:
+            type_geoip_alias (str): The type of GeoIP alias.
+
+        Returns:
+            bool: True if GeoIP URL is present and configured, False otherwise.
+        """
+
+        if not xml_utils.etree_to_dict(self.get("geoip"))["geoip"]["url"]:
+            return False
+
+        return True
+
     def validate_content(
         self, content_type: FirewallAliasType, content_values: List[str]
     ) -> bool:
@@ -553,6 +608,10 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 "validation_function": self.is_opnvpngroup,
                 "error_message": "Group {entry} was not found on the Instance.",
             },
+            "geoip": {
+                "validation_function": self.is_geoip_configured,
+                "error_message": "In order to use GeoIP, you need to configure a source in the GeoIP settings tab",
+            },
         }
 
         for content_value in content_values:
@@ -592,6 +651,11 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         Args:
             alias (FirewallAlias): Alias to add or update.
         """
+
+        if len(self._aliases) >= self.maximumtableentries:
+            raise OPNsenseMaximumTableEntriesExceededError(
+                "MaximumTableEntries exceeded!"
+            )
 
         if self.validate_content(content_type=alias.type, content_values=alias.content):
 
