@@ -337,28 +337,28 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <description>bgp_test_ipv4</description>
           </alias>
           <alias uuid="ccab3bc6-004c-4587-ac8c-72f191c2f461">
-            <enabled>1</enabled>
-            <name>bgp_test_ipv6</name>
-            <type>asn</type>
-            <proto>IPv4,IPv6</proto>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>123456</content>
-            <categories/>
-            <description>bgp_test_ipv6</description>
+                <enabled>1</enabled>
+                <name>bgp_test_ipv6</name>
+                <type>asn</type>
+                <proto>IPv6</proto>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>123456</content>
+                <categories/>
+                <description>bgp_test_ipv6</description>
           </alias>
           <alias uuid="7289199d-3b53-478d-b827-2ef10c112a5e">
-            <enabled>1</enabled>
-            <name>bgp_test_ipv4_ipv6</name>
-            <type>asn</type>
-            <proto>IPv4,IPv6</proto>
-            <interface/>
-            <counters>0</counters>
-            <updatefreq/>
-            <content>123456</content>
-            <categories/>
-            <description>bgp_test_ipv4_ipv6</description>
+                <enabled>1</enabled>
+                <name>bgp_test_ipv4_ipv6</name>
+                <type>asn</type>
+                <proto>IPv4,IPv6</proto>
+                <interface/>
+                <counters>0</counters>
+                <updatefreq/>
+                <content>123456</content>
+                <categories/>
+                <description>bgp_test_ipv4_ipv6</description>
           </alias>
             </aliases>
         </Alias>
@@ -414,7 +414,7 @@ def test_firewall_alias_from_xml():
     assert test_alias.enabled is True
     assert test_alias.name == "host_test"
     assert test_alias.type == FirewallAliasType.HOSTS
-    assert test_alias.proto is None
+    assert test_alias.proto == IPProtocol.NONE.value
     assert test_alias.interface is None
     assert test_alias.counters is False
     assert test_alias.updatefreq is None
@@ -438,7 +438,7 @@ def test_firewall_alias_type_geoip_with_content_from_xml():
     assert test_alias.enabled is True
     assert test_alias.name == "geoip_test"
     assert test_alias.type == FirewallAliasType.GEOIP
-    assert test_alias.proto == IPProtocol.IPv4.value
+    assert test_alias.proto == IPProtocol.IPv4
     assert test_alias.interface is None
     assert test_alias.counters is False
     assert test_alias.updatefreq is None
@@ -761,35 +761,9 @@ def test_firewall_alias_from_ansible_module_params_empty_content():
     assert new_alias.description == "Test Alias"
 
 
-def test_firewall_alias_from_ansible_module_params_with_unknown_content_type_validation():
-    """
-    Test FirewallAlias instantiation with not valid Ansible parameters.
-    :return:
-    """
-    test_params: dict = {
-        "name": "test_alias",
-        "type": "internal",
-        "description": "Test Alias",
-        "enabled": True,
-        "content": "test_content",
-    }
-
-    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
-
-    assert new_alias.enabled is True
-    assert new_alias.name == "test_alias"
-    assert new_alias.type == FirewallAliasType.INTERNAL
-    assert new_alias.proto is None
-    assert new_alias.interface is None
-    assert new_alias.counters is False
-    assert new_alias.updatefreq is None
-    assert new_alias.content == "test_content"
-    assert new_alias.description == "Test Alias"
-
-
 def test_firewall_alias_from_ansible_module_params_list_content():
     """
-    Test FirewallAlias instantiation form empty content Ansible parameters.
+    Test FirewallAlias instantiation form geoip content Ansible parameters.
     :return:
     """
     test_params: dict = {
@@ -810,6 +784,31 @@ def test_firewall_alias_from_ansible_module_params_list_content():
     assert new_alias.counters is False
     assert new_alias.updatefreq is None
     assert new_alias.content == ["CH", "DE"]
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_asn_list_content():
+    """
+    Test FirewallAlias instantiation form protocol content Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "bgpasn",
+        "description": "Test Alias",
+        "enabled": True,
+        "protocol": ["IPv4", "IPv6"],
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.BGPASN
+    assert new_alias.proto == IPProtocol.IPv4_IPv6
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq is None
     assert new_alias.description == "Test Alias"
 
 
@@ -1207,12 +1206,14 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
     Test FirewallAlias instantiation with valid Ansible parameters.
     :return:
     """
+    # protocol isn't a list!!
     test_params: dict = {
-        "name": "test_alias",
-        "type": "asn",
+        "name": "bgp_test_ipv4",
+        "type": "bgpasn",
         "description": "Test Alias",
         "enabled": True,
-        "content": ["64512", "64512"],
+        "content": ["123456"],
+        "protocol": ["IPv4"],
     }
 
     with FirewallAliasSet(sample_config_path) as alias_set:
@@ -1224,18 +1225,88 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
         alias_set.save()
 
     with FirewallAliasSet(sample_config_path) as new_alias_set:
-        new_alias: FirewallAlias = new_alias_set.find(name="test_alias")
+        new_alias: FirewallAlias = new_alias_set.find(name="bgp_test_ipv4")
 
         assert new_alias.enabled is True
-        assert new_alias.name == "test_alias"
+        assert new_alias.name == "bgp_test_ipv4"
         assert new_alias.type == FirewallAliasType.BGPASN
-        assert new_alias.proto is None
+        assert new_alias.proto == IPProtocol.IPv4
         assert new_alias.interface is None
         assert new_alias.counters is False
-        assert new_alias.content == ["64512", "64512"]
+        assert new_alias.content == ["123456"]
         assert new_alias.description == "Test Alias"
 
         alias_set.save()
+
+    test_element = new_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        12
+    ]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_list_validation(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with valid Ansible parameters.
+    :return:
+    """
+
+    test_params: dict = {
+        "name": "bgp_test_ipv4_ipv6",
+        "type": "bgpasn",
+        "description": "bgp_test_ipv4_ipv6",
+        "enabled": True,
+        "content": ["123456"],
+        "protocol": ["IPv4", "IPv6"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+        alias_set.add_or_update(new_alias)
+
+        # assert not alias_set.changed
+
+        alias_set.save()
+
+    with FirewallAliasSet(sample_config_path) as new_alias_set:
+        new_alias: FirewallAlias = new_alias_set.find(name="bgp_test_ipv4_ipv6")
+
+        assert new_alias.enabled is True
+        assert new_alias.name == "bgp_test_ipv4_ipv6"
+        assert new_alias.type == FirewallAliasType.BGPASN
+        assert new_alias.proto == IPProtocol.IPv4_IPv6
+        assert new_alias.interface is None
+        assert new_alias.counters is False
+        assert new_alias.content == ["123456"]
+        assert new_alias.description == "bgp_test_ipv4_ipv6"
+
+        alias_set.save()
+
+    test_element = new_alias.to_etree()
+
+    test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
+    orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[
+        14
+    ]
+
+    assert elements_equal(test_element, orig_alias), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_alias)}"
+    )
 
 
 @patch(
@@ -1252,7 +1323,7 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
     """
     test_params: dict = {
         "name": "test_alias",
-        "type": "asn",
+        "type": "bgpasn",
         "description": "Test Alias",
         "enabled": True,
         "content": ["test_asn", "!test_asn"],

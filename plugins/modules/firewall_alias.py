@@ -78,6 +78,15 @@ options:
     type: list
     elements: str
     required: false
+  protocol:
+    description:
+      - Protocol of BGP ASN Entry
+    type: list
+    elements: str
+    required: false
+    choices:
+      - IPv4
+      - IPv6
   statistics:
     description:
       - Maintain a set of counters for each table entry
@@ -124,6 +133,15 @@ EXAMPLES = r'''
     statistics: false
     description: Test Alias with type URL
     content: www.puzzle.ch
+
+- name: Create a BGP ASN Alias with the content 65001 and protocol IPv4
+  puzzle.opnsense.firewall_alias:
+    name: TestAliasTypeBGPASN_ipv4
+    type: bgpasn
+    protocol: IPv4
+    statistics: false
+    description: Test Alias with type BGPASN with the content 65001 and protocol IPv4
+    content: 65001
 '''
 
 RETURN = '''
@@ -174,6 +192,7 @@ def main():
             "required": True,
         },
         "content": {"type": "list", "elements": "str", "required": False},
+        "protocol": {"type": "list", "elements": "str", "required": False},
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
         "refreshfrequency": {"type": "str", "required": False},
