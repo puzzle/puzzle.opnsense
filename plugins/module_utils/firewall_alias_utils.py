@@ -352,9 +352,8 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         :return: True if the provided entry is valid, False if it's invalid
         """
-
         hostname_regex = (
-            r"^!?(?:(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]"
+            r"^(?:(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]"
             r"*[a-zA-Z0-9_])\.)*(?:[a-zA-Z0-9_]|[a-zA-Z0-9_][a-zA-Z0-9_\-]*[a-zA-Z0-9_])$"
         )
 
