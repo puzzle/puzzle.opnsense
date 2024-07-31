@@ -87,6 +87,7 @@ options:
     choices:
       - IPv4
       - IPv6
+      - ''
   statistics:
     description:
       - Maintain a set of counters for each table entry
@@ -100,10 +101,20 @@ options:
     required: false
   refreshfrequency:
     description:
-      - The frequency that the list will be refreshed, in days + hours, so 1 day
-        and 8 hours means the alias will be refreshed after 32 hours.
-    type: str
+      - Specifies the refresh frequency.
+    type: dict
     required: false
+    suboptions:
+      days:
+        description:
+          - Number of days for the refresh frequency.
+        type: int
+        required: false
+      hours:
+        description:
+          - Number of hours for the refresh frequency.
+        type: int
+        required: false
   interface:
     description:
       - Select the interface for the V6 dynamic IP
@@ -192,10 +203,15 @@ def main():
             "required": True,
         },
         "content": {"type": "list", "elements": "str", "required": False},
-        "protocol": {"type": "list", "elements": "str", "required": False},
+        "protocol": {
+            "type": "list",
+            "elements": "str",
+            "required": False,
+            "choices": ["IPv4", "IPv6", ""],
+        },
         "statistics": {"type": "bool", "required": False, "default": False},
         "description": {"type": "str", "required": False},
-        "refreshfrequency": {"type": "str", "required": False},
+        "refreshfrequency": {"type": "dict", "required": False},
         "interface": {"type": "str", "required": False},
         "state": {
             "type": "str",

@@ -14,10 +14,10 @@ from xml.etree.ElementTree import Element
 
 import pytest
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_utils import (
     OPNsenseContentValidationError,
     OPNsenseInterfaceNotFoundError,
+    OPNsenseMaximumTableEntriesExceededError,
     IPProtocol,
     FirewallAliasType,
     FirewallAlias,
@@ -35,27 +35,16 @@ TEST_VERSION_MAP = {
     "OPNsense Test": {
         "firewall_alias": {
             "alias": "OPNsense/Firewall/Alias/aliases",
-            "php_requirements": [
-                "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/filter.inc",
-                "/usr/local/etc/inc/system.inc",
-            ],
-            "configure_functions": {
-                "system_cron_configure": {
-                    "name": "system_cron_configure",
-                    "configure_params": [],
-                },
-                "filter_configure": {
-                    "name": "filter_configure",
-                    "configure_params": [],
-                },
-            },
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
         },
         "system_access_users": {
             "users": "system/user",
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -95,6 +84,7 @@ TEST_XML: str = """<?xml version="1.0"?>
             <gid>2000</gid>
             <priv>page-all</priv>
         </group>
+        <maximumtableentries>100000</maximumtableentries>
     </system>
     <interfaces>
         <wan>
@@ -667,7 +657,6 @@ def test_firewall_alias_from_ansible_module_params_simple():
         "description": "Test Alias",
         "enabled": True,
         "content": ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"],
-        "refreshfrequency": 2,
     }
 
     new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
@@ -678,7 +667,60 @@ def test_firewall_alias_from_ansible_module_params_simple():
     assert new_alias.proto is None
     assert new_alias.interface is None
     assert new_alias.counters is False
-    assert new_alias.updatefreq == 2
+    assert new_alias.content == ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"]
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_refreshfrequency_float():
+    """
+    Test FirewallAlias instantiation form refreshfrequency(float) Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "urltable",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"],
+        "refreshfrequency": {"days": 2, "hours": 47},
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.URLTABLES
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq == float(3.958333333333333)
+    assert new_alias.content == ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"]
+    assert new_alias.description == "Test Alias"
+
+
+def test_firewall_alias_from_ansible_module_params_refreshfrequency_float():
+    """
+    Test FirewallAlias instantiation form refreshfrequency(int) Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "urltable",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"],
+        "refreshfrequency": {"days": 1, "hours": 48},
+    }
+
+    new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
+
+    assert new_alias.enabled is True
+    assert new_alias.name == "test_alias"
+    assert new_alias.type == FirewallAliasType.URLTABLES
+    assert new_alias.proto is None
+    assert new_alias.interface is None
+    assert new_alias.counters is False
+    assert new_alias.updatefreq == 3
     assert new_alias.content == ["__lan_network", "8.8.8.8-9.9.9.9", "192.168.0.0"]
     assert new_alias.description == "Test Alias"
 
@@ -719,7 +761,6 @@ def test_firewall_alias_from_ansible_module_params_macaddress():
         "description": "Test Alias",
         "enabled": True,
         "content": "FF:FF:FF:FF:FF",
-        "refreshfrequency": 2,
     }
 
     new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(test_params)
@@ -730,7 +771,6 @@ def test_firewall_alias_from_ansible_module_params_macaddress():
     assert new_alias.proto is None
     assert new_alias.interface is None
     assert new_alias.counters is False
-    assert new_alias.updatefreq == 2
     assert new_alias.content == "FF:FF:FF:FF:FF"
     assert new_alias.description == "Test Alias"
 
@@ -892,6 +932,38 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_host_valida
             "Entry 192.168.0.0/24 is not a valid hostname, IP address or range."
             in str(excinfo.value)
         )
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_OPNsenseMaximumTableEntriesExceededError(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation with invalid Ansible parameters.
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["Test"],
+    }
+
+    with pytest.raises(OPNsenseMaximumTableEntriesExceededError) as excinfo:
+        with FirewallAliasSet(sample_config_path) as alias_set:
+
+            alias_set.maximumtableentries = 0
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+    assert str(excinfo.value) == "MaximumTableEntries exceeded!"
 
 
 @patch(
@@ -1535,6 +1607,40 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_opnvpngroup
             alias_set.save()
 
         assert "Group test_group_2 was not found on the Instance." in str(excinfo.value)
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_firewall_alias_from_ansible_module_params_with_content_type_geoip_validation_error(
+    mocked_version_utils: MagicMock, sample_config_path
+):
+    """
+    Test FirewallAlias instantiation form exlusion content list Ansible parameters.
+    :return:
+    """
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "geoip",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["CH", "DE"],
+    }
+
+    with FirewallAliasSet(sample_config_path) as alias_set:
+        with pytest.raises(OPNsenseContentValidationError) as excinfo:
+            new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
+                test_params
+            )
+            alias_set.add_or_update(new_alias)
+            alias_set.save()
+
+        assert (
+            "In order to use GeoIP, you need to configure a source in the GeoIP settings tab"
+            in str(excinfo.value)
+        )
 
 
 @patch(
