@@ -3,6 +3,7 @@
 """
 Utilities for firewall_rules module related operations.
 """
+import dataclasses
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional
 from xml.etree.ElementTree import Element
@@ -11,7 +12,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
 )
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
@@ -296,9 +296,8 @@ class FirewallRule:
     disabled: bool = False
     log: bool = False
     category: Optional[str] = None
-    statetype: FirewallRuleStateType = FirewallRuleStateType.KEEP_STATE
 
-    # TODO ChangeLog
+    extra_attributes: dict = field(default_factory=dict)
 
     def __post_init__(self):
         # Manually define the fields and their expected types
@@ -306,7 +305,6 @@ class FirewallRule:
             "type": FirewallRuleAction,
             "ipprotocol": IPProtocol,
             "protocol": FirewallRuleProtocol,
-            "statetype": FirewallRuleStateType,
             "direction": FirewallRuleDirection,
         }
 
@@ -354,8 +352,11 @@ class FirewallRule:
         """
         rule_dict: dict = asdict(self)
         del rule_dict["uuid"]
+        del rule_dict["extra_attributes"]
 
         for rule_key, rule_val in rule_dict.copy().items():
+            if rule_key == "extra_attributes":
+                continue
             if rule_key == "quick":
                 if rule_val:
                     del rule_dict[rule_key]
@@ -370,6 +371,9 @@ class FirewallRule:
                 rule_dict[rule_key] = rule_val.value
             elif isinstance(rule_val, bool):
                 rule_dict[rule_key] = "1"
+
+        for extra_key, extra_val in self.extra_attributes.items():
+            rule_dict[extra_key] = extra_val
 
         element: Element = xml_utils.dict_to_etree("rule", rule_dict)[0]
 
@@ -446,8 +450,8 @@ class FirewallRule:
 
         return cls(**rule_dict)
 
-    @staticmethod
-    def from_xml(element: Element) -> "FirewallRule":
+    @classmethod
+    def from_xml(cls, element: Element) -> "FirewallRule":
         """
         Converts an XML element into a FirewallRule object.
 
@@ -489,20 +493,25 @@ class FirewallRule:
             uuid=element.attrib.get("uuid"),
         )
 
-        # TODO ignore changelog for now
-        rule_dict.pop("updated", None)
-        rule_dict.pop("created", None)
-
-        rule_dict.pop("source")
-        rule_dict.pop("destination")
-        source: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        rule_dict["source"] = FirewallRuleTarget.from_xml(
             "source", element.find("./source")
         )
-        destination: FirewallRuleTarget = FirewallRuleTarget.from_xml(
+        rule_dict["destination"] = FirewallRuleTarget.from_xml(
             "destination", element.find("./destination")
         )
 
-        return FirewallRule(source=source, destination=destination, **rule_dict)
+        class_attribute_names: List[str] = list(
+            map(lambda f: f.name, dataclasses.fields(cls))
+        )
+
+        rule_dict["extra_attributes"] = {}
+
+        for k, v in rule_dict.copy().items():
+            if k not in class_attribute_names:
+                rule_dict["extra_attributes"][k] = v
+                rule_dict.pop(k)
+
+        return FirewallRule(**rule_dict)
 
 
 class FirewallRuleSet(OPNsenseModuleConfig):
