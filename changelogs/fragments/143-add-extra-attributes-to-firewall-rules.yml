@@ -1,3 +1,0 @@
----
-bugfixes:
-  - firewall_rules_utils - Handle additional XML attributes fo the firewall rule objects from the config.
