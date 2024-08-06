@@ -67,3 +67,11 @@ releases:
       name: system_high_availability_settings
       namespace: ''
     release_date: '2024-06-28'
+  1.2.1:
+    changes:
+      bugfixes:
+      - firewall_rules_utils - Handle additional XML attributes for the firewall rule
+        objects from the config.
+    fragments:
+    - 143-add-extra-attributes-to-firewall-rules.yml
+    release_date: '2024-08-05'

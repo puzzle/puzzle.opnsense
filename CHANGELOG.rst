@@ -4,6 +4,14 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.2.1
+======
+
+Bugfixes
+--------
+
+- firewall_rules_utils - Handle additional XML attributes for the firewall rule objects from the config.
+
 v1.2.0
 ======
 
