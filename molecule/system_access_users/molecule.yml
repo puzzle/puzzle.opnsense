@@ -58,6 +58,16 @@ platforms:
         - 'vm.guest = :freebsd'
         - 'ssh.sudo_command = "%c"'
         - 'ssh.shell = "/bin/sh"'
+    - name: "24.7"
+      box: puzzle/opnsense
+      hostname: false
+      box_version: "24.7"
+      memory: 1024
+      cpus: 2
+      instance_raw_config_args:
+        - 'vm.guest = :freebsd'
+        - 'ssh.sudo_command = "%c"'
+        - 'ssh.shell = "/bin/sh"'
 
 provisioner:
     name: ansible
