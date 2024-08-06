@@ -10,7 +10,7 @@ v1.2.1
 Bugfixes
 --------
 
-- firewall_rules_utils - Handle additional XML attributes fo the firewall rule objects from the config.
+- firewall_rules_utils - Handle additional XML attributes for the firewall rule objects from the config.
 
 v1.2.0
 ======
