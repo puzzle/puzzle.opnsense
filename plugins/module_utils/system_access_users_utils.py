@@ -1,5 +1,6 @@
 #  Copyright: (c) 2024, Puzzle ITC, Kilian Soltermann <soltermann@puzzle.ch>
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+# pylint: disable=too-many-lines
 
 """
 This module manages user and group configurations within an OPNsense system. It provides
@@ -26,9 +27,8 @@ Licensed under the GNU General Public License v3.0+
 """
 
 
-import dataclasses
-from dataclasses import dataclass, asdict, fields, field
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass, asdict
+from typing import List, Optional, Dict
 import base64
 import os
 import binascii
@@ -39,68 +39,109 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
     opnsense_utils,
 )
+
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
 )
-from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
 
-class OPNSenseGroupNotFoundError(Exception):
+class OPNsenseCryptReturnError(Exception):
+    """
+    Exception raised when the return value of the instance is not what is expected
+    """
+
+
+class OPNsenseGroupNotFoundError(Exception):
     """
     Exception raised when an OPNsense group is not found.
     """
 
 
-class OPNSenseNotValidBase64APIKeyError(Exception):
+class OPNsenseHashVerifyReturnError(Exception):
+    """
+    Exception raised when the return value of the instance is not what is expected
+    """
+
+
+class OPNsenseNotValidBase64APIKeyError(Exception):
     """
     Exception raised when a not valid base32 api code is provided
     """
 
 
-class OPNSenseCryptReturnError(Exception):
+def hash_verify(existing_hashed_string: str, plain_string: Optional[str]) -> bool:
     """
-    Exception raised when the return value of the instance is not what is expected
-    """
-
-
-class OPNSensePasswordVerifyReturnError(Exception):
-    """
-    Exception raised when the return value of the instance is not what is expected
-    """
-
-
-def password_verify(existing_user_password: str, password: Optional[str]) -> bool:
-    """
-    Verify if provided password matches the stored password using OPNsense's PHP command.
+    Verifies if a plain string matches an existing hashed string.
 
     Args:
-        existing_user_password (str): The hashed password stored in the XML config.
-        password (str): The plaintext password to verify.
+        existing_hashed_string (str): The existing hashed string to verify against.
+        plain_string (Optional[str]): The plain string to verify.
 
     Returns:
-        bool: True if passwords match, False otherwise.
+        bool: True if the plain string matches the hashed string, otherwise False.
 
     Raises:
-        OPNSensePasswordVerifyReturnError: If an error occurs during verification.
+        OPNsenseHashVerifyReturnError: If an error occurs during hash verification.
     """
 
-    if password is None:
+    if plain_string is None:
         return False
 
-    # check if current password matches hash
-    password_matches = opnsense_utils.run_command(
+    # escape plain_string
+    escaped_string = plain_string.replace("\\", "\\\\").replace("'", "\\'")
+
+    # check if current plain_string matches hash
+    hash_matches = opnsense_utils.run_command(
         php_requirements=[],
-        command=f"password_verify('{password}','{existing_user_password}');",
+        command=f"var_dump(password_verify('{escaped_string}','{existing_hashed_string}'));",
     )
 
-    if password_matches.get("stderr"):
-        raise OPNSensePasswordVerifyReturnError("error encounterd verifying password")
+    if hash_matches.get("stderr"):
+        raise OPNsenseHashVerifyReturnError(
+            f"error encounterd verifying hash {hash_matches.get('stderr')}"
+        )
 
-    # if return code of password_matches not equals 1, it's a match
-    if password_matches.get("stdout") != "1":
+    # if return code of hash_matches is true, it's a match
+    return hash_matches.get("stdout") == "bool(true)"
+
+
+def apikeys_verify(existing_apikeys: List[Dict], apikeys: Optional[List[Dict]]) -> bool:
+    """
+    Verifies if a list of API keys matches existing API keys.
+
+    Args:
+        existing_apikeys (List[Dict]): List of existing API keys with 'key' and hashed 'secret'.
+        apikeys (List[Dict]): List of new API keys with 'key' and plain 'secret'.
+
+    Returns:
+        bool: True if all new API keys match the existing ones, otherwise False.
+    """
+
+    if apikeys is None:
+        return False
+
+    # if the List[Dict] matches, return True
+    if apikeys == existing_apikeys:
         return True
 
-    return False
+    existing_keys_and_secrets = {
+        apikey["key"]: apikey["secret"] for apikey in existing_apikeys
+    }
+
+    for apikey in apikeys:
+        key = apikey["key"]
+        plain_secret = apikey["secret"]
+
+        if key not in existing_keys_and_secrets:
+            # Key does not exist
+            return False
+
+        if not hash_verify(existing_keys_and_secrets[key], plain_secret):
+            # Secret does not match
+            return False
+
+    # If all keys and secrets match
+    return True
 
 
 @dataclass
@@ -207,125 +248,45 @@ class Group:
             self.member.remove(user.uid)
 
 
-# pylint: disable=too-many-instance-attributes
-@dataclass
 class User:
     """
-    Represents a User entity with various attributes.
-
-    Args:
-        name (str): The username of the user.
-        password (Optional[str]): The user's password.
-        scope (Optional[str]): The scope of the user, default is "User".
-        descr (Optional[str]): A description of the user, if available.
-        ipsecpsk (Optional[str]): IPsec pre-shared key, if applicable.
-        otp_seed (Optional[str]): OTP seed for two-factor authentication, if used.
-        shell (Optional[str]): The user's login shell, if specified.
-        uid (Optional[str]): The user's unique identifier.
-        disabled (bool): Whether the user is disabled (default is False).
-        full_name (Optional[str]): The user's full name, if available.
-        email (Optional[str]): The user's email address, if provided.
-        comment (Optional[str]): Additional comments or information about the user.
-        landing_page (Optional[str]): The landing page for the user, if specified.
-        expires (Optional[str]): The expiration date for the user, if set.
-        authorizedkeys (Optional[str]): Authorized SSH keys for the user, if applicable.
-        cert (Optional[str]): Certificate information for the user, if relevant.
-        apikeys (Optional[list[str]]): API key associated with the user, if any. Will be generated
-        if "" is provided
-        groupname (Optional[list[str]]): List of group names the user belongs to, if any.
+    A class representing a user with various attributes and functionalities.
 
     Methods:
-        __eq__(self, other): Compare two User objects, excluding sensitive fields.
-        to_etree(self): Convert User instance to an XML Element.
-        from_ansible_module_params(cls, params): Create a User from Ansible module parameters.
-        from_xml(element): Create a User from an XML Element.
-        __post_init__(self): Process post-initialization tasks.
-        set_otp_seed(self, otp_seed=None): Generate or encode OTP seed.
-        set_apikeys(self, apikeys=None): Generate or set API keys.
-        set_authorizedkeys(self, authorizedkeys=None): Encode authorized SSH keys.
+        __init__(**kwargs):
+            Initializes a User object with given attributes.
 
-    The User class is designed to represent user entities with various attributes commonly used in
-    system configurations. It provides methods for comparing, converting to XML, creating from
-    Ansible module parameters, and creating from XML representations.
+        __eq__(other):
+            Compares two User objects for equality.
+
+        generate_hashed_secret(secret: str) -> str:
+            Generates a hashed secret using the crypt function.
+
+        _apikeys_from_xml(apikeys: dict) -> List[Dict]:
+            Converts API keys from an XML format to a list of dictionaries.
+
+        from_xml(element: Element) -> "User":
+            Converts an XML element into a User object.
+
+        generate_apikeys(apikeys: List[dict] = None) -> List[dict]:
+            Generates API keys, encoding them as necessary.
+
+        set_otp_seed(otp_seed: str = None) -> str:
+            Sets or generates an OTP seed.
+
+        encode_authorizedkeys(authorizedkeys: Optional[str] = None) -> Optional[str]:
+            Encodes authorized SSH keys as base64.
+
+        to_etree() -> Element:
+            Converts the User object to an XML element.
+
+        from_ansible_module_params(cls, params: dict) -> "User":
+            Creates a User instance from Ansible module parameters.
     """
 
-    name: str
-    password: Optional[str] = None
-    scope: Optional[str] = "User"
-    descr: Optional[str] = None
-    ipsecpsk: Optional[str] = None
-    otp_seed: Optional[str] = None
-    shell: str = "/sbin/nologin"
-    uid: Optional[str] = None
-    disabled: bool = False
-    full_name: Optional[str] = None
-    email: Optional[str] = None
-    comment: Optional[str] = None
-    landing_page: Optional[str] = None
-    expires: Optional[str] = None
-    authorizedkeys: Optional[str] = None
-    cert: Optional[str] = None  # will be handled in seperate module
-    apikeys: Optional[List[str]] = None
-    groupname: Optional[List[str]] = None
-
-    extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
-
-    def __init__(self, **kwargs):
-        _attr_names: set[str] = {f.name for f in dataclasses.fields(self)}
-        _extra_attrs: dict = {}
-        for key, value in kwargs.items():
-            if key in _attr_names:
-                setattr(self, key, value)
-                continue
-
-            _extra_attrs[key] = value
-        self.extra_attrs = _extra_attrs
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, User):
-            return False
-
-        if not hasattr(self, "password") or not hasattr(other, "password"):
-            return False
-
-        for _field in fields(self):
-            if _field.name in ["uid", "otp_seed", "apikeys"]:
-                continue
-
-            if _field.name == "password" and not password_verify(
-                existing_user_password=getattr(other, _field.name),
-                password=self.password,
-            ):
-                return False
-
-            # if value is not equal return False
-            if getattr(self, _field.name) != getattr(other, _field.name):
-                return False
-
-        return True
-
-    def set_otp_seed(self, otp_seed: str = None) -> str:
-        """
-        Generates and returns a base32-encoded OTP seed.
-
-        Args:
-            otp_seed (str, optional): Existing OTP seed to encode (default: None).
-
-        Returns:
-            str: Base32-encoded OTP seed.
-
-        If no OTP seed is provided, a random seed is generated and encoded as base32.
-        """
-
-        if otp_seed is None:
-            otp_seed = os.urandom(20)
-
-        return base64.b32encode(otp_seed.encode("utf-8")).decode("utf-8")
-
-    def _generate_hashed_secret(self, secret: str) -> str:
-        """
-        function to generate hashed secrets using crypt
-        """
+    @staticmethod
+    def generate_hashed_secret(secret: str) -> str:
+        """Generates a hashed secret using the crypt function."""
 
         # load requirements
         php_requirements = []
@@ -341,17 +302,17 @@ class User:
 
         # check if stderr returns value
         if hashed_secret_value.get("stderr"):
-            raise OPNSenseCryptReturnError("error encounterd while creating secret")
+            raise OPNsenseCryptReturnError("error encounterd while creating secret")
 
         # validate secret
         if (
             hashed_secret_value.get("stdout").startswith("$6$")
-            and len(hashed_secret_value.get("stdout")) == 90
+            and len(hashed_secret_value.get("stdout")) >= 90
         ):
             return hashed_secret_value.get("stdout")
 
         # if validation fails,
-        raise OPNSenseCryptReturnError(
+        raise OPNsenseCryptReturnError(
             f"""
             validation of the secret failed!
             Secret must start with $6$ and have a min length of 90
@@ -359,42 +320,137 @@ class User:
             """
         )
 
-    def set_apikeys(self, apikeys: list = None) -> list:
-        """
-        Generates a list of dictionaries, each containing a 'key' and a 'secret'.
-        If apikeys is provided, each element in apikeys is used as the 'key',
-        and a new 'secret' is generated.
-        If apikeys is not provided or is an empty list, a single 'key'-'secret' pair is generated.
+    def __init__(self, **kwargs):
+        # set default attributes
+        self.authorizedkeys = kwargs.get("authorizedkeys", None)
+        self.disabled = kwargs.get("disabled", False)
+        self.expires = kwargs.get("expires", None)
+        self.ipsecpsk = kwargs.get("ipsecpsk", None)
+        self.otp_seed = kwargs.get("otp_seed", None)
+        self.scope = kwargs.get("scope", "user")
 
-        Args:
-            apikeys (list, optional): A list of strings to be used as the 'key' part of each pair.
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-        Returns:
-            list: A list of dictionaries, where each dictionary has a 'key' and a 'secret'.
-        """
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, User):
+            return False
+
+        if self.__dict__.get("password") and other.__dict__.get("password"):
+            if not self.__dict__["password"] == other.__dict__["password"]:
+                if not hash_verify(
+                    existing_hashed_string=self.__dict__["password"],
+                    plain_string=other.__dict__["password"],
+                ):
+                    return False
+
+        if self.__dict__.get("apikeys") and other.__dict__.get("apikeys"):
+            if not apikeys_verify(
+                existing_apikeys=self.__dict__["apikeys"],
+                apikeys=other.__dict__["apikeys"],
+            ):
+                return False
+
+        self_dict = {
+            k: v for k, v in self.__dict__.items() if k not in ["apikeys", "password"]
+        }
+        other_dict = {
+            k: v for k, v in other.__dict__.items() if k not in ["apikeys", "password"]
+        }
+
+        return self_dict == other_dict
+
+    @staticmethod
+    def _apikeys_from_xml(apikeys: dict) -> List[Dict]:
+        if isinstance(apikeys, str):
+            return [{}]
 
         api_keys = []
+        if isinstance(apikeys, list):
+            for pair in apikeys:
+                item = pair.get("item", {})
+                api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
+        elif apikeys.get("item"):
+            item = apikeys.get("item", {})
+            api_keys.append({"key": item.get("key"), "secret": item.get("secret")})
 
-        # Check if apikeys is None or contains an empty string
-        if apikeys is None or "" in apikeys:
-            key = base64.b64encode(os.urandom(60)).decode("utf-8")
-            secret = base64.b64encode(os.urandom(60)).decode("utf-8")
-            api_keys.append({"key": key, "secret": secret})
-        else:
-            for api_key in apikeys:
-                secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+        return api_keys
+
+    @staticmethod
+    def from_xml(element: Element) -> "User":
+        """
+        Converts an XML element into a User object.
+
+        Parameters:
+            element (Element): An XML element representing a user, with child elements
+            for each user attribute.
+
+        Returns:
+            User: A User object initialized with the data extracted from the XML element.
+
+        This method extracts data from an XML element, handling different data types appropriately,
+        such as converting single group names into a list and interpreting the
+        'disabled' field as a boolean.
+        """
+
+        user_dict: dict = xml_utils.etree_to_dict(element)["user"]
+
+        if "groupname" in user_dict and user_dict["groupname"] is None:
+            user_dict["groupname"] = []
+
+        if "groupname" in user_dict and isinstance(user_dict["groupname"], str):
+            user_dict["groupname"] = [user_dict["groupname"]]
+
+        # Handle 'disabled' element
+        user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
+
+        # handle apikeys element
+        if user_dict.get("apikeys"):
+            user_dict["apikeys"] = User._apikeys_from_xml(user_dict.get("apikeys"))
+
+        return User(**user_dict)
+
+    @staticmethod
+    def generate_apikeys(apikeys: List[dict] = None) -> List[dict]:
+        """Generates or validates API keys."""
+
+        api_keys: List[dict] = []
+
+        for apikey in apikeys:
+            # Check if key and secret are provided
+            if not apikey["key"]:
+                key = base64.b64encode(os.urandom(60)).decode("utf-8")
+
+                if not apikey["secret"]:
+                    secret = base64.b64encode(os.urandom(60)).decode("utf-8")
+
+                api_keys.append({"key": key, "secret": secret})
+            else:
                 try:
-                    base64.b64decode(api_key)
-                    api_keys.append({"key": api_key, "secret": secret})
+                    base64.b64decode(apikey["key"])
+                    base64.b64decode(apikey["secret"])
+
+                    api_keys.append(apikey)
+
                 except binascii.Error as binascii_error_message:
-                    raise OPNSenseNotValidBase64APIKeyError(
-                        f"The API key: {api_key} is not a valid base64 string. "
+                    raise OPNsenseNotValidBase64APIKeyError(
+                        f"The API key: {apikey} is not a valid base64 string. "
                         f"Error: {str(binascii_error_message)}"
                     ) from binascii_error_message
 
         return api_keys
 
-    def set_authorizedkeys(self, authorizedkeys: str = None) -> Optional[str]:
+    @staticmethod
+    def set_otp_seed(otp_seed: str = None) -> str:
+        """Sets or generates an OTP seed."""
+
+        if otp_seed is None or otp_seed == "":
+            return base64.b32encode(os.urandom(20).encode("utf-8")).decode("utf-8")
+
+        return otp_seed
+
+    @staticmethod
+    def encode_authorizedkeys(authorizedkeys: Optional[str] = None) -> Optional[str]:
         """
         Encodes the authorized SSH keys as base32.
 
@@ -414,27 +470,10 @@ class User:
         return None
 
     def to_etree(self) -> Element:
-        """
-        Converts the User instance to an XML Element.
+        """Converts the User object into an XML element."""
+        user_dict: dict = self.__dict__.copy()
 
-        This method serializes the User object into an XML Element, filtering out
-        None or False values except for specific fields. It handles special cases
-        for fields that are instances of ListEnum by converting their values to
-        their corresponding enum values. Boolean values are converted to "1" for
-        True, and fields with None values are removed unless they are part of a
-        predefined list of exceptions.
-
-        Returns:
-            Element: An XML Element representing the serialized User object, ready
-                    for inclusion in an XML document.
-
-        This approach ensures that the XML representation is compact and adheres to
-        the expected schema, with consideration for optional fields and data types.
-        """
-
-        user_dict: dict = asdict(self)
-
-        for user_key, user_val in user_dict.copy().items():
+        for user_key, user_val in list(user_dict.items()):
             if user_val is None and user_key in [
                 "expires",
                 "ipsecpsk",
@@ -444,12 +483,11 @@ class User:
                 continue
 
             if isinstance(user_val, list) and user_key == "apikeys":
-                # Modify the apikeys directly into the list of items
                 user_dict[user_key] = [
                     {
                         "item": {
                             key_name: (
-                                self._generate_hashed_secret(secret_value)
+                                User.generate_hashed_secret(secret_value)
                                 if key_name == "secret"
                                 and not secret_value.startswith("$6$")
                                 else secret_value
@@ -460,9 +498,6 @@ class User:
                     for api_key_dict in user_val
                 ]
 
-            if issubclass(type(user_val), ListEnum):
-                user_dict[user_key] = user_val.value
-
             elif user_val is None or user_val is False:
                 del user_dict[user_key]
                 continue
@@ -470,10 +505,6 @@ class User:
             elif isinstance(user_val, bool):
                 user_dict[user_key] = "1"
 
-        for key, value in self.extra_attrs.items():
-            user_dict[key] = value
-
-        del user_dict["extra_attrs"]
         element: Element = xml_utils.dict_to_etree("user", user_dict)[0]
 
         return element
@@ -503,8 +534,8 @@ class User:
             "scope": params.get("scope"),
             "ipsecpsk": params.get("ipsecpsk"),
             "otp_seed": (
-                cls.set_otp_seed(cls, otp_seed=params.get("otp_seed"))
-                if params.get("otp_seed") is not None
+                User.set_otp_seed(otp_seed=params.get("otp_seed"))
+                if params.get("otp_seed")
                 else None
             ),
             "shell": params.get("shell"),
@@ -514,58 +545,24 @@ class User:
             "comment": params.get("comment"),
             "landing_page": params.get("landing_page"),
             "expires": params.get("expires"),
-            "groupname": params.get("groups"),
-            "authorizedkeys": (
-                cls.set_authorizedkeys(cls, authorizedkeys=params.get("authorizedkeys"))
-                if params.get("authorizedkeys")
-                else None
+            "authorizedkeys": User.encode_authorizedkeys(
+                authorizedkeys=params.get("authorizedkeys", None)
             ),
             "cert": params.get("cert"),
             "apikeys": (
-                cls.set_apikeys(cls, apikeys=params.get("apikeys"))
+                User.generate_apikeys(apikeys=params.get("apikeys"))
                 if params.get("apikeys")
                 else None
             ),
         }
 
+        if params.get("groups", None):
+            user_dict["groupname"] = params["groups"]
         user_dict = {
             key: value for key, value in user_dict.items() if value is not None
         }
 
         return cls(**user_dict)
-
-    @staticmethod
-    def from_xml(element: Element) -> "User":
-        """
-        Converts an XML element into a User object.
-
-        Parameters:
-            element (Element): An XML element representing a user, with child elements
-            for each user attribute.
-
-        Returns:
-            User: A User object initialized with the data extracted from the XML element.
-
-        This method extracts data from an XML element, handling different data types appropriately,
-        such as converting single group names into a list and interpreting the
-        'disabled' field as a boolean.
-        """
-
-        user_dict: dict = xml_utils.etree_to_dict(element)["user"]
-
-        if "groupname" in user_dict and isinstance(user_dict["groupname"], str):
-            user_dict["groupname"] = [user_dict["groupname"]]
-
-        # Handle 'disabled' element
-        user_dict["disabled"] = user_dict.get("disabled", "0") == "1"
-
-        if "apikeys" in user_dict and isinstance(user_dict["apikeys"], str):
-            apikeys_elements = user_dict["apikeys"].get("item", [])
-            if isinstance(apikeys_elements, dict):
-                apikeys_elements = [apikeys_elements]
-            user_dict["apikeys"] = [item["key"] for item in apikeys_elements]
-
-        return User(**user_dict)
 
 
 class UserSet(OPNsenseModuleConfig):
@@ -712,61 +709,7 @@ class UserSet(OPNsenseModuleConfig):
             This property should be consulted before performing a save operation to avoid
             unnecessary writes to the system configuration when no changes have been made.
         """
-
         return self._load_users() != self._users or self._load_groups() != self._groups
-
-    def _update_user_groups(self, user: User, existing_user: Optional[User] = None):
-        """
-        Manages the association of a user with specified groups, either by updating the groups of an
-        existing user or adding a new user to the appropriate groups. This method ensures that the
-        user is a member of all specified groups, adding the user to any groups they are not already
-        a part of, and maintains the integrity of group memberships across updates.
-        If user.groupname is None, the user is removed from all groups.
-
-        Parameters:
-            user (User): The user whose group memberships are to be updated. This includes both new
-                        users and users whose group memberships might change.
-            existing_user (Optional[User]): If the user already exists, this parameter should be the
-                                            user's current information. It is used to determine if
-                                            the existing group memberships need to be updated.
-
-        Raises:
-            OPNSenseGroupNotFoundError: If a specified group does not exist on the instance, this
-                                        exception is raised, indicating the need for corrective
-                                        action or error handling.
-        """
-        target_user = existing_user if existing_user else user
-
-        if user.groupname is None or not hasattr(user, "groupname"):
-            for existing_group in self._groups:
-                if existing_group.check_if_user_in_group(target_user):
-                    existing_group.remove_user(target_user)
-                    if target_user.groupname:
-                        target_user.groupname.remove(existing_group.name)
-                        if not target_user.groupname:
-                            target_user.groupname = None
-            return  # Exit the method after removing the user from all groups.
-
-        # Convert groupname to a list if it's not already.
-        group_names = (
-            user.groupname if isinstance(user.groupname, list) else [user.groupname]
-        )
-
-        for group_name in group_names:
-            group_found = False
-            for index, existing_group in enumerate(self._groups):
-                if existing_group.name == group_name:
-                    group_found = True
-                    if not existing_group.check_if_user_in_group(target_user):
-                        existing_group.add_user(target_user)
-                        self._groups[index] = existing_group
-                    break  # Stop searching once the group is found
-
-            if not group_found:
-                # Group was not found, raise an exception
-                raise OPNSenseGroupNotFoundError(
-                    f"Group '{group_name}' not found on Instance"
-                )
 
     def set_user_password(self, user: User) -> None:
         """
@@ -778,9 +721,7 @@ class UserSet(OPNsenseModuleConfig):
 
         # load requirements
         configure_function_dict = self._config_maps["password"]["configure_functions"]
-        configure_function_key = next(
-            (key for key in configure_function_dict if key != "name"), None
-        )
+        configure_function_key = "password"
         configure_function = configure_function_dict[configure_function_key]["name"]
         configure_params = configure_function_dict[configure_function_key][
             "configure_params"
@@ -806,8 +747,98 @@ class UserSet(OPNsenseModuleConfig):
             configure_params=formatted_params,
         ).get("stdout")
 
-        # since "password" is no longer needed, it can be popped
+        # since "password" is no longer needed and to avoid the configure_functions in
+        # the save() method, it can be popped
         self._config_maps.pop("password")
+
+    @staticmethod
+    def set_api_keys_secret(user: User) -> None:
+        """
+        Sets the API keys for a user, hashing the 'secret' key if not already hashed.
+
+        Args:
+            user (User): The user object containing API keys to be processed.
+
+        Returns:
+            None
+
+        The function iterates over the user's API keys and hashes the 'secret' key using
+        User.generate_hashed_secret if the key name is 'secret' and the value does not already start
+        with "$6$". Other keys and values are left unchanged.
+        """
+
+        user.apikeys = [
+            {
+                key_name: (
+                    User.generate_hashed_secret(secret_value)
+                    if key_name == "secret" and not secret_value.startswith("$6$")
+                    else secret_value
+                )
+                for key_name, secret_value in api_key_dict.items()
+            }
+            for api_key_dict in user.apikeys
+        ]
+
+    def _update_user_groups(self, user: User, existing_user: Optional[User] = None):
+        """
+        Manages the association of a user with specified groups, either by updating the groups of an
+        existing user or adding a new user to the appropriate groups. This method ensures that the
+        user is a member of all specified groups, adding the user to any groups they are not already
+        a part of, and maintains the integrity of group memberships across updates.
+        If user.groupname is None, the user is removed from all groups.
+
+        Parameters:
+            user (User): The user whose group memberships are to be updated. This includes both new
+                        users and users whose group memberships might change.
+            existing_user (Optional[User]): If the user already exists, this parameter should be the
+                                            user's current information. It is used to determine if
+                                            the existing group memberships need to be updated.
+
+        Raises:
+            OPNsenseGroupNotFoundError: If a specified group does not exist on the instance, this
+                                        exception is raised, indicating the need for corrective
+                                        action or error handling.
+        """
+        target_user = existing_user if existing_user else user
+
+        if not hasattr(existing_user, "groupname") and not hasattr(user, "groupname"):
+            return
+        # ansible_user : no groupname
+        # ansible_user: groupname < existing_user
+        if (
+            hasattr(existing_user, "groupname") and existing_user.groupname
+        ) and not hasattr(user, "groupname"):
+            for existing_group in self._groups:
+                if existing_group.check_if_user_in_group(target_user):
+                    existing_group.remove_user(target_user)
+
+                    if target_user.__dict__.get("groupname"):
+                        target_user.groupname.remove(existing_group.name)
+                        if not target_user.groupname:
+                            target_user.groupname = []
+
+            return  # Exit the method after removing the user from all groups.
+
+        # Convert groupname to a list if it's not already.
+        group_names = (
+            user.groupname if isinstance(user.groupname, list) else [user.groupname]
+        )
+
+        for group_name in group_names:
+            group_found = False
+            for index, existing_group in enumerate(self._groups):
+                if existing_group.name == group_name:
+                    group_found = True
+                    if not existing_group.check_if_user_in_group(target_user):
+                        existing_group.add_user(target_user)
+                        self._groups[index] = existing_group
+                    break  # Stop searching once the group is found
+
+            if not group_found:
+                # Group was not found, raise an exception
+                raise OPNsenseGroupNotFoundError(
+                    f"Group '{group_name}' not found on Instance"
+                )
 
     def add_or_update(self, user: User) -> None:
         """
@@ -843,15 +874,19 @@ class UserSet(OPNsenseModuleConfig):
         next_uid: Element = self.get("uid")
 
         if existing_user:
-            if not password_verify(
-                existing_user_password=existing_user.password, password=user.password
+            if not hash_verify(
+                existing_hashed_string=existing_user.password,
+                plain_string=user.password,
             ):
                 self.set_user_password(user)
+            else:
+                user.__dict__.pop("password")
 
-            # since we don't want the clear-type password to be set,
-            # and it is clear a update is not needed, we remove it from the update
-            if "password" in user.__dict__:
-                del user.__dict__["password"]
+            if hasattr(user, "apikeys"):
+                if not apikeys_verify(
+                    existing_apikeys=existing_user.apikeys, apikeys=user.apikeys
+                ):
+                    self.set_api_keys_secret(user)
 
             # Update groups if needed
             self._update_user_groups(user, existing_user)
@@ -862,15 +897,17 @@ class UserSet(OPNsenseModuleConfig):
             return
 
         self.set_user_password(user)
+
         # Assign UID if not set
-        if not user.uid:
+        if not hasattr(user, "uid"):
             user.uid = next_uid.text
             # Increase the next_uid
             self.set(value=str(int(next_uid.text) + 1), setting="uid")
 
-        if user.groupname:
+        if hasattr(user, "groupname"):
             # Update groups for the new user
             self._update_user_groups(user)
+
         # Add the new user
         self._users.append(user)
 

@@ -13,7 +13,6 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 import pytest
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_utils import (
     FirewallRuleAction,
@@ -21,7 +20,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_rules_uti
     FirewallRule,
     IPProtocol,
     FirewallRuleProtocol,
-    FirewallRuleStateType,
     FirewallRuleTarget,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -74,6 +72,24 @@ TEST_XML: str = """<?xml version="1.0"?>
                    <any/>
                    <port>22</port>
                 </destination>
+            </rule>
+            <rule>
+                <type>pass</type>
+                <interface>wan</interface>
+                <ipprotocol>inet</ipprotocol>
+                <statetype>keep state</statetype>
+                <descr>Allow SSH access</descr>
+                <protocol>tcp</protocol>
+                <source>
+                   <any/>
+                </source>
+                <destination>
+                   <any/>
+                   <port>22</port>
+                </destination>
+                <extra>
+                    this is an extra attribute
+                </extra>
             </rule>
             <rule>
                 <type>pass</type>
@@ -161,7 +177,6 @@ def test_firewall_rule_from_xml():
     assert test_rule.type == FirewallRuleAction.PASS
     assert test_rule.interface == "wan"
     assert test_rule.ipprotocol == IPProtocol.IPv4
-    assert test_rule.statetype == FirewallRuleStateType.KEEP_STATE
     assert test_rule.descr == "Allow SSH access"
     assert test_rule.protocol == FirewallRuleProtocol.TCP
     assert test_rule.source.port == "any"
@@ -193,13 +208,39 @@ def test_firewall_rule_to_etree():
         protocol=FirewallRuleProtocol.TCP,
         source=FirewallRuleTarget("source"),
         destination=FirewallRuleTarget("destination", port="22"),
-        statetype=FirewallRuleStateType.KEEP_STATE,
     )
-
+    test_rule.extra_attributes["statetype"] = "keep state"
     test_element = test_rule.to_etree()
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
     orig_rule: Element = list(list(orig_etree)[0])[0]
+
+    assert elements_equal(test_element, orig_rule), (
+        f"{xml_utils.etree_to_dict(test_element)}\n"
+        f"{xml_utils.etree_to_dict(orig_rule)}"
+    )
+
+
+def test_firewall_rule_to_etree_with_extra_attributes():
+    """
+    An extra non dataclass relevant field in the xml should be
+    persisted.
+    """
+    test_rule: FirewallRule = FirewallRule(
+        interface="wan",
+        type=FirewallRuleAction.PASS,
+        descr="Allow SSH access",
+        ipprotocol=IPProtocol.IPv4,
+        protocol=FirewallRuleProtocol.TCP,
+        source=FirewallRuleTarget("source"),
+        destination=FirewallRuleTarget("destination", port="22"),
+        extra_attributes={"extra": "this is an extra attribute"},
+    )
+
+    test_rule.extra_attributes["statetype"] = "keep state"
+    test_element = test_rule.to_etree()
+    orig_etree: Element = ElementTree.fromstring(TEST_XML)
+    orig_rule: Element = orig_etree.find("filter")[1]
 
     assert elements_equal(test_element, orig_rule), (
         f"{xml_utils.etree_to_dict(test_element)}\n"
@@ -257,7 +298,7 @@ def test_rule_set_load_simple_rules(
     Test correct loading of FirewallRuleSet from XML config without changes.
     """
     with FirewallRuleSet(sample_config_path) as rule_set:
-        assert len(rule_set._rules) == 4
+        assert len(rule_set._rules) == 5
         rule_set.save()
 
 

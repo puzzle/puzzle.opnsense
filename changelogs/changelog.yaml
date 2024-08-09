@@ -37,3 +37,41 @@ releases:
     fragments:
     - 112-fix-user-extra-attributes-in-system_access_users.yml
     release_date: '2024-04-24'
+  1.2.0:
+    changes:
+      bugfixes:
+      - interfaces_assignments - Include plugin interfaces such as VLAN, VXLANs etc.
+        in validations.
+      - module_index - Password entry now matches configure_function structure.
+      - system_access_users - Introduced password sanitization to fix parsing errors.
+      - system_access_users - Introduced password verification to fix passwords not
+        being updated.
+      - system_access_users - Remove the UserLoginEnum type to prevent strict validation.
+      - system_access_users - Updated set_user_password dict calls in order to work
+        with the newly introduced structure
+      - system_access_users - apikeys are changed if updated
+      - system_access_users - apikeys parameters are now passed as a list of dicts
+      minor_changes:
+      - config_utils - Raise exceptions that occur within an OPNsenseConfigContext
+        with traceback.
+      - system_access_users - Enhanced group removal handling
+    fragments:
+    - 117-remove-user-shell-attribute-as-enum.yml
+    - 122-implement-password-sanitation-before-hashing.yml
+    - 124-fix-password-module-index-entry.yml
+    - 129-include-plugin-interfaces-for-assignments.yml
+    - 130-fix-apikeys-attribute-as-list.yml
+    - 132-improve-exception-handling-in-opnsenseconfigcontext.yml
+    modules:
+    - description: Configure high availability settings
+      name: system_high_availability_settings
+      namespace: ''
+    release_date: '2024-06-28'
+  1.2.1:
+    changes:
+      bugfixes:
+      - firewall_rules_utils - Handle additional XML attributes for the firewall rule
+        objects from the config.
+    fragments:
+    - 143-add-extra-attributes-to-firewall-rules.yml
+    release_date: '2024-08-05'
