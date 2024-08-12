@@ -513,15 +513,16 @@ def main():
     disconnect_dialup_interfaces_param = module.params.get(
         "disconnect_dialup_interfaces"
     )
-    synchronize_states_param = module.params.get("synchronize_states")
-    synchronize_interface_param = module.params.get("synchronize_interface")
-    synchronize_peer_ip_param = module.params.get("synchronize_peer_ip")
-    synchronize_config_to_ip_param = module.params.get("synchronize_config_to_ip")
-    remote_system_username_param = module.params.get("remote_system_username")
-    remote_system_password_param = module.params.get("remote_system_password")
-    services_to_synchronize_param = module.params.get("services_to_synchronize")
-    sync_compatibility_param = module.params.get("sync_compatibility")
-
+    params = {
+        "synchronize_states_param": module.params.get("synchronize_states"),
+        "synchronize_interface_param": module.params.get("synchronize_interface"),
+        "synchronize_peer_ip_param": module.params.get("synchronize_peer_ip"),
+        "synchronize_config_to_ip_param": module.params.get("synchronize_config_to_ip"),
+        "remote_system_username_param": module.params.get("remote_system_username"),
+        "remote_system_password_param": module.params.get("remote_system_password"),
+        "services_to_synchronize_param": module.params.get("services_to_synchronize"),
+        "sync_compatibility_param": module.params.get("sync_compatibility"),
+    }
     with OPNsenseModuleConfig(
         module_name="system_high_availability_settings",
         config_context_names=["system_high_availability_settings"],
@@ -530,29 +531,29 @@ def main():
         check_hasync_node(config)
         remote_system_synchronization(
             config=config,
-            remote_backup_url=synchronize_config_to_ip_param,
-            username=remote_system_username_param,
-            password=remote_system_password_param,
+            remote_backup_url=params["synchronize_config_to_ip_param"],
+            username=params["remote_system_username_param"],
+            password=params["remote_system_password_param"],
         )
 
-        synchronize_states(config=config, setting=synchronize_states_param)
+        synchronize_states(config=config, setting=params["synchronize_states_param"])
         disable_preempt(config=config, setting=disable_preempt_param)
         disconnect_dialup_interfaces(
             config=config, setting=disconnect_dialup_interfaces_param
         )
 
-        if sync_compatibility_param:
+        if params["sync_compatibility_param"]:
             try:
                 sync_compatibility(
-                    config=config, compat_version=sync_compatibility_param
+                    config=config, compat_version=params["sync_compatibility_param"]
                 )
             except UnsupportedVersionForModule as error:
                 module.fail_json(str(error))
 
-        if synchronize_interface_param:
+        if params["synchronize_interface_param"]:
             try:
                 synchronize_interface(
-                    config=config, sync_interface=synchronize_interface_param
+                    config=config, sync_interface=params["synchronize_interface_param"]
                 )
             except ValueError as error:
                 module.fail_json(str(error))
@@ -561,20 +562,20 @@ def main():
                     f"Encountered Error while trying to retrieve interfaces: {str(error)}"
                 )
 
-        if synchronize_peer_ip_param:
+        if params["synchronize_peer_ip_param"]:
             try:
-                synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
-            except ValueError as error:
-                module.fail_json(str(error))
-
-        if services_to_synchronize_param is not None:
-            try:
-                services_to_synchronize(
-                    config=config, sync_services=services_to_synchronize_param
+                synchronize_peer_ip(
+                    config=config, peer_ip=params["synchronize_peer_ip_param"]
                 )
             except ValueError as error:
                 module.fail_json(str(error))
-            except UnsupportedModuleSettingError as error:
+
+        if params["services_to_synchronize_param"] is not None:
+            try:
+                services_to_synchronize(
+                    config=config, sync_services=params["services_to_synchronize_param"]
+                )
+            except (ValueError, UnsupportedModuleSettingError) as error:
                 module.fail_json(str(error))
 
         if config.changed:
