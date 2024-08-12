@@ -21,6 +21,7 @@ from ansible_collections.puzzle.opnsense.plugins.modules.system_high_availabilit
     services_to_synchronize,
     validate_ipv4,
     validate_ip,
+    sync_compatibility,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index import (
@@ -29,6 +30,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index impor
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
+    UnsupportedVersionForModule,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
@@ -70,6 +72,7 @@ TEST_VERSION_MAP = {
             "synchronize_peer_ip": "hasync/pfsyncpeerip",
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
+            "sync_compatibility": "hasync/pfsyncversion",
             "remote_system_password": "hasync/password",
             "sync_services": "hasync/syncitems",
             "php_requirements": [
@@ -512,3 +515,33 @@ def test_services_to_synchronize_failure(
     with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
         services_to_synchronize(sample_config, "cron")
     assert str(excinfo.value) == "error encountered while getting services"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="24.7",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG_241], indirect=True)
+def test_sync_compatibility(mocked_version_utils: MagicMock, sample_config):
+    sync_compatibility(sample_config, "24.1")
+    assert sample_config.get("sync_compatibility").text == "1301"
+    sync_compatibility(sample_config, "24.7")
+    assert sample_config.get("sync_compatibility").text == "1400"
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="24.1",
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+@pytest.mark.parametrize("sample_config", [XML_CONFIG_241], indirect=True)
+def test_sync_compatibility_unsupported_version(
+    mocked_version_utils: MagicMock, sample_config
+):
+    with pytest.raises(UnsupportedVersionForModule) as excinfo:
+        sync_compatibility(sample_config, "24.1")
+    assert (
+        str(excinfo.value)
+        == "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
+    )

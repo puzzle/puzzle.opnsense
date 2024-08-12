@@ -749,6 +749,7 @@ VERSION_MAP = {
             "synchronize_peer_ip": "hasync/pfsyncpeerip",
             "synchronize_config_to_ip": "hasync/synchronizetoip",
             "remote_system_username": "hasync/username",
+            "sync_compatibility": "hasync/pfsyncversion",
             "remote_system_password": "hasync/password",
             "disable_preempt": "hasync/disablepreempt",
             "disconnect_dialup_interfaces": "hasync/disconnectppps",

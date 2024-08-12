@@ -37,8 +37,12 @@ options:
     description: "If Synchronize States is enabled, it will utilize this interface for communication."
     type: str
     required: true
+  sync_compatibility:
+    description: "Newer versions of OPNsense offer additional attributes in the state synchronization, for compatibility reasons you can optionally choose an older version here. Always make sure both nodes use the same version to avoid inconsistent state tables."
+    type: str
+    required: false
   synchronize_peer_ip:
-    description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast. "
+    description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast."
     type: str
     required: false
   synchronize_config_to_ip:
@@ -111,6 +115,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
     UnsupportedModuleSettingError,
+    UnsupportedVersionForModule,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
@@ -438,6 +443,27 @@ def services_to_synchronize(
                 config.get("hasync").remove(service_xml_elem)
 
 
+def sync_compatibility(config: OPNsenseModuleConfig, compat_version: str):
+    """
+    Handler function for the setting sync_compatibility.
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+        compat_version (str): Version compatibility
+                            (24.7 if you can only sync with instances of versions 24.7 and above,
+                            24.1 if you can sync with older versions as well)
+    """
+    inst_version = float(version_utils.get_opnsense_version())
+    if inst_version >= 24.7:
+        if float(compat_version) >= 24.7:
+            config.set("1400", "sync_compatibility")
+        else:
+            config.set("1301", "sync_compatibility")
+    else:
+        raise UnsupportedVersionForModule(
+            "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
+        )
+
+
 def main():
     """
     Main function of the system_high_availability_settings module
@@ -448,6 +474,7 @@ def main():
         "disconnect_dialup_interfaces": {"type": "bool", "default": False},
         "synchronize_states": {"type": "bool", "default": False},
         "synchronize_interface": {"type": "str", "required": True},
+        "sync_compatibility": {"type": "str", "required": False},
         "synchronize_peer_ip": {"type": "str", "required": False},
         "synchronize_config_to_ip": {"type": "str", "required": False},
         "remote_system_username": {"type": "str", "required": False},
@@ -493,6 +520,7 @@ def main():
     remote_system_username_param = module.params.get("remote_system_username")
     remote_system_password_param = module.params.get("remote_system_password")
     services_to_synchronize_param = module.params.get("services_to_synchronize")
+    sync_compatibility_param = module.params.get("sync_compatibility")
 
     with OPNsenseModuleConfig(
         module_name="system_high_availability_settings",
@@ -512,6 +540,14 @@ def main():
         disconnect_dialup_interfaces(
             config=config, setting=disconnect_dialup_interfaces_param
         )
+
+        if sync_compatibility_param:
+            try:
+                sync_compatibility(
+                    config=config, compat_version=sync_compatibility_param
+                )
+            except UnsupportedVersionForModule as error:
+                module.fail_json(str(error))
 
         if synchronize_interface_param:
             try:
@@ -551,7 +587,7 @@ def main():
             for cmd_result in result["opnsense_configure_output"]:
                 if cmd_result["rc"] != 0:
                     module.fail_json(
-                        msg="Apply of the OPNsense settings failed",
+                        msg="Applying of the OPNsense settings failed",
                         details=cmd_result,
                     )
 
