@@ -201,7 +201,7 @@
       ansible.builtin.assert:
         that:
           - unsupported_service_output is failed
-          - unsupported_service_output.msg.startswith("Service blabla could not be found in your Opnsense installation. These are all the available services:")
+          - unsupported_service_output.msg.startswith("Service blabla could not be found in your OPNsense installation. These are all the available services:")
 
     - name: Converge - Set service on unsupported Version
       puzzle.opnsense.system_high_availability_settings:

@@ -182,7 +182,7 @@ def disable_preempt(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the setting disable_preempt.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
     version = float(version_utils.get_opnsense_version())
@@ -199,7 +199,7 @@ def disconnect_dialup_interfaces(config: OPNsenseModuleConfig, setting: bool) ->
     """
     Handler function for the setting disconnect_dialup_interfaces.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
 
@@ -217,7 +217,7 @@ def synchronize_states(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the synchronize_states setting.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
     version = float(version_utils.get_opnsense_version())
@@ -378,8 +378,8 @@ def services_to_synchronize(
     if isinstance(sync_services, str):
         sync_services = [sync_services]
 
-    # Opnsense has a helper function called plugins_xmlrpc_sync, which returns all services
-    # installed on Opnsense that can be synced. They are returned as a dictionary. Here an
+    # OPNsense has a helper function called plugins_xmlrpc_sync, which returns all services
+    # installed on OPNsense that can be synced. They are returned as a dictionary. Here an
     # example as to how this dictionary would look like:
     # {
     #   "cron": "Cron",
@@ -411,7 +411,7 @@ def services_to_synchronize(
         # could not match the service, so doesn't exist on the instance or misspelled.
         else:
             raise ValueError(
-                f"Service {service} could not be found in your Opnsense installation. "
+                f"Service {service} could not be found in your OPNsense installation. "
                 + f"These are all the available services: {', '.join(allowed_services.values())}."
             )
         service_mapping[service_id] = service_description
