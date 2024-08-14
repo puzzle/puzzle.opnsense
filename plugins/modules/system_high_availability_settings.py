@@ -41,6 +41,9 @@ options:
     description: "Newer versions of OPNsense offer additional attributes in the state synchronization, for compatibility reasons you can optionally choose an older version here. Always make sure both nodes use the same version to avoid inconsistent state tables."
     type: str
     required: false
+    choices:
+      - ">24.7"
+      - "<24.7"
   synchronize_peer_ip:
     description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast."
     type: str
@@ -443,7 +446,7 @@ def services_to_synchronize(
                 config.get("hasync").remove(service_xml_elem)
 
 
-def sync_compatibility(config: OPNsenseModuleConfig, compat_version: str):
+def sync_compatibility(config: OPNsenseModuleConfig, setting_value: str) -> None:
     """
     Handler function for the setting sync_compatibility.
     Args:
@@ -452,12 +455,17 @@ def sync_compatibility(config: OPNsenseModuleConfig, compat_version: str):
                             (24.7 if you can only sync with instances of versions 24.7 and above,
                             24.1 if you can sync with older versions as well)
     """
-    inst_version = float(version_utils.get_opnsense_version())
-    if inst_version >= 24.7:
-        if float(compat_version) >= 24.7:
-            config.set("1400", "sync_compatibility")
-        else:
-            config.set("1301", "sync_compatibility")
+    version = float(version_utils.get_opnsense_version())
+    options = {
+        ">24.7": "1400",
+        "<24.7": "1301",
+    }
+    if setting_value not in options:
+        raise ValueError(
+            f"Option '{setting_value}' is not allowed for param sync_compatibility"
+        )
+    if version >= 24.7:
+        config.set(options[setting_value], "sync_compatibility")
     else:
         raise UnsupportedVersionForModule(
             "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
@@ -474,7 +482,14 @@ def main():
         "disconnect_dialup_interfaces": {"type": "bool", "default": False},
         "synchronize_states": {"type": "bool", "default": False},
         "synchronize_interface": {"type": "str", "required": True},
-        "sync_compatibility": {"type": "str", "required": False},
+        "sync_compatibility": {
+            "type": "str",
+            "required": False,
+            "choices": [
+                ">24.7",
+                "<24.7",
+            ],
+        },
         "synchronize_peer_ip": {"type": "str", "required": False},
         "synchronize_config_to_ip": {"type": "str", "required": False},
         "remote_system_username": {"type": "str", "required": False},
@@ -545,9 +560,9 @@ def main():
         if params["sync_compatibility_param"]:
             try:
                 sync_compatibility(
-                    config=config, compat_version=params["sync_compatibility_param"]
+                    config=config, setting_value=params["sync_compatibility_param"]
                 )
-            except UnsupportedVersionForModule as error:
+            except (UnsupportedVersionForModule, ValueError) as error:
                 module.fail_json(str(error))
 
         if params["synchronize_interface_param"]:

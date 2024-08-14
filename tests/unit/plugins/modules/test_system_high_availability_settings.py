@@ -524,9 +524,9 @@ def test_services_to_synchronize_failure(
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 @pytest.mark.parametrize("sample_config", [XML_CONFIG_241], indirect=True)
 def test_sync_compatibility(mocked_version_utils: MagicMock, sample_config):
-    sync_compatibility(sample_config, "24.1")
+    sync_compatibility(sample_config, "<24.7")
     assert sample_config.get("sync_compatibility").text == "1301"
-    sync_compatibility(sample_config, "24.7")
+    sync_compatibility(sample_config, ">24.7")
     assert sample_config.get("sync_compatibility").text == "1400"
 
 
@@ -540,7 +540,7 @@ def test_sync_compatibility_unsupported_version(
     mocked_version_utils: MagicMock, sample_config
 ):
     with pytest.raises(UnsupportedVersionForModule) as excinfo:
-        sync_compatibility(sample_config, "24.1")
+        sync_compatibility(sample_config, "<24.7")
     assert (
         str(excinfo.value)
         == "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
