@@ -37,8 +37,15 @@ options:
     description: "If Synchronize States is enabled, it will utilize this interface for communication."
     type: str
     required: true
+  sync_compatibility:
+    description: "Newer versions of OPNsense offer additional attributes in the state synchronization, for compatibility reasons you can optionally choose an older version here. Always make sure both nodes use the same version to avoid inconsistent state tables."
+    type: str
+    required: false
+    choices:
+      - ">24.7"
+      - "<24.7"
   synchronize_peer_ip:
-    description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast. "
+    description: "Setting this option will force pfsync to synchronize its state table to this IP address. The default is directed multicast."
     type: str
     required: false
   synchronize_config_to_ip:
@@ -104,12 +111,14 @@ opnsense_configure_output:
 # pylint: enable=duplicate-code
 # fmt: on
 from typing import Optional, List, Dict
+import ipaddress
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
     UnsupportedModuleSettingError,
+    UnsupportedVersionForModule,
 )
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
@@ -118,6 +127,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignm
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     opnsense_utils,
+    version_utils,
 )
 
 
@@ -134,10 +144,21 @@ def validate_ipv4(ipaddr: str) -> bool:
     return True
 
 
+def validate_ip(ipaddr: str) -> bool:
+    """
+    Check if the given string is an IPv4 or IPv6 address
+    """
+    try:
+        ipaddress.ip_network(ipaddr, strict=False)
+        return True
+    except ValueError:
+        return False
+
+
 def check_hasync_node(config: OPNsenseModuleConfig) -> None:
     """
-    When an opnsense instance is created, the hasync block does not exist at all.
-    This function checks if the opnsense/hasync exists in the tree. If not, it
+    When an opnsense instance is created (in version < 24.7), the hasync block does not exist
+    at all. This function checks if the opnsense/hasync exists in the tree. If not, it
     adds that parent node with the default settings (pfsyncinterface=LAN
     synchronize_config_to_ip, remote_system_username and remote_system_password all None)
     Args:
@@ -161,39 +182,52 @@ def disable_preempt(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the setting disable_preempt.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
-    if setting and config.get("disable_preempt") is None:
-        config.set(value="on", setting="disable_preempt")
-    elif not setting and config.get("disable_preempt") is not None:
-        config.get("hasync").remove(config.get("disable_preempt"))
+    version = float(version_utils.get_opnsense_version())
+    if version < 24.7:
+        if setting and config.get("disable_preempt") is None:
+            config.set(value="on", setting="disable_preempt")
+        elif not setting and config.get("disable_preempt") is not None:
+            config.get("hasync").remove(config.get("disable_preempt"))
+    else:
+        config.set(str(int(setting)), "disable_preempt")
 
 
 def disconnect_dialup_interfaces(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the setting disconnect_dialup_interfaces.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
-    if setting and config.get("disconnect_dialup_interfaces") is None:
-        config.set(value="on", setting="disconnect_dialup_interfaces")
-    elif not setting and config.get("disconnect_dialup_interfaces") is not None:
-        config.get("hasync").remove(config.get("disconnect_dialup_interfaces"))
+
+    version = float(version_utils.get_opnsense_version())
+    if version < 24.7:
+        if setting and config.get("disconnect_dialup_interfaces") is None:
+            config.set(value="on", setting="disconnect_dialup_interfaces")
+        elif not setting and config.get("disconnect_dialup_interfaces") is not None:
+            config.get("hasync").remove(config.get("disconnect_dialup_interfaces"))
+    else:
+        config.set(str(int(setting)), "disconnect_dialup_interfaces")
 
 
 def synchronize_states(config: OPNsenseModuleConfig, setting: bool) -> None:
     """
     Handler function for the synchronize_states setting.
     Args:
-        config (OPNsenseModuleConfig): The given Opnsense configuration
+        config (OPNsenseModuleConfig): The given OPNsense configuration
         setting (bool): The setting value
     """
-    if setting and config.get("synchronize_states") is None:
-        config.set(value="on", setting="synchronize_states")
-    elif not setting and config.get("synchronize_states") is not None:
-        config.get("hasync").remove(config.get("synchronize_states"))
+    version = float(version_utils.get_opnsense_version())
+    if version < 24.7:
+        if setting and config.get("synchronize_states") is None:
+            config.set(value="on", setting="synchronize_states")
+        elif not setting and config.get("synchronize_states") is not None:
+            config.get("hasync").remove(config.get("synchronize_states"))
+    else:
+        config.set(str(int(setting)), "synchronize_states")
 
 
 def get_configured_interface_with_descr() -> Dict[str, str]:
@@ -268,14 +302,20 @@ def synchronize_peer_ip(config: OPNsenseModuleConfig, peer_ip: str) -> None:
         config (OPNsenseModuleConfig): The configuration for the opnsense firewall
         peer_ip: PFsync will sync to this IP address.
     """
-    if peer_ip:
-        if not validate_ipv4(peer_ip):
-            raise ValueError(
-                "Setting synchronize_peer_ip has to be a valid IPv4 address"
-            )
+    version = float(version_utils.get_opnsense_version())
+    if version < 24.7:
+        if peer_ip:
+            if not validate_ipv4(peer_ip):
+                raise ValueError(
+                    "Setting synchronize_peer_ip has to be a valid IPv4 address"
+                )
+            config.set(value=peer_ip, setting="synchronize_peer_ip")
+        elif not peer_ip and config.get("synchronize_peer_ip") is not None:
+            config.get("hasync").remove(config.get("synchronize_peer_ip"))
+    else:
+        if peer_ip and not validate_ip(peer_ip):
+            raise ValueError("Setting synchronize_peer_ip has to be a valid IP address")
         config.set(value=peer_ip, setting="synchronize_peer_ip")
-    elif not peer_ip and config.get("synchronize_peer_ip") is not None:
-        config.get("hasync").remove(config.get("synchronize_peer_ip"))
 
 
 def remote_system_synchronization(
@@ -338,8 +378,8 @@ def services_to_synchronize(
     if isinstance(sync_services, str):
         sync_services = [sync_services]
 
-    # Opnsense has a helper function called plugins_xmlrpc_sync, which returns all services
-    # installed on Opnsense that can be synced. They are returned as a dictionary. Here an
+    # OPNsense has a helper function called plugins_xmlrpc_sync, which returns all services
+    # installed on OPNsense that can be synced. They are returned as a dictionary. Here an
     # example as to how this dictionary would look like:
     # {
     #   "cron": "Cron",
@@ -353,6 +393,7 @@ def services_to_synchronize(
     # well as all the descriptions.
 
     allowed_services = plugins_xmlrpc_sync()
+    service_mapping = {}
     # add all to-be-synced services that aren't already in the config
     for service in sync_services:
         # Try to match the service by service_id
@@ -370,33 +411,65 @@ def services_to_synchronize(
         # could not match the service, so doesn't exist on the instance or misspelled.
         else:
             raise ValueError(
-                f"Service {service} could not be found in your Opnsense installation. "
+                f"Service {service} could not be found in your OPNsense installation. "
                 + f"These are all the available services: {', '.join(allowed_services.values())}."
             )
+        service_mapping[service_id] = service_description
 
-        # The services get written into the config as follows:
-        # If a service should get synced, say cron, you'll find a line in the config that
-        # looks like this:
-        # <synchronizecron>on</synchronizecron>
-        # In general, if a service should get synced, we add an element to the config with the name
-        # "synchronize{service_id}", with the value "on".
-        # (see https://github.com/opnsense/core/blob/24f36bf3323bdb08894a8619ab8e2b22ed557539/src/www/system_hasync.php#L55) # pylint: disable=line-too-long
-        # If a service shouldn't get synced, the element is removed from the config entirely.
-        service_xml_element_name = f"synchronize{service_id}"
-        if config.get("hasync").find(service_xml_element_name) is None:
-            xml_elem = Element(service_xml_element_name)
-            xml_elem.text = "on"
-            config.get("hasync").append(xml_elem)
+    version = float(version_utils.get_opnsense_version())
+    if version >= 24.7:
+        config.set(",".join(service_mapping.keys()), "sync_services")
+    else:
+        for service_id, service_description in service_mapping.items():
+            # The services get written into the config as follows:
+            # If a service should get synced, say cron, you'll find a line in the config that
+            # looks like this:
+            # <synchronizecron>on</synchronizecron>
+            # In general, if a service should get synced, we add an element to the config with
+            # the name "synchronize{service_id}", with the value "on".
+            # (see https://github.com/opnsense/core/blob/24f36bf3323bdb08894a8619ab8e2b22ed557539/src/www/system_hasync.php#L55) # pylint: disable=line-too-long
+            # If a service shouldn't get synced, the element is removed from the config entirely.
+            service_xml_element_name = f"synchronize{service_id}"
+            if config.get("hasync").find(service_xml_element_name) is None:
+                xml_elem = Element(service_xml_element_name)
+                xml_elem.text = "on"
+                config.get("hasync").append(xml_elem)
 
-    # remove all services in the config that shouldn't be synced.
-    for service_id, service_description in allowed_services.items():
-        service_xml_elem = config.get("hasync").find(f"synchronize{service_id}")
-        if (
-            service_id not in sync_services
-            and service_description not in sync_services
-            and service_xml_elem is not None
-        ):
-            config.get("hasync").remove(service_xml_elem)
+        # remove all services in the config that shouldn't be synced.
+        for service_id, service_description in allowed_services.items():
+            service_xml_elem = config.get("hasync").find(f"synchronize{service_id}")
+            if (
+                service_id not in sync_services
+                and service_description not in sync_services
+                and service_xml_elem is not None
+            ):
+                config.get("hasync").remove(service_xml_elem)
+
+
+def sync_compatibility(config: OPNsenseModuleConfig, setting_value: str) -> None:
+    """
+    Handler function for the setting sync_compatibility.
+    Args:
+        config (OPNsenseModuleConfig): The configuration for the opnsense firewall
+        compat_version (str): Version compatibility
+                            (24.7 if you can only sync with instances of versions 24.7 and above,
+                            24.1 if you can sync with older versions as well)
+    """
+    version = float(version_utils.get_opnsense_version())
+    options = {
+        ">24.7": "1400",
+        "<24.7": "1301",
+    }
+    if setting_value not in options:
+        raise ValueError(
+            f"Option '{setting_value}' is not allowed for param sync_compatibility"
+        )
+    if version >= 24.7:
+        config.set(options[setting_value], "sync_compatibility")
+    else:
+        raise UnsupportedVersionForModule(
+            "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
+        )
 
 
 def main():
@@ -409,6 +482,14 @@ def main():
         "disconnect_dialup_interfaces": {"type": "bool", "default": False},
         "synchronize_states": {"type": "bool", "default": False},
         "synchronize_interface": {"type": "str", "required": True},
+        "sync_compatibility": {
+            "type": "str",
+            "required": False,
+            "choices": [
+                ">24.7",
+                "<24.7",
+            ],
+        },
         "synchronize_peer_ip": {"type": "str", "required": False},
         "synchronize_config_to_ip": {"type": "str", "required": False},
         "remote_system_username": {"type": "str", "required": False},
@@ -447,14 +528,16 @@ def main():
     disconnect_dialup_interfaces_param = module.params.get(
         "disconnect_dialup_interfaces"
     )
-    synchronize_states_param = module.params.get("synchronize_states")
-    synchronize_interface_param = module.params.get("synchronize_interface")
-    synchronize_peer_ip_param = module.params.get("synchronize_peer_ip")
-    synchronize_config_to_ip_param = module.params.get("synchronize_config_to_ip")
-    remote_system_username_param = module.params.get("remote_system_username")
-    remote_system_password_param = module.params.get("remote_system_password")
-    services_to_synchronize_param = module.params.get("services_to_synchronize")
-
+    params = {
+        "synchronize_states_param": module.params.get("synchronize_states"),
+        "synchronize_interface_param": module.params.get("synchronize_interface"),
+        "synchronize_peer_ip_param": module.params.get("synchronize_peer_ip"),
+        "synchronize_config_to_ip_param": module.params.get("synchronize_config_to_ip"),
+        "remote_system_username_param": module.params.get("remote_system_username"),
+        "remote_system_password_param": module.params.get("remote_system_password"),
+        "services_to_synchronize_param": module.params.get("services_to_synchronize"),
+        "sync_compatibility_param": module.params.get("sync_compatibility"),
+    }
     with OPNsenseModuleConfig(
         module_name="system_high_availability_settings",
         config_context_names=["system_high_availability_settings"],
@@ -463,21 +546,29 @@ def main():
         check_hasync_node(config)
         remote_system_synchronization(
             config=config,
-            remote_backup_url=synchronize_config_to_ip_param,
-            username=remote_system_username_param,
-            password=remote_system_password_param,
+            remote_backup_url=params["synchronize_config_to_ip_param"],
+            username=params["remote_system_username_param"],
+            password=params["remote_system_password_param"],
         )
 
-        synchronize_states(config=config, setting=synchronize_states_param)
+        synchronize_states(config=config, setting=params["synchronize_states_param"])
         disable_preempt(config=config, setting=disable_preempt_param)
         disconnect_dialup_interfaces(
             config=config, setting=disconnect_dialup_interfaces_param
         )
 
-        if synchronize_interface_param:
+        if params["sync_compatibility_param"]:
+            try:
+                sync_compatibility(
+                    config=config, setting_value=params["sync_compatibility_param"]
+                )
+            except (UnsupportedVersionForModule, ValueError) as error:
+                module.fail_json(str(error))
+
+        if params["synchronize_interface_param"]:
             try:
                 synchronize_interface(
-                    config=config, sync_interface=synchronize_interface_param
+                    config=config, sync_interface=params["synchronize_interface_param"]
                 )
             except ValueError as error:
                 module.fail_json(str(error))
@@ -486,20 +577,20 @@ def main():
                     f"Encountered Error while trying to retrieve interfaces: {str(error)}"
                 )
 
-        if synchronize_peer_ip_param:
+        if params["synchronize_peer_ip_param"]:
             try:
-                synchronize_peer_ip(config=config, peer_ip=synchronize_peer_ip_param)
-            except ValueError as error:
-                module.fail_json(str(error))
-
-        if services_to_synchronize_param is not None:
-            try:
-                services_to_synchronize(
-                    config=config, sync_services=services_to_synchronize_param
+                synchronize_peer_ip(
+                    config=config, peer_ip=params["synchronize_peer_ip_param"]
                 )
             except ValueError as error:
                 module.fail_json(str(error))
-            except UnsupportedModuleSettingError as error:
+
+        if params["services_to_synchronize_param"] is not None:
+            try:
+                services_to_synchronize(
+                    config=config, sync_services=params["services_to_synchronize_param"]
+                )
+            except (ValueError, UnsupportedModuleSettingError) as error:
                 module.fail_json(str(error))
 
         if config.changed:
@@ -512,7 +603,7 @@ def main():
             for cmd_result in result["opnsense_configure_output"]:
                 if cmd_result["rc"] != 0:
                     module.fail_json(
-                        msg="Apply of the OPNsense settings failed",
+                        msg="Applying of the OPNsense settings failed",
                         details=cmd_result,
                     )
 
