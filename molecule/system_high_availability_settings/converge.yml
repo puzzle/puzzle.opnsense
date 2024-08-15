@@ -47,7 +47,7 @@
         remote_system_username: opnsense
         remote_system_password: v3rys3cure
         services_to_synchronize: "{{ services }}"
-      tags: all_plugs
+      changed_when: false
 
     - name: Converge - get config
       ansible.builtin.slurp:
@@ -72,18 +72,36 @@
           - "'<synchronize{{ item }}>on</synchronize{{ item }}>' in ( current_config.content | b64decode )"
       loop: "{{ services }}"
 
+    - name: Converge - check idempotence
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        synchronize_config_to_ip: 224.0.0.240
+        synchronize_peer_ip: 224.0.0.241
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
+        synchronize_states: true
+        remote_system_username: opnsense
+        remote_system_password: v3rys3cure
+        services_to_synchronize: "{{ services }}"
+      register: idempotence
+
+    - name: Converge - Check that parameters stay unaffected
+      ansible.builtin.assert:
+        that:
+          - idempotence.changed == false
+
     - name: Converge - Change nothing
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
         disable_preempt: true
         disconnect_dialup_interfaces: true
         synchronize_states: true
-      register: reset_all
+      register: change_nothing
 
     - name: Converge - Check that parameters stay unaffected
       ansible.builtin.assert:
         that:
-          - reset_all.changed == false
+          - change_nothing.changed == false
 
     - name: Converge - Remove all services, set disable_preempt, disconnect_dialup_interfaces, synchronize_states to false
       puzzle.opnsense.system_high_availability_settings:
@@ -93,6 +111,7 @@
         disconnect_dialup_interfaces: false
         synchronize_states: false
       register: synch_remove_services
+      changed_when: false
 
     - name: Converge - get config
       ansible.builtin.slurp:
@@ -112,6 +131,20 @@
           - "'<disablepreempt>on</disablepreempt>' not  in ( current_config.content | b64decode )"
           - "'<disconnectppps>on</disconnectppps>' not  in ( current_config.content | b64decode )"
 
+    - name: Converge - check idempotence
+      puzzle.opnsense.system_high_availability_settings:
+        synchronize_interface: LAN
+        services_to_synchronize: []
+        disable_preempt: false
+        disconnect_dialup_interfaces: false
+        synchronize_states: false
+      register: idempotence
+
+    - name: Converge - Check that parameters stay unaffected
+      ansible.builtin.assert:
+        that:
+          - idempotence.changed == false
+
     - name: Converge - Enable unsupported service
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
@@ -128,6 +161,7 @@
     - name: Converge - Get OPNsense version
       ansible.builtin.command: opnsense-version -O
       register: opnsense_version_cmd
+      changed_when: false
 
     - name: Converge - Set OPNsense version fact
       ansible.builtin.set_fact:
@@ -139,6 +173,7 @@
         services_to_synchronize: Web Proxy
       register: unsupported_service_output
       ignore_errors: true
+      changed_when: false
 
     - name: Converge - Check success on supported versions
       ansible.builtin.assert:
@@ -162,6 +197,7 @@
           - WireGuard
       register: unsupported_service_output
       ignore_errors: true
+      changed_when: false
 
     - name: Converge - Check success on supported versions
       ansible.builtin.assert:

@@ -4,6 +4,40 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.2.1
+======
+
+Bugfixes
+--------
+
+- firewall_rules_utils - Handle additional XML attributes for the firewall rule objects from the config.
+
+v1.2.0
+======
+
+Minor Changes
+-------------
+
+- config_utils - Raise exceptions that occur within an OPNsenseConfigContext with traceback.
+- system_access_users - Enhanced group removal handling
+
+Bugfixes
+--------
+
+- interfaces_assignments - Include plugin interfaces such as VLAN, VXLANs etc. in validations.
+- module_index - Password entry now matches configure_function structure.
+- system_access_users - Introduced password sanitization to fix parsing errors.
+- system_access_users - Introduced password verification to fix passwords not being updated.
+- system_access_users - Remove the UserLoginEnum type to prevent strict validation.
+- system_access_users - Updated set_user_password dict calls in order to work with the newly introduced structure
+- system_access_users - apikeys are changed if updated
+- system_access_users - apikeys parameters are now passed as a list of dicts
+
+New Modules
+-----------
+
+- system_high_availability_settings - Configure high availability settings
+
 v1.1.1
 ======
 

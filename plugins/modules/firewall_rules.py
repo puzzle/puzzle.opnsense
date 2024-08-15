@@ -274,7 +274,7 @@ options:
         required: false
         type: str
     state:
-        description: Weather rule should be added or removed.
+        description: Whether rule should be added or removed.
         required: false
         type: str
         default: present
@@ -290,7 +290,7 @@ EXAMPLES = r'''
     interface: lan
     source:
     destination:
-        port: 22
+      port: 22
     action: block
 
 - name: Allow all access from RFC1918 networks to this host
@@ -298,7 +298,7 @@ EXAMPLES = r'''
     interface: lan
     action: pass
     source:
-        ip: 192.168.0.0/16
+      address: 192.168.0.0/16
     destination:
 '''
 
