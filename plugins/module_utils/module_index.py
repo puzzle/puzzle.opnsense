@@ -790,5 +790,11 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
 }
