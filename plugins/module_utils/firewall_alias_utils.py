@@ -521,23 +521,15 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             bool: True if valid, False otherwise.
         """
 
-        element_tree_interfaces: Element = self.get("interfaces")
+        with InterfacesSet() as if_set:
+            interface = if_set.find(descr=interface_name)
 
-        interfaces_list: List = []
-        for interface in element_tree_interfaces:
-            interfaces_list.append(InterfaceAssignment.from_xml(interface))
+            if interface is None:
+                raise OPNsenseInterfaceNotFoundError(
+                    f"interface {interface_name} was not found on the device"
+                )
 
-        existing_interface: Optional[Group] = next(
-            (i for i in interfaces_list if i.descr == interface_name),
-            None,
-        )
-
-        if not existing_interface:
-            raise OPNsenseInterfaceNotFoundError(
-                f"interface {interface_name} was not found on the device"
-            )
-
-        return existing_interface
+            return True
 
     def is_geoip_configured(self, _type_geoip_alias: str) -> bool:
         """
