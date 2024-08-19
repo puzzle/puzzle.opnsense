@@ -4,6 +4,15 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.3.0
+======
+
+Major Changes
+-------------
+
+- @kdhlab added general OPNsense 24.7 support to the collection
+- system_high_availability_settings - Refactoring for 24.7 support
+
 v1.2.1
 ======
 
