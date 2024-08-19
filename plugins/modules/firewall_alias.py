@@ -208,9 +208,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_uti
     FirewallAlias,
     FirewallAliasSet,
 )
-from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
-    UnsupportedModuleSettingError,
-)
 
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
@@ -288,36 +285,7 @@ def main():
 
     ansible_alias_state: str = module.params.get("state")
 
-    type_bgpasn_param: str = (
-        module.params.get("content") if module.params.get("type") == "bgpasn" else None
-    )
-    type_dynamicipv6host_param: str = (
-        module.params.get("content")
-        if module.params.get("type") == "dynamicipv6host"
-        else None
-    )
-    type_opnvpngroup_param: str = (
-        module.params.get("content")
-        if module.params.get("type") == "opnvpngroup"
-        else None
-    )
-
     with FirewallAliasSet() as alias_set:
-        if type_opnvpngroup_param and alias_set.opnsense_version <= "23.1":
-            module.fail_json(
-                msg=f"Parameter is not supported in OPNsense {alias_set.opnsense_version}",
-                details=str(UnsupportedModuleSettingError),
-            )
-
-        if (
-            type_dynamicipv6host_param
-            or type_bgpasn_param
-            and alias_set.opnsense_version < "23.7"
-        ):
-            module.fail_json(
-                msg=f"Parameter is not supported in OPNsense {alias_set.opnsense_version}",
-                details=str(UnsupportedModuleSettingError),
-            )
 
         if ansible_alias_state == "present":
             alias_set.add_or_update(ansible_alias)
