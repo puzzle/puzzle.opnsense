@@ -649,23 +649,24 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 "MaximumTableEntries exceeded!"
             )
 
-        if self.validate_content(content_type=alias.type, content_values=alias.content):
+        if not self.validate_content(content_type=alias.type, content_values=alias.content):
+            return
+        
+        if alias.interface:
+            self.is_interface(alias.interface)
 
-            if alias.interface:
-                self.is_interface(alias.interface)
+        if alias.type == FirewallAliasType.OPNVPNGROUP:
+            self.set_authgroup(type_opnvpngroup_alias=alias)
 
-            if alias.type == FirewallAliasType.OPNVPNGROUP:
-                self.set_authgroup(type_opnvpngroup_alias=alias)
+        existing_alias: Optional[FirewallAlias] = next(
+            (a for a in self._aliases if a.name == alias.name), None
+        )
 
-            existing_alias: Optional[FirewallAlias] = next(
-                (a for a in self._aliases if a.name == alias.name), None
-            )
-
-            if existing_alias:
-                alias.__dict__.pop("uuid")
-                existing_alias.__dict__.update(alias.__dict__)
-            else:
-                self._aliases.append(alias)
+        if existing_alias:
+            alias.__dict__.pop("uuid")
+            existing_alias.__dict__.update(alias.__dict__)
+        else:
+            self._aliases.append(alias)
 
     def find(self, **kwargs) -> Optional[FirewallAlias]:
         """
