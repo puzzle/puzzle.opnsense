@@ -347,7 +347,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         """
         Validates if the entry is a hostname, an IP address, or an IP range.
 
-        :param entry: A string containing the entry
+        :param host: A string containing the entry
 
         :return: True if the provided entry is valid, False if it's invalid
         """
