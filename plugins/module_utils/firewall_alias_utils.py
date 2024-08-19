@@ -117,7 +117,7 @@ class FirewallAlias:
         self.interface: Optional[str] = None
         self.updatefreq: Optional[Union[int, str]] = None
         self.content: Optional[List[str]] = []
-        self.name = kwargs.get("name", None)
+        self.name: Optional[str] = kwargs.get("name", None)
         self.type: Optional[FirewallAliasType] = None
 
         for key, value in kwargs.items():
