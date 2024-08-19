@@ -20,6 +20,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
     InterfaceAssignment,
+    InterfacesSet,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
 
@@ -521,7 +522,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             bool: True if valid, False otherwise.
         """
 
-        with InterfacesSet() as if_set:
+        with InterfacesSet(path=self._config_path) as if_set:
             interface = if_set.find(descr=interface_name)
 
             if interface is None:
@@ -649,9 +650,11 @@ class FirewallAliasSet(OPNsenseModuleConfig):
                 "MaximumTableEntries exceeded!"
             )
 
-        if not self.validate_content(content_type=alias.type, content_values=alias.content):
+        if not self.validate_content(
+            content_type=alias.type, content_values=alias.content
+        ):
             return
-        
+
         if alias.interface:
             self.is_interface(alias.interface)
 
