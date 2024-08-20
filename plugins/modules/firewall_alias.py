@@ -16,7 +16,7 @@ author:
   - Kilian Soltermann (@killuuuhh)
 module: firewall_alias
 short_description: Configure firewall aliases.
-version_added: 1.3.0
+version_added: 1.4.0
 description: Module to configure opnsense firewall aliases
 options:
   enabled:
