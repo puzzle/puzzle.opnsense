@@ -97,6 +97,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -174,6 +175,12 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
     "23.1": {
         "system_settings_general": {
@@ -243,6 +250,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -320,6 +328,12 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
     "23.7": {
         "system_settings_general": {
@@ -389,6 +403,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -464,6 +479,12 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/plugins.inc",
             ],
+            "configure_functions": {},
+        },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
             "configure_functions": {},
         },
     },
@@ -536,6 +557,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -613,6 +635,12 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
+        },
     },
     "24.7": {
         "system_settings_general": {
@@ -683,6 +711,7 @@ VERSION_MAP = {
             "uid": "system/nextuid",
             "gid": "system/nextgid",
             "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
             "php_requirements": [
                 "/usr/local/etc/inc/system.inc",
             ],
@@ -760,6 +789,12 @@ VERSION_MAP = {
                 "/usr/local/etc/inc/config.inc",
                 "/usr/local/etc/inc/plugins.inc",
             ],
+            "configure_functions": {},
+        },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
             "configure_functions": {},
         },
     },
