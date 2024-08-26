@@ -4,6 +4,14 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.4.0
+======
+
+New Modules
+-----------
+
+- firewall_alias - Configure firewall aliases.
+
 v1.3.0
 ======
 
