@@ -84,3 +84,9 @@ releases:
     - 146-add-24.7-support.yml
     - 149-update-high_availability_settings-for-24.7.yml
     release_date: '2024-08-19'
+  1.4.0:
+    modules:
+    - description: Configure firewall aliases.
+      name: firewall_alias
+      namespace: ''
+    release_date: '2024-08-26'
