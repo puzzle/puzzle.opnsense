@@ -11,7 +11,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union, Type, TypeVar
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
@@ -63,6 +63,44 @@ class UnsupportedModuleSettingError(Exception):
     """
 
 
+class OPNSenseBaseEntry:
+    """
+    Base class for entries in OPNSense XML configurations.
+    """
+
+    def __init__(self, **kwargs):
+        self.tag: Optional[str] = None
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    @classmethod
+    def from_xml(cls, element: Element) -> "OPNSenseBaseEntry":
+        """
+        Creates an instance of the class from an XML element.
+
+        Args:
+            element (Element): The XML element to parse.
+
+        Returns:
+            OPNSenseBaseEntry: An instance of the class with attributes set from the XML element.
+        """
+        instance_data = xml_utils.etree_to_dict(
+            element
+        )  # Converts XML element to a dictionary
+        return cls(**instance_data)
+
+    def to_etree(self) -> Element:
+        """
+        Converts the instance to an XML element.
+
+        Returns:
+            Element: An XML element representing the instance.
+        """
+        cls_dict: dict = self.__dict__.copy()
+        return xml_utils.dict_to_etree("alias", cls_dict)[0]
+
+
 class OPNsenseModuleConfig:
     """
     A class to handle OPNsense module configuration.
@@ -81,6 +119,7 @@ class OPNsenseModuleConfig:
         _check_mode (bool): If the module is run in check_mode or not
     """
 
+    T = TypeVar("T", "FirewallAlias", "FirewallRule")
     opnsense_version: str
     _config_xml_tree: Element
     _config_path: str
@@ -111,6 +150,8 @@ class OPNsenseModuleConfig:
         self._config_xml_tree = self._load_config()
         self.opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
+
+        self.config_registry = None
         try:
             version_map: dict = module_index.VERSION_MAP[self.opnsense_version]
         except KeyError as ke:
@@ -126,7 +167,6 @@ class OPNsenseModuleConfig:
                     f"for OPNsense version '{self.opnsense_version}'.\n"
                     f"Supported config contexts are {list(version_map.keys())}"
                 )
-
             self._config_maps[config_context_name] = version_map[config_context_name]
 
     def _load_config(self) -> Element:
@@ -217,6 +257,44 @@ class OPNsenseModuleConfig:
             f"for OPNsense version '{self.opnsense_version}'."
             f"Supported settings are {supported_settings}"
         )
+
+    def get_entries_as_objects(self, setting_name: str) -> List[OPNSenseBaseEntry]:
+        """
+        Retrieves entries from the XML configuration as instances of OPNSenseBaseEntry.
+
+        Args:
+            setting_name (str): The setting name to search for in the configuration.
+
+        Returns:
+            List[OPNSenseBaseEntry]: A list of OPNSenseBaseEntry instances.
+        """
+        entries: List[OPNSenseBaseEntry] = []
+
+        # Loop through the configuration maps to find matching entries
+        for cfg_map in self._config_maps.values():
+            if setting_name in cfg_map:
+                # Find the XML elements matching the setting
+                elements = self._config_xml_tree.find(cfg_map[setting_name])
+
+                if elements:
+                    # Iterate over each matching XML element and convert to an instance of OPNSenseBaseEntry
+                    for entry in elements:
+                        # initalize instance
+                        return_object: OPNSenseBaseEntry = OPNSenseBaseEntry()
+
+                        raise ValueError(OPNSenseBaseEntry.from_xml(entry).__dict__)
+
+                        for key in OPNSenseBaseEntry.from_xml(entry).__dict__.copy():
+                            if key != "tag":
+                                return_object.tag = key
+
+                                return_object.__dict__.update(
+                                    OPNSenseBaseEntry.from_xml(entry).__dict__[key]
+                                )
+
+                        entries.append(return_object)
+
+        return entries
 
     def _get_php_requirements(self) -> list:
         """
