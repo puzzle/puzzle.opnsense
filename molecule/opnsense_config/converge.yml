@@ -8,5 +8,8 @@
         hostname: "firewall01"
         domain: "test.local"
         timezone: "Europe/Zurich"
+      logging:
+        max_log_file_size_mb: 8
+        preserve_logs: 10
   roles:
     - role: puzzle.opnsense.opnsense_configure

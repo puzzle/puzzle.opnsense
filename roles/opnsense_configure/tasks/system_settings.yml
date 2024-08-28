@@ -8,3 +8,11 @@
     system_settings.general.hostname is defined or
     system_settings.general.domain is defined or
     system_settings.general.timezone is defined
+
+- name: Configure logging system settings
+  puzzle.opnsense.system_settings_logging:
+    max_log_file_size_mb: "{{ system_settings.logging.max_log_file_size_mb | default(omit) }}"
+    preserve_logs: "{{ system_settings.logging.preserve_logs | default(omit) }}"
+  when: >
+    system_settings.logging.max_log_file_size_mb is defined or
+    system_settings.logging.preserve_logs is defined

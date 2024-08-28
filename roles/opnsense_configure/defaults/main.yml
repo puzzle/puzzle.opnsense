@@ -9,6 +9,10 @@
 #     hostname:
 #     domain:
 #     timezone:
+#   logging:
+#     max_log_file_size_mb:
+#     preserve_logs:
 
 system_settings:
   general: {}
+  logging: {}
