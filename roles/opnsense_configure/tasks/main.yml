@@ -1,2 +1,9 @@
 ---
 # tasks file for opnsense_configure
+
+- name: Configure System Settings
+  include_tasks:
+    file: system_settings.yml
+    apply:
+      tags:
+        - system_settings

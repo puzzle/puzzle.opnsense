@@ -1,0 +1,12 @@
+---
+- name: converge
+  hosts: all
+  become: true
+  vars:
+    system_settings:
+      general:
+        hostname: "firewall01"
+        domain: "test.local"
+        timezone: "Europe/Zurich"
+  roles:
+    - role: puzzle.opnsense.opnsense_configure

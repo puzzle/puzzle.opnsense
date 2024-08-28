@@ -1,2 +1,14 @@
 ---
 # defaults file for opnsense_configure
+
+#
+# System settings variables should be provided in this structure
+#
+# system_settings:
+#   general:
+#     hostname:
+#     domain:
+#     timezone:
+
+system_settings:
+  general: {}

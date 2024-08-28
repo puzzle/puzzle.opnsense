@@ -1,0 +1,10 @@
+---
+- name: Configure general system settings
+  puzzle.opnsense.system_settings_general:
+    hostname: "{{ system_settings.general.hostname | default(omit) }}"
+    domain: "{{ system_settings.general.domain | default(omit) }}"
+    timezone: "{{ system_settings.general.timezone | default(omit) }}"
+  when: >
+    system_settings.general.hostname is defined or
+    system_settings.general.domain is defined or
+    system_settings.general.timezone is defined
