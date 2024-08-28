@@ -119,7 +119,6 @@ class OPNsenseModuleConfig:
         _check_mode (bool): If the module is run in check_mode or not
     """
 
-    T = TypeVar("T", "FirewallAlias", "FirewallRule")
     opnsense_version: str
     _config_xml_tree: Element
     _config_path: str
@@ -150,8 +149,8 @@ class OPNsenseModuleConfig:
         self._config_xml_tree = self._load_config()
         self.opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
+        self.model_registry = {}
 
-        self.config_registry = None
         try:
             version_map: dict = module_index.VERSION_MAP[self.opnsense_version]
         except KeyError as ke:
@@ -168,6 +167,47 @@ class OPNsenseModuleConfig:
                     f"Supported config contexts are {list(version_map.keys())}"
                 )
             self._config_maps[config_context_name] = version_map[config_context_name]
+
+        self.create_model_registry()
+
+    def create_model_registry(self) -> None:
+        """
+        Creates a registry of models by loading OPNSenseBaseEntry instances for all configuration entries.
+        """
+
+        try:
+            for module in self._config_maps:
+                if module not in self.model_registry:
+                    self.model_registry[module] = {}
+
+                for path, xpath in self._config_maps[module].items():
+                    return_object: OPNSenseBaseEntry = OPNSenseBaseEntry()
+
+                    try:
+                        from_xml_instance = OPNSenseBaseEntry.from_xml(self.get(path))
+                        for key in from_xml_instance.__dict__.copy():
+                            if key != "tag":
+                                return_object.tag = key
+                                return_object.__dict__.update(
+                                    from_xml_instance.__dict__[key]
+                                )
+
+                                if return_object.tag not in self.model_registry[module]:
+                                    self.model_registry[module][return_object.tag] = []
+
+                                self.model_registry[module][return_object.tag].append(
+                                    return_object
+                                )
+
+                    except UnsupportedModuleSettingError as e:
+                        continue
+                    except TypeError as ne:
+                        continue
+                    except ValueError as ve:
+                        continue
+
+        except ValueError as ve:
+            print(f"Error: {ve}")
 
     def _load_config(self) -> Element:
         """
@@ -281,8 +321,6 @@ class OPNsenseModuleConfig:
                     for entry in elements:
                         # initalize instance
                         return_object: OPNSenseBaseEntry = OPNSenseBaseEntry()
-
-                        raise ValueError(OPNSenseBaseEntry.from_xml(entry).__dict__)
 
                         for key in OPNSenseBaseEntry.from_xml(entry).__dict__.copy():
                             if key != "tag":
