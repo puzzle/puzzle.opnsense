@@ -98,7 +98,7 @@ class OPNSenseBaseEntry:
             Element: An XML element representing the instance.
         """
         cls_dict: dict = self.__dict__.copy()
-        return xml_utils.dict_to_etree("alias", cls_dict)[0]
+        return xml_utils.dict_to_etree(self.tag, cls_dict)[0]
 
 
 class OPNsenseModuleConfig:
@@ -149,7 +149,6 @@ class OPNsenseModuleConfig:
         self._config_xml_tree = self._load_config()
         self.opnsense_version = version_utils.get_opnsense_version()
         self._check_mode = check_mode
-        self.model_registry = {}
 
         try:
             version_map: dict = module_index.VERSION_MAP[self.opnsense_version]
@@ -168,15 +167,17 @@ class OPNsenseModuleConfig:
                 )
             self._config_maps[config_context_name] = version_map[config_context_name]
 
-        self.create_model_registry()
+        self.model_registry = self.load_model_registry()
 
-    def create_model_registry(self) -> None:
+    def load_model_registry(self) -> Dict:
         """
         Creates a registry of models by loading OPNSenseBaseEntry instances for all configuration entries.
         """
+
+        registry_data: Dict = {}
         for module in self._config_maps:
-            if module not in self.model_registry:
-                self.model_registry[module] = {}
+            if module not in registry_data:
+                registry_data[module] = {}
 
             for path, xpath in self._config_maps[module].items():
                 if path in ["php_requirements", "configure_functions"]:
@@ -198,8 +199,8 @@ class OPNsenseModuleConfig:
                     if tag is None:
                         continue
 
-                    if tag not in self.model_registry[module]:
-                        self.model_registry[module][tag] = []
+                    if tag not in registry_data[module]:
+                        registry_data[module][tag] = []
 
                     # Remove the tag from entry data
                     entry_data.pop("tag")
@@ -213,7 +214,9 @@ class OPNsenseModuleConfig:
                     entry_object.tag = tag  # Ensure tag is set if required
 
                     # Append the entry object to the registry
-                    self.model_registry[module][tag].append(entry_object)
+                    registry_data[module][tag].append(entry_object)
+
+        return registry_data
 
     def find(self, module: str, tag: str, **kwargs) -> Optional[OPNSenseBaseEntry]:
         """
@@ -246,6 +249,8 @@ class OPNsenseModuleConfig:
 
         if existing_object:
             existing_object.__dict__.update(opnsense_object.__dict__)
+        else:
+            self.model_registry[module][tag].append(opnsense_object)
 
     def delete(self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry) -> None:
         """ """
@@ -301,6 +306,40 @@ class OPNsenseModuleConfig:
 
         if not self.changed and not override_changed:
             return False
+
+        for config_map in self._config_maps:
+            module = self._config_maps[config_map]
+
+            for parent_element in list(module):
+                if parent_element == "rules":
+                    model_registry_parent_element = "rule"
+                else:
+                    model_registry_parent_element = parent_element
+
+                if not self.model_registry[config_map].get(
+                    model_registry_parent_element
+                ):
+                    continue
+
+                if parent_element in ["php_requirements", "configure_functions"]:
+                    continue
+
+                elements = self._config_xml_tree.find(
+                    self._config_maps[config_map][parent_element]
+                )
+
+                for element in list(elements):
+                    elements.remove(element)
+
+                elements.extend(
+                    [
+                        opnsense_object.to_etree()
+                        for opnsense_object in self.model_registry[config_map][
+                            model_registry_parent_element
+                        ]
+                    ]
+                )
+
         tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
         self._config_xml_tree = self._load_config()
@@ -312,7 +351,7 @@ class OPNsenseModuleConfig:
         return (
             ElementTree.tostring(self._load_config()).decode()
             != ElementTree.tostring(self._config_xml_tree).decode()
-        )
+        ) and self.model_registry != self.load_model_registry()
 
     def get(self, setting_name: str) -> Element:
         """
