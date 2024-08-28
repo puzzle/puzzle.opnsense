@@ -47,8 +47,14 @@
     - name: Compare preserve logs
       ansible.builtin.assert:
         that: "'<preservelogs>11</preservelogs>' in ( current_config.content | b64decode )"
+      when: opnsense_version["product_version"] is version('24.1', '==')
 
     - name: Compare max log file size
       ansible.builtin.assert:
         that: "'<maxfilesize>15</maxfilesize>' in ( current_config.content | b64decode )"
       when: opnsense_version["product_version"] is version('24.1', '>=')
+
+    - name: Compare preserve logs
+      ansible.builtin.assert:
+        that: "'<maxpreserve>11</maxpreserve>' in ( current_config.content | b64decode )"
+      when: opnsense_version["product_version"] is version('24.7', '>=')
