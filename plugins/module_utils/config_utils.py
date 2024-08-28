@@ -174,40 +174,85 @@ class OPNsenseModuleConfig:
         """
         Creates a registry of models by loading OPNSenseBaseEntry instances for all configuration entries.
         """
+        for module in self._config_maps:
+            if module not in self.model_registry:
+                self.model_registry[module] = {}
 
-        try:
-            for module in self._config_maps:
-                if module not in self.model_registry:
-                    self.model_registry[module] = {}
+            for path, xpath in self._config_maps[module].items():
+                if path in ["php_requirements", "configure_functions"]:
+                    continue
 
-                for path, xpath in self._config_maps[module].items():
-                    return_object: OPNSenseBaseEntry = OPNSenseBaseEntry()
+                # Ensure we have entries for this path
+                entries = self.get(path)
+                if entries is None:
+                    continue
 
-                    try:
-                        from_xml_instance = OPNSenseBaseEntry.from_xml(self.get(path))
-                        for key in from_xml_instance.__dict__.copy():
-                            if key != "tag":
-                                return_object.tag = key
-                                return_object.__dict__.update(
-                                    from_xml_instance.__dict__[key]
-                                )
+                for entry in entries:
+                    # Create a new OPNSenseBaseEntry object for each entry
+                    entry_object = OPNSenseBaseEntry.from_xml(entry)
 
-                                if return_object.tag not in self.model_registry[module]:
-                                    self.model_registry[module][return_object.tag] = []
+                    # Extract the tag from the entry object
+                    entry_data = entry_object.__dict__.copy()
+                    tag = [key for key in entry_data.keys() if key != "tag"][0]
 
-                                self.model_registry[module][return_object.tag].append(
-                                    return_object
-                                )
-
-                    except UnsupportedModuleSettingError as e:
-                        continue
-                    except TypeError as ne:
-                        continue
-                    except ValueError as ve:
+                    if tag is None:
                         continue
 
-        except ValueError as ve:
-            print(f"Error: {ve}")
+                    if tag not in self.model_registry[module]:
+                        self.model_registry[module][tag] = []
+
+                    # Remove the tag from entry data
+                    entry_data.pop("tag")
+
+                    if isinstance(entry_data[tag], dict):
+                        entry_data = entry_data[tag]
+                        entry_object.__dict__.pop(tag)
+
+                    # Update the entry object with the remaining data
+                    entry_object.__dict__.update(entry_data)
+                    entry_object.tag = tag  # Ensure tag is set if required
+
+                    # Append the entry object to the registry
+                    self.model_registry[module][tag].append(entry_object)
+
+    def find(self, module: str, tag: str, **kwargs) -> Optional[OPNSenseBaseEntry]:
+        """
+        Finds an entry in the model registry based on the given module, tag, and criteria.
+        """
+        entries = self.model_registry.get(module, {}).get(tag, [])
+
+        for entry in entries:
+            match = all(getattr(entry, k, None) == v for k, v in kwargs.items())
+
+            if match:
+                return entry
+
+        return None
+
+    def create_or_update(
+        self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry, uniqueness: str
+    ) -> None:
+        """ """
+
+        # check if an existing object exists
+        existing_object = next(
+            (
+                u
+                for u in self.model_registry[module][tag]
+                if getattr(u, uniqueness) == getattr(opnsense_object, uniqueness)
+            ),
+            None,
+        )
+
+        if existing_object:
+            existing_object.__dict__.update(opnsense_object.__dict__)
+
+    def delete(self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry) -> None:
+        """ """
+
+        self.model_registry[module][tag] = [
+            e for e in self.model_registry[module][tag] if e != opnsense_object
+        ]
 
     def _load_config(self) -> Element:
         """
