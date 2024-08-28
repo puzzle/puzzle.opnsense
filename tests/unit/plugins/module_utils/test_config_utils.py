@@ -808,3 +808,41 @@ def test_model_registry(sample_config_path):
         assert len(new_config.model_registry["test_module_6"]["rule"]) == 1
 
         new_config.save()
+
+
+def test_model_registry_firewall_alias_without_set(sample_config_path):
+    """ """
+    with OPNsenseModuleConfig(
+        module_name="test_module_5",
+        config_context_names=["test_module_5", "test_module_6"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
+        assert new_config.model_registry
+
+        # alias len tests
+        assert len(new_config.model_registry["test_module_5"]["alias"]) == 2
+
+        # alias find tests
+        test_new_firewall_alias: OPNSenseBaseEntry = OPNSenseBaseEntry(
+            name="host_test_1", type="host", description="some random description"
+        )
+
+        new_config.create_or_update(
+            module="test_module_5",
+            tag="alias",
+            opnsense_object=test_new_firewall_alias,
+            uniqueness="name",
+        )
+
+        assert len(new_config.model_registry["test_module_5"]["alias"]) == 3
+
+        assert new_config.save()
+
+    with OPNsenseModuleConfig(
+        module_name="test_module_5",
+        config_context_names=["test_module_5", "test_module_6"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_new_config:
+        assert len(new_new_config.model_registry["test_module_5"]["alias"]) == 3
