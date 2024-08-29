@@ -4,6 +4,14 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.4.1
+======
+
+Bugfixes
+--------
+
+- system_settings_logging - fix XPath migrations for settings in 24.7.
+
 v1.4.0
 ======
 

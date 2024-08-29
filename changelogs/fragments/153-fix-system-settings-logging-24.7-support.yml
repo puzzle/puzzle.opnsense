@@ -1,3 +1,0 @@
----
-bugfixes: 
-  - system_settings_logging - fix XPath migrations for settings in 24.7.
