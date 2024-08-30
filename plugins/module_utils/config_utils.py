@@ -74,6 +74,12 @@ class OPNSenseBaseEntry:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    def __eq__(self, other):
+        if not isinstance(other, OPNSenseBaseEntry):
+            return NotImplemented
+
+        return self.__dict__ == other.__dict__
+
     @classmethod
     def from_xml(cls, element: Element) -> "OPNSenseBaseEntry":
         """
@@ -85,10 +91,15 @@ class OPNSenseBaseEntry:
         Returns:
             OPNSenseBaseEntry: An instance of the class with attributes set from the XML element.
         """
-        instance_data = xml_utils.etree_to_dict(
-            element
-        )  # Converts XML element to a dictionary
-        return cls(**instance_data)
+        cls_dict = xml_utils.etree_to_dict(element)
+
+        tag = next((key for key in cls_dict if key != "tag"), None)
+
+        if not isinstance(cls_dict[tag], str) and cls_dict[tag] is not None:
+            if cls_dict[tag].get("enabled"):
+                cls_dict[tag]["enabled"] = bool(cls_dict[tag]["enabled"])
+
+        return cls(**cls_dict)
 
     def to_etree(self) -> Element:
         """
@@ -98,7 +109,21 @@ class OPNSenseBaseEntry:
             Element: An XML element representing the instance.
         """
         cls_dict: dict = self.__dict__.copy()
+        cls_dict.pop("tag")
+
+        # to_etree() adjustments
+        if isinstance(cls_dict.get("enabled"), bool):
+            cls_dict["enabled"] = str(int(cls_dict["enabled"]))
+
         return xml_utils.dict_to_etree(self.tag, cls_dict)[0]
+
+    @classmethod
+    def from_ansible_module_params(cls, params: dict) -> "OPNSenseBaseEntry":
+        """ """
+
+        cls_dict = {key: value for key, value in params.items() if value is not None}
+
+        return cls(**cls_dict)
 
 
 class OPNsenseModuleConfig:
@@ -168,14 +193,20 @@ class OPNsenseModuleConfig:
             self._config_maps[config_context_name] = version_map[config_context_name]
 
         self.model_registry = self.load_model_registry()
+        self.model_registry = self.load_model_registry()
 
+    def load_model_registry(self) -> Dict:
     def load_model_registry(self) -> Dict:
         """
         Creates a registry of models by loading OPNSenseBaseEntry instances for all configuration entries.
         """
 
         registry_data: Dict = {}
+
+        registry_data: Dict = {}
         for module in self._config_maps:
+            if module not in registry_data:
+                registry_data[module] = {}
             if module not in registry_data:
                 registry_data[module] = {}
 
@@ -185,6 +216,7 @@ class OPNsenseModuleConfig:
 
                 # Ensure we have entries for this path
                 entries = self.get(path)
+
                 if entries is None:
                     continue
 
@@ -194,11 +226,13 @@ class OPNsenseModuleConfig:
 
                     # Extract the tag from the entry object
                     entry_data = entry_object.__dict__.copy()
-                    tag = [key for key in entry_data.keys() if key != "tag"][0]
+                    tag = next((key for key in entry_data if key != "tag"), None)
 
                     if tag is None:
                         continue
 
+                    if tag not in registry_data[module]:
+                        registry_data[module][tag] = []
                     if tag not in registry_data[module]:
                         registry_data[module][tag] = []
 
@@ -214,6 +248,9 @@ class OPNsenseModuleConfig:
                     entry_object.tag = tag  # Ensure tag is set if required
 
                     # Append the entry object to the registry
+                    registry_data[module][tag].append(entry_object)
+
+        return registry_data
                     registry_data[module][tag].append(entry_object)
 
         return registry_data
@@ -249,6 +286,8 @@ class OPNsenseModuleConfig:
 
         if existing_object:
             existing_object.__dict__.update(opnsense_object.__dict__)
+        else:
+            self.model_registry[module][tag].append(opnsense_object)
         else:
             self.model_registry[module][tag].append(opnsense_object)
 
@@ -340,18 +379,59 @@ class OPNsenseModuleConfig:
                     ]
                 )
 
+
+        for config_map in self._config_maps:
+            module = self._config_maps[config_map]
+
+            for parent_element in list(module):
+                if parent_element == "rules":
+                    model_registry_parent_element = "rule"
+                else:
+                    model_registry_parent_element = parent_element
+
+                if not self.model_registry[config_map].get(
+                    model_registry_parent_element
+                ):
+                    continue
+
+                if parent_element in ["php_requirements", "configure_functions"]:
+                    continue
+
+                elements = self._config_xml_tree.find(
+                    self._config_maps[config_map][parent_element]
+                )
+
+                for element in list(elements):
+                    elements.remove(element)
+
+                elements.extend(
+                    [
+                        opnsense_object.to_etree()
+                        for opnsense_object in self.model_registry[config_map][
+                            model_registry_parent_element
+                        ]
+                    ]
+                )
+
         tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
+
         self._config_xml_tree = self._load_config()
+        self.model_registry = self.load_model_registry()
+
         return True
 
     @property
     def changed(self) -> bool:
-        """Checks if changes have been made to the config."""
-        return (
+        """Checks if changes have been made to the config or the model registry."""
+        xml_changed = (
             ElementTree.tostring(self._load_config()).decode()
             != ElementTree.tostring(self._config_xml_tree).decode()
-        ) and self.model_registry != self.load_model_registry()
+        )
+
+        model_registry_changed = self.model_registry != self.load_model_registry()
+
+        return xml_changed or model_registry_changed
 
     def get(self, setting_name: str) -> Element:
         """
