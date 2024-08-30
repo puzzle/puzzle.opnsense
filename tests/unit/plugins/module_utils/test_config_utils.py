@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 from typing import List, Dict
 from unittest.mock import patch, MagicMock
 from xml.etree.ElementTree import Element
+from xml.etree import ElementTree
 
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
@@ -701,7 +702,7 @@ def test_model_registry(sample_config_path):
         )
 
         # alias object tests
-        assert test_find_alias.enabled == "1"
+        assert test_find_alias.enabled == True
         assert test_find_alias.name == "host_test"
         assert test_find_alias.type == "host"
         assert test_find_alias.proto is None
@@ -825,7 +826,10 @@ def test_model_registry_firewall_alias_without_set(sample_config_path):
 
         # alias find tests
         test_new_firewall_alias: OPNSenseBaseEntry = OPNSenseBaseEntry(
-            name="host_test_1", type="host", description="some random description"
+            name="host_test_1",
+            type="host",
+            description="some random description",
+            tag="alias",
         )
 
         new_config.create_or_update(
@@ -837,7 +841,9 @@ def test_model_registry_firewall_alias_without_set(sample_config_path):
 
         assert len(new_config.model_registry["test_module_5"]["alias"]) == 3
 
-        assert new_config.save()
+        assert new_config.changed
+
+        new_config.save()
 
     with OPNsenseModuleConfig(
         module_name="test_module_5",
@@ -846,3 +852,55 @@ def test_model_registry_firewall_alias_without_set(sample_config_path):
         check_mode=False,
     ) as new_new_config:
         assert len(new_new_config.model_registry["test_module_5"]["alias"]) == 3
+
+
+def test_firewall_alias_from_ansible_module_params(sample_config_path):
+    """ """
+
+    test_params: dict = {
+        "name": "test_alias",
+        "type": "host",
+        "description": "Test Alias",
+        "enabled": True,
+        "content": ["8.8.8.8-9.9.9.9", "TestHost", "192.168.0.0"],
+    }
+
+    with OPNsenseModuleConfig(
+        module_name="test_module_5",
+        config_context_names=["test_module_5", "test_module_6"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as config:
+        new_alias: OPNSenseBaseEntry = OPNSenseBaseEntry.from_ansible_module_params(
+            test_params
+        )
+        new_alias.tag = "alias"
+
+        config.create_or_update(
+            module="test_module_5",
+            tag="alias",
+            opnsense_object=new_alias,
+            uniqueness="name",
+        )
+
+        assert config.changed
+
+        config.save()
+
+    with OPNsenseModuleConfig(
+        module_name="test_module_5",
+        config_context_names=["test_module_5", "test_module_6"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
+        new_alias: OPNSenseBaseEntry = new_config.find(
+            module="test_module_5", tag="alias", name="test_alias"
+        )
+
+        assert new_alias.enabled == True
+        assert new_alias.name == "test_alias"
+        assert new_alias.type == "host"
+        assert new_alias.content == ["8.8.8.8-9.9.9.9", "TestHost", "192.168.0.0"]
+        assert new_alias.description == "Test Alias"
+
+        new_config.save()
