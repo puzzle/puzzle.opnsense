@@ -250,19 +250,27 @@ class OPNsenseModuleConfig:
 
         return registry_data
 
-    def find(self, module: str, tag: str, **kwargs) -> Optional[OPNSenseBaseEntry]:
+    def find(self, **kwargs) -> Optional[OPNSenseBaseEntry]:
         """
-        Finds an entry in the model registry based on the given module, tag, and criteria.
+        Finds an entry in the model registry based on criteria.
         """
-        entries = self.model_registry.get(module, {}).get(tag, [])
 
+        entries: List = []
+        for module_entries in self.model_registry.values():
+            for tag_entries in module_entries.values():
+                entries.extend(tag_entries)
+
+        # Flatten entries if they are nested (e.g., when only module is provided)
+        if isinstance(entries, dict):
+            entries = [entry for sublist in entries.values() for entry in sublist]
+
+        # Search for matching entries
         for entry in entries:
-            match = all(getattr(entry, k, None) == v for k, v in kwargs.items())
-
-            if match:
+            if all(getattr(entry, k, None) == v for k, v in kwargs.items()):
                 return entry
 
         return None
+
 
     def _consolidate_config_maps(self) -> Dict:
         """ """
