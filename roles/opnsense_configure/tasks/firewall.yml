@@ -17,4 +17,25 @@
   loop_control:
     loop_var: alias
   tags:
-    - aliases 
+    - aliases
+
+- name: Configure firewall rules
+  puzzle.opnsense.firewall_rules:
+    interface: "{{ rule.interface }}"
+    action: "{{ rule.action | default(omit) }}"
+    description: "{{ rule.description | default(omit) }}"
+    category: "{{ rule.category | default(omit) }}"
+    direction: "{{ rule.direction | default(omit) }}"
+    disabled: "{{ rule.disabled | default(omit) }}"
+    quick: "{{ rule.quick | default(omit) }}"
+    ipprotocol: "{{ rule.ipprotocol | default(omit) }}"
+    protocol: "{{ rule.protocol | default(omit) }}"
+    source: "{{ rule.source | default(omit) }}"
+    destination: "{{ rule.destination | default(omit) }}"
+    log: "{{ rule.log | default(omit) }}"
+    state: "{{ rule.state | default(omit) }}"
+  loop: "{{ firewall.rules }}"
+  loop_control:
+    loop_var: rule
+  tags:
+    - rules

@@ -23,5 +23,11 @@
           statistics: false
           description: Test Alias with type Network
           content: 10.0.0.0/24
+      rules:
+        - interface: lan
+          description: Block SSH on LAN
+          destination:
+            port: 22
+          action: block
   roles:
     - role: puzzle.opnsense.opnsense_configure
