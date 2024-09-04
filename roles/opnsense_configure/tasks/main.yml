@@ -1,16 +1,57 @@
 ---
 # tasks file for opnsense_configure
 
-- name: Configure System Settings
-  include_tasks:
-    file: system_settings.yml
-    apply:
-      tags:
-        - system_settings
+- name: Configure general system settings
+  puzzle.opnsense.system_settings_general:
+    hostname: "{{ system_settings.general.hostname | default(omit) }}"
+    domain: "{{ system_settings.general.domain | default(omit) }}"
+    timezone: "{{ system_settings.general.timezone | default(omit) }}"
+  when: >
+    system_settings.general.hostname is defined or
+    system_settings.general.domain is defined or
+    system_settings.general.timezone is defined
 
-- name: Configure Firewall
-  include_tasks:
-    file: firewall.yml
-    apply:
-      tags:
-        - firewall
+- name: Configure logging system settings
+  puzzle.opnsense.system_settings_logging:
+    max_log_file_size_mb: "{{ system_settings.logging.max_log_file_size_mb | default(omit) }}"
+    preserve_logs: "{{ system_settings.logging.preserve_logs | default(omit) }}"
+  when: >
+    system_settings.logging.max_log_file_size_mb is defined or
+    system_settings.logging.preserve_logs is defined
+
+- name: Configure firewall aliases
+  puzzle.opnsense.firewall_alias:
+    name: "{{ alias.name }}"
+    type: "{{ alias.type }}"
+    enabled: "{{ alias.enabled | default(omit) }}"
+    content: "{{ alias.content | default(omit) }}"
+    description: "{{ alias.description | default(omit) }}"
+    interface: "{{ alias.interface | default(omit) }}"
+    protocol: "{{ alias.protocol | default(omit) }}"
+    refreshfrequency:
+      days: "{{ alias.refreshfrequency.days | default(omit) }}"
+      hours: "{{ alias.refreshfrequency.hours | default(omit) }}"
+    state: "{{ alias.state | default(omit) }}"
+    statistics: "{{ alias.statistics | default(omit) }}"
+  loop: "{{ firewall.aliases }}"
+  loop_control:
+    loop_var: alias
+
+- name: Configure firewall rules
+  puzzle.opnsense.firewall_rules:
+    interface: "{{ rule.interface }}"
+    action: "{{ rule.action | default(omit) }}"
+    description: "{{ rule.description | default(omit) }}"
+    category: "{{ rule.category | default(omit) }}"
+    direction: "{{ rule.direction | default(omit) }}"
+    disabled: "{{ rule.disabled | default(omit) }}"
+    quick: "{{ rule.quick | default(omit) }}"
+    ipprotocol: "{{ rule.ipprotocol | default(omit) }}"
+    protocol: "{{ rule.protocol | default(omit) }}"
+    source: "{{ rule.source | default(omit) }}"
+    destination: "{{ rule.destination | default(omit) }}"
+    log: "{{ rule.log | default(omit) }}"
+    state: "{{ rule.state | default(omit) }}"
+  loop: "{{ firewall.rules }}"
+  loop_control:
+    loop_var: rule
