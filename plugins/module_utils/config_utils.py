@@ -193,9 +193,7 @@ class OPNsenseModuleConfig:
             self._config_maps[config_context_name] = version_map[config_context_name]
 
         self.model_registry = self.load_model_registry()
-        self.model_registry = self.load_model_registry()
 
-    def load_model_registry(self) -> Dict:
     def load_model_registry(self) -> Dict:
         """
         Creates a registry of models by loading OPNSenseBaseEntry instances for all configuration entries.
@@ -251,9 +249,6 @@ class OPNsenseModuleConfig:
                     registry_data[module][tag].append(entry_object)
 
         return registry_data
-                    registry_data[module][tag].append(entry_object)
-
-        return registry_data
 
     def find(self, module: str, tag: str, **kwargs) -> Optional[OPNSenseBaseEntry]:
         """
@@ -268,6 +263,15 @@ class OPNsenseModuleConfig:
                 return entry
 
         return None
+
+    def _consolidate_config_maps(self) -> Dict:
+        """ """
+
+        return {
+            k: v
+            for k, v in self._config_maps.items()
+            if k not in ["php_requirements", "configure_functions"]
+        }
 
     def create_or_update(
         self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry, uniqueness: str
@@ -286,8 +290,6 @@ class OPNsenseModuleConfig:
 
         if existing_object:
             existing_object.__dict__.update(opnsense_object.__dict__)
-        else:
-            self.model_registry[module][tag].append(opnsense_object)
         else:
             self.model_registry[module][tag].append(opnsense_object)
 
@@ -378,7 +380,6 @@ class OPNsenseModuleConfig:
                         ]
                     ]
                 )
-
 
         for config_map in self._config_maps:
             module = self._config_maps[config_map]
