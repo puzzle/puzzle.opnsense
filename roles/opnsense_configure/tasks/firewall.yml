@@ -1,0 +1,20 @@
+---
+- name: Configure firewall aliases
+  puzzle.opnsense.firewall_alias:
+    name: "{{ alias.name }}"
+    type: "{{ alias.type }}"
+    enabled: "{{ alias.enabled | default(omit) }}"
+    content: "{{ alias.content | default(omit) }}"
+    description: "{{ alias.description | default(omit) }}"
+    interface: "{{ alias.interface | default(omit) }}"
+    protocol: "{{ alias.protocol | default(omit) }}"
+    refreshfrequency:
+      days: "{{ alias.refreshfrequency.days | default(omit) }}"
+      hours: "{{ alias.refreshfrequency.hours | default(omit) }}"
+    state: "{{ alias.state | default(omit) }}"
+    statistics: "{{ alias.statistics | default(omit) }}"
+  loop: "{{ firewall.aliases }}"
+  loop_control:
+    loop_var: alias
+  tags:
+    - aliases 

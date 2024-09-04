@@ -11,5 +11,17 @@
       logging:
         max_log_file_size_mb: 8
         preserve_logs: 10
+    firewall:
+      aliases:
+        - name: TestAliasTypeHost
+          type: host
+          statistics: false
+          description: Test Alias with type Host
+          content: 10.0.0.1
+        - name: TestAliasTypeNetwork
+          type: network
+          statistics: false
+          description: Test Alias with type Network
+          content: 10.0.0.0/24
   roles:
     - role: puzzle.opnsense.opnsense_configure

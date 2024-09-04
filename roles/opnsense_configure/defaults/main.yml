@@ -16,3 +16,11 @@
 system_settings:
   general: {}
   logging: {}
+#
+# Firewall related variables should be provided in this structure
+#
+# firewall:
+#   aliases:
+
+firewall:
+  aliases: []

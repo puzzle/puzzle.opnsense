@@ -7,3 +7,10 @@
     apply:
       tags:
         - system_settings
+
+- name: Configure Firewall
+  include_tasks:
+    file: firewall.yml
+    apply:
+      tags:
+        - firewall
