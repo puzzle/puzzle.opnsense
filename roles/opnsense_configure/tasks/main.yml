@@ -42,6 +42,15 @@
     loop_var: user
     label: "{{ user.username }}"
 
+- name: Configure interface assignments
+  puzzle.opnsense.interfaces_assignments:
+    identifier: "{{ interface.identifier }}"
+    device: "{{ interface.device }}"
+    description: "{{ interface.description | default(omit) }}"
+  loop: "{{ interfaces.assignments }}"
+  loop_control:
+    loop_var: interface
+
 - name: Configure firewall aliases
   puzzle.opnsense.firewall_alias:
     name: "{{ alias.name }}"

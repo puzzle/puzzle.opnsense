@@ -25,6 +25,12 @@ system_settings:
 system_access:
   users: []
 
+# Interface related variables:
+#
+# interfaces:
+#   assignments: []
+interfaces:
+  assignments: [ ]
 #
 # Firewall related variables should be provided in this structure
 #

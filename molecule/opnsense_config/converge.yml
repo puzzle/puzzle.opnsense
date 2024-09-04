@@ -15,6 +15,20 @@
       users:
         - username: simple_user
           password: pass1234
+    interfaces:
+      assignments:
+        - device: em0
+          identifier: opt2
+          description: VAGRANT
+        - device: em1
+          identifier: lan
+          description: LAN
+        - device: em2
+          identifier: wan
+          description: WAN
+        - device: em3
+          identifier: opt1
+          description: DMZ
     firewall:
       aliases:
         - name: TestAliasTypeHost
