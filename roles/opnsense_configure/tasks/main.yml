@@ -42,6 +42,20 @@
     loop_var: user
     label: "{{ user.username }}"
 
+- name: Configure system HA settings
+  puzzle.opnsense.system_high_availability_settings:
+    disable_preempt: "{{ system.high_availability.disable_preempt | default(omit) }}"
+    disconnect_dialup_interfaces: "{{ system.high_availability.disconnect_dialup_interfaces | default(omit) }}"
+    synchronize_states: "{{ system.high_availability.synchronize_states | default(omit) }}"
+    synchronize_interface: "{{ system.high_availability.synchronize_interface }}"
+    sync_compatibility: "{{ system.high_availability.sync_compatibility | default(omit) }}"
+    synchronize_peer_ip: "{{ system.high_availability.synchronize_peer_ip | default(omit) }}"
+    synchronize_config_to_ip: "{{ system.high_availability.synchronize_config_to_ip | default(omit) }}"
+    remote_system_username: "{{ system.high_availability.remote_system_username | default(omit) }}"
+    remote_system_password: "{{ system.high_availability.remote_system_password | default(omit) }}"
+    services_to_synchronize: "{{ system.high_availability.services_to_synchronize | default(omit) }}"
+  when: system.high_availability is defined
+
 - name: Configure interface assignments
   puzzle.opnsense.interfaces_assignments:
     identifier: "{{ interface.identifier }}"
