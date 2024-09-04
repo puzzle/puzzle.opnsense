@@ -11,6 +11,10 @@
       logging:
         max_log_file_size_mb: 8
         preserve_logs: 10
+    system_access:
+      users:
+        - username: simple_user
+          password: pass1234
     firewall:
       aliases:
         - name: TestAliasTypeHost

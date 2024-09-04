@@ -19,6 +19,29 @@
     system_settings.logging.max_log_file_size_mb is defined or
     system_settings.logging.preserve_logs is defined
 
+- name: Configure users
+  puzzle.opnsense.system_access_users:
+    username: "{{ user.username }}"
+    password: "{{ user.password }}"
+    disabled: "{{ user.disabled | default(omit) }}"
+    full_name: "{{ user.full_name | default(omit) }}"
+    email: "{{ user.email | default(omit) }}"
+    comment: "{{ user.comment | default(omit) }}"
+    landing_page: "{{ user.landing_page | default(omit) }}"
+    shell: "{{ user.shell | default(omit) }}"
+    expires: "{{ user.expires | default(omit) }}"
+    otp_seed: "{{ user.otp_seed | default(omit) }}"
+    authorizedkeys: "{{ user.authorizedkeys | default(omit) }}"
+    groups: "{{ user.groups | default(omit) }}"
+    apikeys: "{{ user.apikeys | default(omit) }}"
+    scope: "{{ user.scope | default(omit) }}"
+    uid: "{{ user.uid | default(omit) }}"
+    state: "{{ user.state | default(omit) }}"
+  loop: "{{ system_access.users }}"
+  loop_control:
+    loop_var: user
+    label: "{{ user.username }}"
+
 - name: Configure firewall aliases
   puzzle.opnsense.firewall_alias:
     name: "{{ alias.name }}"

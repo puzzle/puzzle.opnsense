@@ -17,6 +17,15 @@ system_settings:
   general: {}
   logging: {}
 #
+# System access configuration should be provided in this structure
+#
+# system_access:
+#   users: [] # see system_access_users task args for user entry structure
+
+system_access:
+  users: []
+
+#
 # Firewall related variables should be provided in this structure
 #
 # firewall:
