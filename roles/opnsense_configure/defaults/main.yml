@@ -2,28 +2,27 @@
 # defaults file for opnsense_configure
 
 #
-# System settings variables should be provided in this structure
+# System variables should be provided in this structure
 #
-# system_settings:
-#   general:
-#     hostname:
-#     domain:
-#     timezone:
-#   logging:
-#     max_log_file_size_mb:
-#     preserve_logs:
+# system:
+#   access:
+#     users: [] # see system_access_users task args for user entry structure
+#   settings:
+#     general:
+#       hostname:
+#       domain:
+#       timezone:
+#     logging:
+#       max_log_file_size_mb:
+#       preserve_logs:
 
 system_settings:
-  general: {}
-  logging: {}
-#
-# System access configuration should be provided in this structure
-#
-# system_access:
-#   users: [] # see system_access_users task args for user entry structure
+  access:
+    users: []
+  settings:
+    general: {}
+    logging: {}
 
-system_access:
-  users: []
 
 # Interface related variables:
 #
@@ -31,6 +30,7 @@ system_access:
 #   assignments: []
 interfaces:
   assignments: [ ]
+
 #
 # Firewall related variables should be provided in this structure
 #

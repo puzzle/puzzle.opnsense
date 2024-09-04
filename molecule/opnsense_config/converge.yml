@@ -3,18 +3,19 @@
   hosts: all
   become: true
   vars:
-    system_settings:
-      general:
-        hostname: "firewall01"
-        domain: "test.local"
-        timezone: "Europe/Zurich"
-      logging:
-        max_log_file_size_mb: 8
-        preserve_logs: 10
-    system_access:
-      users:
-        - username: simple_user
-          password: pass1234
+    system:
+      access:
+        users:
+          - username: simple_user
+            password: pass1234
+      settings:
+        general:
+          hostname: "firewall01"
+          domain: "test.local"
+          timezone: "Europe/Zurich"
+        logging:
+          max_log_file_size_mb: 8
+          preserve_logs: 10
     interfaces:
       assignments:
         - device: em0
