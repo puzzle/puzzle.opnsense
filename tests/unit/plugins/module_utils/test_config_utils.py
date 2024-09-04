@@ -95,6 +95,16 @@ TEST_VERSION_MAP = {
                 },
             },
         },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            "php_requirements": ["req_1", "req_2"],
+            "configure_functions": {
+                "test_configure_function": {
+                    "name": "test_configure_function",
+                    "configure_params": ["param_1"],
+                },
+            },
+        },
         "missing_php_requirements": {
             "setting_1": "settings/one",
             "setting_2": "settings/two",
@@ -136,6 +146,90 @@ TEST_XML: str = """<?xml version="1.0"?>
             <hostname>test_name</hostname>
             <timezone>test_timezone</timezone>
         </system>
+        <interfaces>
+            <wan>
+                <if>em2</if>
+                <ipaddr>dhcp</ipaddr>
+                <dhcphostname/>
+                <mtu/>
+                <subnet/>
+                <gateway/>
+                <media/>
+                <mediaopt/>
+                <blockbogons>1</blockbogons>
+                <ipaddrv6>dhcp6</ipaddrv6>
+                <dhcp6-ia-pd-len>0</dhcp6-ia-pd-len>
+                <blockpriv>1</blockpriv>
+                <descr>WAN</descr>
+                <lock>1</lock>
+            </wan>
+            <lan>
+                <if>em1</if>
+                <descr>LAN</descr>
+                <enable>1</enable>
+                <lock>1</lock>
+                <spoofmac/>
+                <blockbogons>1</blockbogons>
+                <ipaddr>192.168.56.10</ipaddr>
+                <subnet>21</subnet>
+                <ipaddrv6>track6</ipaddrv6>
+                <track6-interface>wan</track6-interface>
+                <track6-prefix-id>0</track6-prefix-id>
+            </lan>
+            <opt1>
+                <if>em3</if>
+                <descr>DMZ</descr>
+                <spoofmac/>
+                <lock>1</lock>
+            </opt1>
+            <opt2>
+                <if>em0</if>
+                <descr>VAGRANT</descr>
+                <enable>1</enable>
+                <lock>1</lock>
+                <spoofmac/>
+                <ipaddr>dhcp</ipaddr>
+                <dhcphostname/>
+                <alias-address/>
+                <alias-subnet>32</alias-subnet>
+                <dhcprejectfrom/>
+                <adv_dhcp_pt_timeout/>
+                <adv_dhcp_pt_retry/>
+                <adv_dhcp_pt_select_timeout/>
+                <adv_dhcp_pt_reboot/>
+                <adv_dhcp_pt_backoff_cutoff/>
+                <adv_dhcp_pt_initial_interval/>
+                <adv_dhcp_pt_values>SavedCfg</adv_dhcp_pt_values>
+                <adv_dhcp_send_options/>
+                <adv_dhcp_request_options/>
+                <adv_dhcp_required_options/>
+                <adv_dhcp_option_modifiers/>
+                <adv_dhcp_config_advanced/>
+                <adv_dhcp_config_file_override/>
+            <adv_dhcp_config_file_override_path/>
+            </opt2>
+            <lo0>
+                <internal_dynamic>1</internal_dynamic>
+                <descr>Loopback</descr>
+                <enable>1</enable>
+                <if>lo0</if>
+                <ipaddr>127.0.0.1</ipaddr>
+                <ipaddrv6>::1</ipaddrv6>
+                <subnet>8</subnet>
+                <subnetv6>128</subnetv6>
+                <type>none</type>
+                <virtual>1</virtual>
+            </lo0>
+            <openvpn>
+                <internal_dynamic>1</internal_dynamic>
+                <enable>1</enable>
+                <if>openvpn</if>
+                <descr>OpenVPN</descr>
+                <type>group</type>
+                <virtual>1</virtual>
+                <networks/>
+            </openvpn>
+        </interfaces>
         <syslog>
         </syslog>
         <settings>
@@ -697,9 +791,7 @@ def test_model_registry(sample_config_path):
         assert new_config.model_registry["test_module_5"]["alias"][0].tag == "alias"
 
         # alias find tests
-        test_find_alias = new_config.find(
-            module="test_module_5", tag="alias", name="host_test"
-        )
+        test_find_alias = new_config.find(name="host_test")
 
         # alias object tests
         assert test_find_alias.enabled == True
@@ -717,9 +809,7 @@ def test_model_registry(sample_config_path):
             name="host_test", type="host", description="new_description"
         )
 
-        test_update_existing_alias = new_config.find(
-            module="test_module_5", tag="alias", name="host_test"
-        )
+        test_update_existing_alias = new_config.find(name="host_test")
 
         assert test_update_existing_alias.description == "host_test"
 
@@ -730,18 +820,14 @@ def test_model_registry(sample_config_path):
             uniqueness="name",
         )
 
-        test_update_existing_alias = new_config.find(
-            module="test_module_5", tag="alias", name="host_test"
-        )
+        test_update_existing_alias = new_config.find(name="host_test")
 
         assert test_update_existing_alias.description == "new_description"
 
         assert len(new_config.model_registry["test_module_5"]["alias"]) == 2
 
         # alias delete tests
-        delete_existing_alias = new_config.find(
-            module="test_module_5", tag="alias", name="host_test"
-        )
+        delete_existing_alias = new_config.find(name="host_test")
 
         new_config.delete(
             module="test_module_5", tag="alias", opnsense_object=delete_existing_alias
@@ -756,9 +842,7 @@ def test_model_registry(sample_config_path):
         assert new_config.model_registry["test_module_6"]["rule"][0].tag == "rule"
 
         # rule find tests
-        test_find_rule = new_config.find(
-            module="test_module_6", tag="rule", interface="wan"
-        )
+        test_find_rule = new_config.find(interface="wan")
 
         # rule object tests
         assert test_find_rule.type == "pass"
@@ -778,9 +862,7 @@ def test_model_registry(sample_config_path):
             interface="wan", type="pass", descr="New Allow SSH access Description"
         )
 
-        test_update_existing_rule = new_config.find(
-            module="test_module_6", tag="rule", interface="wan"
-        )
+        test_update_existing_rule = new_config.find(interface="wan")
 
         assert test_update_existing_rule.descr == "Allow SSH access"
 
@@ -791,16 +873,12 @@ def test_model_registry(sample_config_path):
             uniqueness="interface",
         )
 
-        test_update_existing_rule = new_config.find(
-            module="test_module_5", tag="rule", interface="wan"
-        )
+        test_update_existing_rule = new_config.find(interface="wan")
 
         assert update_existing_rule.descr == "New Allow SSH access Description"
 
         # rule delete tests
-        delete_existing_rule = new_config.find(
-            module="test_module_6", tag="rule", interface="wan"
-        )
+        delete_existing_rule = new_config.find(interface="wan")
 
         new_config.delete(
             module="test_module_6", tag="rule", opnsense_object=delete_existing_rule
@@ -893,9 +971,7 @@ def test_firewall_alias_from_ansible_module_params(sample_config_path):
         path=sample_config_path,
         check_mode=False,
     ) as new_config:
-        new_alias: OPNSenseBaseEntry = new_config.find(
-            module="test_module_5", tag="alias", name="test_alias"
-        )
+        new_alias: OPNSenseBaseEntry = new_config.find(name="test_alias")
 
         assert new_alias.enabled == True
         assert new_alias.name == "test_alias"
@@ -904,3 +980,68 @@ def test_firewall_alias_from_ansible_module_params(sample_config_path):
         assert new_alias.description == "Test Alias"
 
         new_config.save()
+
+def test_model_registry_interfaces_assignments_without_set(sample_config_path):
+    """ """
+
+    with OPNsenseModuleConfig(
+        module_name="interfaces_assignments",
+        config_context_names=["interfaces_assignments"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as config:
+        assert config.model_registry
+
+        # interfaces_assignments len tests
+        assert len(config.model_registry["interfaces_assignments"]) == 6
+
+        # interfaces_assignments find tests
+        test_update_existing_interfaces_assignments: OPNSenseBaseEntry = config.find(
+            ipaddr="192.168.56.10",
+        )
+
+        assert getattr(test_update_existing_interfaces_assignments, 'if') == "em1"
+        assert test_update_existing_interfaces_assignments.ipaddr == "192.168.56.10"
+        assert test_update_existing_interfaces_assignments.descr == "LAN"
+        assert test_update_existing_interfaces_assignments.subnet == "21"
+        assert test_update_existing_interfaces_assignments.blockbogons == "1"
+        assert test_update_existing_interfaces_assignments.ipaddrv6 == "track6"
+        assert getattr(test_update_existing_interfaces_assignments, 'track6-interface') == "wan"
+        assert getattr(test_update_existing_interfaces_assignments, 'track6-prefix-id') == "0"
+        assert test_update_existing_interfaces_assignments.lock == "1"
+
+def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
+    """ """
+
+    test_params: dict = {
+        "if": "em1",
+        "descr": "test_interface",
+    }
+
+    with OPNsenseModuleConfig(
+        module_name="interfaces_assignments",
+        config_context_names=["interfaces_assignments"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as config:
+        assert config.model_registry
+
+        # interfaces_assignments len tests
+        assert len(config.model_registry["interfaces_assignments"]) == 6
+
+        test_interface_assignment: OPNSenseBaseEntry = (
+            OPNSenseBaseEntry.from_ansible_module_params(test_params)
+        )
+
+        config.create_or_update(
+            module="interfaces_assignments",
+            tag="lan",
+            opnsense_object=test_interface_assignment,
+            uniqueness="if",
+        )
+
+        assert len(config.model_registry["interfaces_assignments"]) == 6
+
+        assert config.changed
+
+        config.save()
