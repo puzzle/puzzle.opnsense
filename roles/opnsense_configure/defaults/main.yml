@@ -21,6 +21,8 @@ system_settings:
 #
 # firewall:
 #   aliases:
+#   rules:
 
 firewall:
   aliases: []
+  rules: []
