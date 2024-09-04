@@ -6,18 +6,22 @@
     hostname: "{{ system.settings.general.hostname | default(omit) }}"
     domain: "{{ system.settings.general.domain | default(omit) }}"
     timezone: "{{ system.settings.general.timezone | default(omit) }}"
-  when: >
-    system.settings.general.hostname is defined or
-    system.settings.general.domain is defined or
-    system.settings.general.timezone is defined
+  when:
+    - system.settings.general is defined
+    - >
+      system.settings.general.hostname is defined or
+      system.settings.general.domain is defined or
+      system.settings.general.timezone is defined
 
 - name: Configure logging system settings
   puzzle.opnsense.system_settings_logging:
     max_log_file_size_mb: "{{ system.settings.logging.max_log_file_size_mb | default(omit) }}"
     preserve_logs: "{{ system.settings.logging.preserve_logs | default(omit) }}"
-  when: >
-    system.settings.logging.max_log_file_size_mb is defined or
-    system.settings.logging.preserve_logs is defined
+  when:
+    - system.settings.logging is defined
+    - >
+      system.settings.logging.max_log_file_size_mb is defined or
+      system.settings.logging.preserve_logs is defined
 
 - name: Configure users
   puzzle.opnsense.system_access_users:
@@ -41,6 +45,7 @@
   loop_control:
     loop_var: user
     label: "{{ user.username }}"
+  when: system.access.users is defined
 
 - name: Configure system HA settings
   puzzle.opnsense.system_high_availability_settings:
@@ -64,6 +69,7 @@
   loop: "{{ interfaces.assignments }}"
   loop_control:
     loop_var: interface
+  when: interfaces.assignments is defined
 
 - name: Configure firewall aliases
   puzzle.opnsense.firewall_alias:
@@ -82,6 +88,7 @@
   loop: "{{ firewall.aliases }}"
   loop_control:
     loop_var: alias
+  when: firewall.aliases is defined
 
 - name: Configure firewall rules
   puzzle.opnsense.firewall_rules:
@@ -101,3 +108,4 @@
   loop: "{{ firewall.rules }}"
   loop_control:
     loop_var: rule
+  when: firewall.rules is defined

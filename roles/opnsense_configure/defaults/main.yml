@@ -27,28 +27,19 @@
 #       max_log_file_size_mb:
 #       preserve_logs:
 
-system_settings:
-  access:
-    users: []
+system:
   settings:
-    general: {}
-    logging: {}
-
-
+  access:
 # Interface related variables:
 #
 # interfaces:
 #   assignments: []
 interfaces:
-  assignments: [ ]
 
 #
 # Firewall related variables should be provided in this structure
 #
 # firewall:
-#   aliases:
-#   rules:
-
+#   aliases: []
+#   rules: []
 firewall:
-  aliases: []
-  rules: []
