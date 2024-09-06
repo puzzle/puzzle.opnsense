@@ -275,19 +275,24 @@ class OPNsenseModuleConfig:
         return None
 
     def create_or_update(
-        self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry, uniqueness: str
+        self, module: str, opnsense_object: OPNSenseBaseEntry, uniqueness: str
     ) -> None:
-        """ """
+        """Create or update an object in the model_registry based on uniqueness across all tags."""
 
-        # check if an existing object exists
-        existing_object = next(
-            (
-                u
-                for u in self.model_registry[module][tag]
-                if getattr(u, uniqueness) == getattr(opnsense_object, uniqueness)
-            ),
-            None,
-        )
+        module_objects = self.model_registry.get(module, {})
+
+        existing_object = None
+        for tag, objects in module_objects.items():
+            existing_object = next(
+                (
+                    obj
+                    for obj in objects
+                    if getattr(obj, uniqueness) == getattr(opnsense_object, uniqueness)
+                ),
+                None,
+            )
+            if existing_object:
+                break
 
         if existing_object:
             existing_object.__dict__.update(opnsense_object.__dict__)
