@@ -27,6 +27,11 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     OPNSenseBaseEntry,
 )
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils import (
+    xml_utils,
+)
+
+
 from ansible_collections.puzzle.opnsense.plugins.module_utils.firewall_alias_utils import (
     FirewallAlias,
 )
@@ -981,12 +986,13 @@ def test_firewall_alias_from_ansible_module_params(sample_config_path):
 
         new_config.save()
 
+
 def test_model_registry_interfaces_assignments_without_set(sample_config_path):
     """ """
 
     with OPNsenseModuleConfig(
         module_name="interfaces_assignments",
-        config_context_names=["interfaces_assignments"],
+        config_context_names=["interfaces_assignments", "test_module_6"],
         path=sample_config_path,
         check_mode=False,
     ) as config:
@@ -1000,15 +1006,22 @@ def test_model_registry_interfaces_assignments_without_set(sample_config_path):
             ipaddr="192.168.56.10",
         )
 
-        assert getattr(test_update_existing_interfaces_assignments, 'if') == "em1"
+        assert getattr(test_update_existing_interfaces_assignments, "if") == "em1"
         assert test_update_existing_interfaces_assignments.ipaddr == "192.168.56.10"
         assert test_update_existing_interfaces_assignments.descr == "LAN"
         assert test_update_existing_interfaces_assignments.subnet == "21"
         assert test_update_existing_interfaces_assignments.blockbogons == "1"
         assert test_update_existing_interfaces_assignments.ipaddrv6 == "track6"
-        assert getattr(test_update_existing_interfaces_assignments, 'track6-interface') == "wan"
-        assert getattr(test_update_existing_interfaces_assignments, 'track6-prefix-id') == "0"
+        assert (
+            getattr(test_update_existing_interfaces_assignments, "track6-interface")
+            == "wan"
+        )
+        assert (
+            getattr(test_update_existing_interfaces_assignments, "track6-prefix-id")
+            == "0"
+        )
         assert test_update_existing_interfaces_assignments.lock == "1"
+
 
 def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
     """ """
@@ -1020,7 +1033,7 @@ def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
 
     with OPNsenseModuleConfig(
         module_name="interfaces_assignments",
-        config_context_names=["interfaces_assignments"],
+        config_context_names=["interfaces_assignments", "test_module_6"],
         path=sample_config_path,
         check_mode=False,
     ) as config:
@@ -1032,6 +1045,8 @@ def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
         test_interface_assignment: OPNSenseBaseEntry = (
             OPNSenseBaseEntry.from_ansible_module_params(test_params)
         )
+
+        test_interface_assignment.tag = "lan"
 
         config.create_or_update(
             module="interfaces_assignments",
@@ -1045,3 +1060,15 @@ def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
         assert config.changed
 
         config.save()
+
+    with OPNsenseModuleConfig(
+        module_name="interfaces_assignments",
+        config_context_names=["interfaces_assignments"],
+        path=sample_config_path,
+        check_mode=False,
+    ) as new_config:
+        test_update_existing_interfaces_assignments: OPNSenseBaseEntry = config.find(
+            ipaddr="192.168.56.10",
+        )
+
+        assert test_update_existing_interfaces_assignments.descr == "test_interface"
