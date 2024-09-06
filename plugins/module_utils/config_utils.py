@@ -344,8 +344,8 @@ class OPNsenseModuleConfig:
         opnsense_objects: List[OPNSenseBaseEntry] = []
 
         for key, objects in self.model_registry[config_map].items():
-            if len(objects) == 1:
-                opnsense_objects.append(objects[0])
+            for obj in objects:
+                opnsense_objects.append(obj)
 
         return opnsense_objects
 
