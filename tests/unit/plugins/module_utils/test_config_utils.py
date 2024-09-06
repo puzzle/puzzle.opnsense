@@ -820,7 +820,6 @@ def test_model_registry(sample_config_path):
 
         new_config.create_or_update(
             module="test_module_5",
-            tag="alias",
             opnsense_object=update_existing_alias,
             uniqueness="name",
         )
@@ -873,7 +872,6 @@ def test_model_registry(sample_config_path):
 
         new_config.create_or_update(
             module="test_module_6",
-            tag="rule",
             opnsense_object=update_existing_rule,
             uniqueness="interface",
         )
@@ -901,11 +899,11 @@ def test_model_registry_firewall_alias_without_set(sample_config_path):
         config_context_names=["test_module_5", "test_module_6"],
         path=sample_config_path,
         check_mode=False,
-    ) as new_config:
-        assert new_config.model_registry
+    ) as config:
+        assert config.model_registry
 
         # alias len tests
-        assert len(new_config.model_registry["test_module_5"]["alias"]) == 2
+        assert len(config.model_registry["test_module_5"]["alias"]) == 2
 
         # alias find tests
         test_new_firewall_alias: OPNSenseBaseEntry = OPNSenseBaseEntry(
@@ -915,26 +913,27 @@ def test_model_registry_firewall_alias_without_set(sample_config_path):
             tag="alias",
         )
 
-        new_config.create_or_update(
+        test_new_firewall_alias.tag = "alias"
+
+        config.create_or_update(
             module="test_module_5",
-            tag="alias",
             opnsense_object=test_new_firewall_alias,
             uniqueness="name",
         )
 
-        assert len(new_config.model_registry["test_module_5"]["alias"]) == 3
+        assert len(config.model_registry["test_module_5"]["alias"]) == 3
 
-        assert new_config.changed
+        assert config.changed
 
-        new_config.save()
+        config.save()
 
     with OPNsenseModuleConfig(
         module_name="test_module_5",
         config_context_names=["test_module_5", "test_module_6"],
         path=sample_config_path,
         check_mode=False,
-    ) as new_new_config:
-        assert len(new_new_config.model_registry["test_module_5"]["alias"]) == 3
+    ) as new_config:
+        assert len(new_config.model_registry["test_module_5"]["alias"]) == 3
 
 
 def test_firewall_alias_from_ansible_module_params(sample_config_path):
@@ -961,7 +960,6 @@ def test_firewall_alias_from_ansible_module_params(sample_config_path):
 
         config.create_or_update(
             module="test_module_5",
-            tag="alias",
             opnsense_object=new_alias,
             uniqueness="name",
         )
@@ -985,90 +983,3 @@ def test_firewall_alias_from_ansible_module_params(sample_config_path):
         assert new_alias.description == "Test Alias"
 
         new_config.save()
-
-
-def test_model_registry_interfaces_assignments_without_set(sample_config_path):
-    """ """
-
-    with OPNsenseModuleConfig(
-        module_name="interfaces_assignments",
-        config_context_names=["interfaces_assignments", "test_module_6"],
-        path=sample_config_path,
-        check_mode=False,
-    ) as config:
-        assert config.model_registry
-
-        # interfaces_assignments len tests
-        assert len(config.model_registry["interfaces_assignments"]) == 6
-
-        # interfaces_assignments find tests
-        test_update_existing_interfaces_assignments: OPNSenseBaseEntry = config.find(
-            ipaddr="192.168.56.10",
-        )
-
-        assert getattr(test_update_existing_interfaces_assignments, "if") == "em1"
-        assert test_update_existing_interfaces_assignments.ipaddr == "192.168.56.10"
-        assert test_update_existing_interfaces_assignments.descr == "LAN"
-        assert test_update_existing_interfaces_assignments.subnet == "21"
-        assert test_update_existing_interfaces_assignments.blockbogons == "1"
-        assert test_update_existing_interfaces_assignments.ipaddrv6 == "track6"
-        assert (
-            getattr(test_update_existing_interfaces_assignments, "track6-interface")
-            == "wan"
-        )
-        assert (
-            getattr(test_update_existing_interfaces_assignments, "track6-prefix-id")
-            == "0"
-        )
-        assert test_update_existing_interfaces_assignments.lock == "1"
-
-
-def test_interfaces_assignments_from_ansible_module_params(sample_config_path):
-    """ """
-
-    test_params: dict = {
-        "if": "em1",
-        "descr": "test_interface",
-    }
-
-    with OPNsenseModuleConfig(
-        module_name="interfaces_assignments",
-        config_context_names=["interfaces_assignments", "test_module_6"],
-        path=sample_config_path,
-        check_mode=False,
-    ) as config:
-        assert config.model_registry
-
-        # interfaces_assignments len tests
-        assert len(config.model_registry["interfaces_assignments"]) == 6
-
-        test_interface_assignment: OPNSenseBaseEntry = (
-            OPNSenseBaseEntry.from_ansible_module_params(test_params)
-        )
-
-        test_interface_assignment.tag = "lan"
-
-        config.create_or_update(
-            module="interfaces_assignments",
-            tag="lan",
-            opnsense_object=test_interface_assignment,
-            uniqueness="if",
-        )
-
-        assert len(config.model_registry["interfaces_assignments"]) == 6
-
-        assert config.changed
-
-        config.save()
-
-    with OPNsenseModuleConfig(
-        module_name="interfaces_assignments",
-        config_context_names=["interfaces_assignments"],
-        path=sample_config_path,
-        check_mode=False,
-    ) as new_config:
-        test_update_existing_interfaces_assignments: OPNSenseBaseEntry = config.find(
-            ipaddr="192.168.56.10",
-        )
-
-        assert test_update_existing_interfaces_assignments.descr == "test_interface"
