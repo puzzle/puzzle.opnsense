@@ -97,6 +97,7 @@ class OPNSenseBaseEntry:
         cls_dict = xml_utils.etree_to_dict(element)
 
         tag = next((key for key in cls_dict if key != "tag"), None)
+        cls_dict["tag"] = tag
 
         if not isinstance(cls_dict[tag], str) and cls_dict[tag] is not None:
             if cls_dict[tag].get("enabled"):
@@ -295,6 +296,7 @@ class OPNsenseModuleConfig:
                 break
 
         if existing_object:
+            opnsense_object.__dict__.pop("tag")
             existing_object.__dict__.update(opnsense_object.__dict__)
         else:
             self.model_registry[module][tag].append(opnsense_object)
@@ -392,34 +394,25 @@ class OPNsenseModuleConfig:
             return False
 
         for config_map in self._config_maps:
-            # [{'tag': 'wan', 'if': 'em2', 'ipaddr': 'dhcp', 'dhcphostname': None, 'mtu': None, 'subnet': None, 'gateway': None, 'media': None, 'mediaopt': None, 'blockbogons': '1', 'ipaddrv6': 'dhcp6', 'dhcp6-ia-pd-len': '0', 'blockpriv': '1', 'descr': 'WAN', 'lock': '1'}]
             opnsense_objects: List[OPNSenseBaseEntry] = self._get_opnsense_objects(
                 config_map=config_map
             )
 
-            # ['hasync_parent', 'remote_system_username'] or ['alias']
             modules: List = self._consolidate_config_map(config_map=config_map)
 
             if not opnsense_objects:
                 continue
 
             for module in modules:
-                # [{'wan': {'if': 'em2', 'ipaddr': 'dhcp', 'dhcphostname': None, 'mtu': None, 'subnet': None, 'gateway': None, 'media': None, 'mediaopt': None, 'blockbogons': '1', 'ipaddrv6': 'dhcp6', 'dhcp6-ia-pd-len': '0', 'blockpriv': '1', 'descr': 'WAN', 'lock': '1'}}, {'lan': {'if': 'em1', 'descr': 'LAN', 'enable': '1', 'lock': '1', 'spoofmac': None, 'blockbogons': '1', 'ipaddr': '192.168.56.10', 'subnet': '21', 'ipaddrv6': 'track6', 'track6-interface': 'wan', 'track6-prefix-id': '0'}}]
                 elements = self._config_xml_tree.find(
                     self._config_maps[config_map][module]
                 )
 
                 elements.clear()
-                # raise ValueError([xml_utils.etree_to_dict(e) for e in elements])
 
                 elements.extend(
                     [opnsense_object.to_etree() for opnsense_object in opnsense_objects]
                 )
-
-                if len(elements) == 16:
-                    raise ValueError(opnsense_objects)
-
-                # raise ValueError([xml_utils.etree_to_dict(e) for e in elements])
 
         tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
