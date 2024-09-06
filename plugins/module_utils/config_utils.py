@@ -80,6 +80,9 @@ class OPNSenseBaseEntry:
 
         return self.__dict__ == other.__dict__
 
+    def __repr__(self):
+        return f"{self.__dict__}"
+
     @classmethod
     def from_xml(cls, element: Element) -> "OPNSenseBaseEntry":
         """
@@ -271,16 +274,6 @@ class OPNsenseModuleConfig:
 
         return None
 
-
-    def _consolidate_config_maps(self) -> Dict:
-        """ """
-
-        return {
-            k: v
-            for k, v in self._config_maps.items()
-            if k not in ["php_requirements", "configure_functions"]
-        }
-
     def create_or_update(
         self, module: str, tag: str, opnsense_object: OPNSenseBaseEntry, uniqueness: str
     ) -> None:
@@ -345,6 +338,43 @@ class OPNsenseModuleConfig:
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
+    def _get_opnsense_objects(
+        self, config_map: str
+    ) -> Optional[List[OPNSenseBaseEntry]]:
+        opnsense_objects: List[OPNSenseBaseEntry] = []
+
+        for key, objects in self.model_registry[config_map].items():
+            if len(objects) == 1:
+                opnsense_objects.append(objects[0])
+
+        return opnsense_objects
+
+    def _consolidate_config_map(self, config_map: str) -> list:
+        """
+        Converts the self._config_map[config_map] from
+        {
+            'alias': 'Alias',
+            'test': 'Test',
+            'php_requirements': ['req_1', 'req_2'],
+            'configure_functions': {
+                'test_configure_function':
+                {
+                    'name': 'test_configure_function',
+                    'configure_params': ['param_1']
+                }
+            }
+        }
+
+        into
+
+        ['alias', 'test']
+        """
+        return [
+            k
+            for k in self._config_maps[config_map].keys()
+            if k not in ["php_requirements", "configure_functions"]
+        ]
+
     def save(self, override_changed: bool = False) -> bool:
         """
         Saves the config to the file if changes have been made.
@@ -357,70 +387,34 @@ class OPNsenseModuleConfig:
             return False
 
         for config_map in self._config_maps:
-            module = self._config_maps[config_map]
+            # [{'tag': 'wan', 'if': 'em2', 'ipaddr': 'dhcp', 'dhcphostname': None, 'mtu': None, 'subnet': None, 'gateway': None, 'media': None, 'mediaopt': None, 'blockbogons': '1', 'ipaddrv6': 'dhcp6', 'dhcp6-ia-pd-len': '0', 'blockpriv': '1', 'descr': 'WAN', 'lock': '1'}]
+            opnsense_objects: List[OPNSenseBaseEntry] = self._get_opnsense_objects(
+                config_map=config_map
+            )
 
-            for parent_element in list(module):
-                if parent_element == "rules":
-                    model_registry_parent_element = "rule"
-                else:
-                    model_registry_parent_element = parent_element
+            # ['hasync_parent', 'remote_system_username'] or ['alias']
+            modules: List = self._consolidate_config_map(config_map=config_map)
 
-                if not self.model_registry[config_map].get(
-                    model_registry_parent_element
-                ):
-                    continue
+            if not opnsense_objects:
+                continue
 
-                if parent_element in ["php_requirements", "configure_functions"]:
-                    continue
-
+            for module in modules:
+                # [{'wan': {'if': 'em2', 'ipaddr': 'dhcp', 'dhcphostname': None, 'mtu': None, 'subnet': None, 'gateway': None, 'media': None, 'mediaopt': None, 'blockbogons': '1', 'ipaddrv6': 'dhcp6', 'dhcp6-ia-pd-len': '0', 'blockpriv': '1', 'descr': 'WAN', 'lock': '1'}}, {'lan': {'if': 'em1', 'descr': 'LAN', 'enable': '1', 'lock': '1', 'spoofmac': None, 'blockbogons': '1', 'ipaddr': '192.168.56.10', 'subnet': '21', 'ipaddrv6': 'track6', 'track6-interface': 'wan', 'track6-prefix-id': '0'}}]
                 elements = self._config_xml_tree.find(
-                    self._config_maps[config_map][parent_element]
+                    self._config_maps[config_map][module]
                 )
 
-                for element in list(elements):
-                    elements.remove(element)
+                elements.clear()
+                # raise ValueError([xml_utils.etree_to_dict(e) for e in elements])
 
                 elements.extend(
-                    [
-                        opnsense_object.to_etree()
-                        for opnsense_object in self.model_registry[config_map][
-                            model_registry_parent_element
-                        ]
-                    ]
+                    [opnsense_object.to_etree() for opnsense_object in opnsense_objects]
                 )
 
-        for config_map in self._config_maps:
-            module = self._config_maps[config_map]
+                if len(elements) == 16:
+                    raise ValueError(opnsense_objects)
 
-            for parent_element in list(module):
-                if parent_element == "rules":
-                    model_registry_parent_element = "rule"
-                else:
-                    model_registry_parent_element = parent_element
-
-                if not self.model_registry[config_map].get(
-                    model_registry_parent_element
-                ):
-                    continue
-
-                if parent_element in ["php_requirements", "configure_functions"]:
-                    continue
-
-                elements = self._config_xml_tree.find(
-                    self._config_maps[config_map][parent_element]
-                )
-
-                for element in list(elements):
-                    elements.remove(element)
-
-                elements.extend(
-                    [
-                        opnsense_object.to_etree()
-                        for opnsense_object in self.model_registry[config_map][
-                            model_registry_parent_element
-                        ]
-                    ]
-                )
+                # raise ValueError([xml_utils.etree_to_dict(e) for e in elements])
 
         tree: ElementTree.ElementTree = ElementTree.ElementTree(self._config_xml_tree)
         tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
