@@ -90,3 +90,10 @@ releases:
       name: firewall_alias
       namespace: ''
     release_date: '2024-08-26'
+  1.4.1:
+    changes:
+      bugfixes:
+      - system_settings_logging - fix XPath migrations for settings in 24.7.
+    fragments:
+    - 153-fix-system-settings-logging-24.7-support.yml
+    release_date: '2024-08-29'

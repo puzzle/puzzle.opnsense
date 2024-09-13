@@ -137,7 +137,10 @@ def main():
             # if the current max_log_file_size_mb value is not set in the config XML
             # config.get("max_log_file_size_mb") will be None
             try:
-                if config.get("max_log_file_size_mb") is not None:
+                if (
+                    config.get("max_log_file_size_mb") is not None
+                    and config.get("max_log_file_size_mb").text is not None
+                ):
                     current_max_log_file_size_mb = int(
                         config.get("max_log_file_size_mb").text
                     )

@@ -691,8 +691,8 @@ VERSION_MAP = {
             },
         },
         "system_settings_logging": {
-            "preserve_logs": "syslog/preservelogs",
-            "max_log_file_size_mb": "syslog/maxfilesize",
+            "preserve_logs": ".//Syslog/general/maxpreserve",
+            "max_log_file_size_mb": ".//Syslog/general/maxfilesize",
             # Add other mappings here
             "php_requirements": [
                 "/usr/local/etc/inc/config.inc",
