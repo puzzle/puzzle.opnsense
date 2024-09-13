@@ -1,39 +1,116 @@
 opnsense_configure - OPNsense configuration role
 =========
 
-This role provides a generic apporach to configure OPNsense instances by populating host variables
+This role provides a generic approach to configure OPNsense instances by populating host variables
 according to this roles defaults specification.
-
-Requirements
-------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The variables must be structured in a way that each puzzle.opnsense module has its own block. Each module related block
+is then structured just like the corresponding module parameters as documented in the modules themselves.
+The top level structure must be structured as follows:
+```yaml
+---
+system:
+  access:
+    users: [] # list of users, where the users follows the system_access_users module parameter structure
+  high_availability:
+    # system_high_availability_settings module parameters
+  settings:
+    general:
+      # system_settings_general module parameters
+    logging:
+      # system_settings_logging module parameters
+    
+interfaces:
+  assignments: [] # list of interface assignments, where the users follows the interfaces_assignments module parameter structure
 
-Dependencies
-------------
+firewall:
+  aliases: [] # list of aliases, where the users follows the firewall_alias module parameter structure
+  rules: [] # list of rules, where the users follows the firewall_rules module parameter structure
+```
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+The usage of the role is straight forward, however the main thought should go into the building of the
+host variables. An example execution could look like this:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+---
+- name: converge
+  hosts: all
+  become: true
+  vars:
+    system:
+      access:
+        users:
+          - username: simple_user
+            password: pass1234
+      high_availability:
+        synchronize_interface: LAN
+        synchronize_config_to_ip: 224.0.0.240
+        synchronize_peer_ip: 224.0.0.241
+        disable_preempt: true
+        disconnect_dialup_interfaces: true
+        synchronize_states: true
+        remote_system_username: opnsense
+        remote_system_password: v3rys3cure
+        services_to_synchronize:
+          - aliases
+          - rules
+          - ipsec
+      settings:
+        general:
+          hostname: "firewall01"
+          domain: "test.local"
+          timezone: "Europe/Zurich"
+        logging:
+          preserve_logs: 10
+    interfaces:
+      assignments:
+        - device: em0
+          identifier: opt2
+          description: VAGRANT
+        - device: em1
+          identifier: lan
+          description: LAN
+        - device: em2
+          identifier: wan
+          description: WAN
+        - device: em3
+          identifier: opt1
+          description: DMZ
+    firewall:
+      aliases:
+        - name: TestAliasTypeHost
+          type: host
+          statistics: false
+          description: Test Alias with type Host
+          content: 10.0.0.1
+        - name: TestAliasTypeNetwork
+          type: network
+          statistics: false
+          description: Test Alias with type Network
+          content: 10.0.0.0/24
+      rules:
+        - interface: lan
+          description: Block SSH on LAN
+          destination:
+            port: 22
+          action: block
+  roles:
+    - role: puzzle.opnsense.opnsense_configure
+
+```
 
 License
 -------
 
-BSD
+GPLv3
 
 Author Information
 ------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+ - Fabio Bertagna (github.com/dongiovanni83)
