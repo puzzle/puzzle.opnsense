@@ -37,6 +37,101 @@ options:
       - Input will be trimmed, as no whitespaces are allowed.
     type: str
     required: false
+  enabled:
+    description:
+      - Enable or disable the interface
+    type: bool
+    required: false
+  locked:
+    description:
+      - Prevent interface removal
+    type: bool
+    required: false
+  block_private:
+    description:
+        - When set, this option blocks traffic from IP addresses that are reserved for private networks as per RFC 1918 (10/8, 172.16/12, 192.168/16) as well as loopback addresses (127/8) and Carrier-grade NAT addresses (100.64/10). This option should only be set for WAN interfaces that use the public IP address space.
+      type: bool
+      required: false
+  block_bogons:
+    description:
+        - When set, this option blocks traffic from IP addresses that are reserved for private networks as per RFC 1918 (10/8, 172.16/12, 192.168/16) as well as loopback addresses (127/8) and Carrier-grade NAT addresses (100.64/10). This option should only be set for WAN interfaces that use the public IP address space.
+      type: bool
+      required: false
+  ipv4_configuration_type:
+    description:
+      - 
+    type: str
+    required: false
+  ipv6_configuration_type:
+    description:
+      - 
+    type: str
+    required: false
+  ipv4_address:
+    description:
+      - 
+    type: str
+    required: false
+  # ipv4_subnet:
+  #   description:
+  #     - 
+  #   type: int
+  #   required: false
+  ipv4_gateway:
+    description:
+      - 
+    type: str
+    required: false
+  ipv6_address:
+    description:
+      - 
+    type: str
+    required: false
+  # ipv6_subnet:
+  #   description:
+  #     - 
+  #   type: int
+  #   required: false
+  ipv6_gateway:
+    description:
+      - 
+    type: str
+    required: false
+  track6_interface:
+    description:
+      - 
+    type: str
+    required: false
+  track6_prefix_id:
+    description:
+      - 
+    type: int
+    required: false
+  mac_address:
+    description:
+      - 
+    type: str
+    required: false
+  promiscuous_mode:
+    description:
+      - 
+    type: bool
+    required: false
+  mtu:
+    description:
+      - If you leave this field blank, the adapter's default MTU will be used. This is typically 1500 bytes but can vary in some circumstances.
+    type: int
+    required: false
+  mss:
+    description:
+      - If you enter a value in this field, then MSS clamping for TCP connections to the value entered above minus 40 (IPv4) or 60 (IPv6) will be in effect (TCP/IP header size).
+    type: int
+    required: false
+  dynamic_gateway:
+    description:
+      - If the destination is directly reachable via an interface requiring no intermediary system to act as a gateway, you can select this option which allows dynamic gateways to be created without direct target addresses. Some tunnel types support this.
+    type: bool
+    required: false
 '''
 
 EXAMPLES = r'''
@@ -98,6 +193,23 @@ def main():
         "identifier": {"type": "str", "required": True},
         "device": {"type": "str", "required": True},
         "description": {"type": "str", "required": False},
+        "enabled": {"type": "bool", "required": False, "default": False},
+        "locked": {"type": "bool", "required": False, "default": False},
+        "block_private": {"type": "bool", "required": False, "default": False},
+        "block_bogons": {"type": "bool", "required": False, "default": False},
+        "ipv4_address": {"type": "str", "required": False},
+        "ipv4_subnet": {"type": "int", "required": False},
+        "ipv4_gateway": {"type": "str", "required": False},
+        "ipv6_address": {"type": "str", "required": False},
+        "ipv6_subnet": {"type": "int", "required": False},
+        "ipv6_gateway": {"type": "str", "required": False},
+        "track6_interface": {"type": "str", "required": False},
+        "track6_prefix_id": {"type": "int", "required": False},
+        "mac_address": {"type": "str", "required": False},
+        "promiscuous_mode": {"type": "bool", "required": False, "default": False},
+        "mtu": {"type": "int", "required": False},
+        "mss": {"type": "int", "required": False},
+        "dynamic_gateway": {"type": "bool", "required": False, "default": False},
     }
 
     module = AnsibleModule(
