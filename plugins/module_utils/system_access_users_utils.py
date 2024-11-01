@@ -933,7 +933,7 @@ class UserSet(OPNsenseModuleConfig):
             None: This method does not return a value but updates the internal list of users.
         """
 
-        self._users = [r for r in self._users if r != user]
+        self._users = [r for r in self._users if r.name != user.name]
 
     def find(self, **kwargs) -> Optional[User]:
         """
