@@ -1,0 +1,3 @@
+---
+bugfixes:
+    - puzzle.opnsense.system_access_users - Thanks to @GBBx fixed a bug while user deletion.
