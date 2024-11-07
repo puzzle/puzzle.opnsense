@@ -994,8 +994,8 @@ def test_user_from_ansible_module_params_with_empty_parameters(
     }
     new_test_user: User = User.from_ansible_module_params(test_params)
 
-    assert new_test_user.shell is None
-    assert new_test_user.email is None
+    assert not hasattr(new_test_user, "shell")
+    assert not hasattr(new_test_user, "email")
 
 
 @patch(
