@@ -952,3 +952,94 @@ def test_password_verify_returns_OPNsenseHashVerifyReturnError(
             existing_hashed_string="$2y$11$pSYTZcD0o23JSfksEekwKOnWM1o3Ih9vp7OOQN.v35E1rag49cEc6",
         )
     assert "error encounterd verifying hash" in str(excinfo.value)
+
+
+def test_user_with_empty_paramters_to_etree():
+    test_user: User = User(
+        password="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+        scope="user",
+        name="vagrant",
+        descr="vagrant box management",
+        shell="",
+        email="",
+        uid="1000",
+    )
+
+    test_element = test_user.to_etree()
+
+    assert not hasattr(test_element, "shell")
+    assert not hasattr(test_element, "email")
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.User.encode_authorizedkeys",
+    return_value="3J35EY37QTNXFFEECJGZ32WVYQC5W4GZ",
+)
+def test_user_from_ansible_module_params_with_empty_parameters(
+    mock_set_encode_authorizedkeys, mock_set_password, sample_config_path
+):
+    test_params: dict = {
+        "username": "vagrant",
+        "password": "vagrant",
+        "scope": "user",
+        "full_name": "vagrant box management",
+        "shell": "",
+        "email": "",
+        "uid": "1000",
+        "authorizedkeys": "test_authorizedkey",
+    }
+    new_test_user: User = User.from_ansible_module_params(test_params)
+
+    assert new_test_user.shell is None
+    assert new_test_user.email is None
+
+
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.opnsense_utils.run_function"
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.version_utils.get_opnsense_version",
+    return_value="OPNsense Test",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.UserSet.set_user_password",
+    return_value="$2y$10$1BvUdvwM.a.dJACwfeNfAOgNT6Cqc4cKZ2F6byyvY8hIK9I8fn36O",
+)
+@patch(
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils.hash_verify",
+    return_value=True,
+)
+@patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
+def test_new_user_from_ansible_module_params_with_empty_parameters(
+    mock_set_password: MagicMock,
+    mock_get_version: MagicMock,
+    mock_password_verify: MagicMock,
+    mock_run_function: MagicMock,
+    sample_config_path,
+):
+    test_params: dict = {
+        "username": "test_user_2",
+        "password": "test_password_2",
+        "scope": "user",
+        "full_name": "test_user_2",
+        "shell": "",
+        "uid": "1000",
+        "email": "",
+    }
+
+    mock_run_function.return_value = {
+        "stdout": "$6$somerandomsalt$hashedsecretvalue1234567890123456789012345678901234567890123456789054583",
+        "stderr": None,
+    }
+
+    with UserSet(sample_config_path) as user_set:
+        new_test_user: User = User.from_ansible_module_params(test_params)
+        user_set.add_or_update(new_test_user)
+        user_set.save()
+
+    assert not hasattr(new_test_user, "shell")
+    assert not hasattr(new_test_user, "email")
