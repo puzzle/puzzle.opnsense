@@ -558,8 +558,9 @@ class User:
 
         if params.get("groups", None):
             user_dict["groupname"] = params["groups"]
+
         user_dict = {
-            key: value for key, value in user_dict.items() if value is not None
+            key: value for key, value in user_dict.items() if value not in (None, "")
         }
 
         return cls(**user_dict)
