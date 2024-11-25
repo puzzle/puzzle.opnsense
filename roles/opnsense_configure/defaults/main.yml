@@ -1,0 +1,45 @@
+---
+# defaults file for opnsense_configure
+
+#
+# System variables should be provided in this structure
+#
+# system:
+#   access:
+#     users: [] # see system_access_users task args for user entry structure
+#   high_availability:
+#     disable_preempt:
+#     disconnect_dialup_interfaces:
+#     synchronize_states:
+#     synchronize_interface:
+#     sync_compatibility:
+#     synchronize_peer_ip:
+#     synchronize_config_to_ip:
+#     remote_system_username:
+#     remote_system_password:
+#     services_to_synchronize:
+#   settings:
+#     general:
+#       hostname:
+#       domain:
+#       timezone:
+#     logging:
+#       max_log_file_size_mb:
+#       preserve_logs:
+
+system:
+  settings:
+  access:
+# Interface related variables:
+#
+# interfaces:
+#   assignments: []
+interfaces:
+
+#
+# Firewall related variables should be provided in this structure
+#
+# firewall:
+#   aliases: []
+#   rules: []
+firewall:

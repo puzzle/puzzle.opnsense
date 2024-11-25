@@ -1,0 +1,111 @@
+---
+# tasks file for opnsense_configure
+
+- name: Configure general system settings
+  puzzle.opnsense.system_settings_general:
+    hostname: "{{ system.settings.general.hostname | default(omit) }}"
+    domain: "{{ system.settings.general.domain | default(omit) }}"
+    timezone: "{{ system.settings.general.timezone | default(omit) }}"
+  when:
+    - system.settings.general is defined
+    - >
+      system.settings.general.hostname is defined or
+      system.settings.general.domain is defined or
+      system.settings.general.timezone is defined
+
+- name: Configure logging system settings
+  puzzle.opnsense.system_settings_logging:
+    max_log_file_size_mb: "{{ system.settings.logging.max_log_file_size_mb | default(omit) }}"
+    preserve_logs: "{{ system.settings.logging.preserve_logs | default(omit) }}"
+  when:
+    - system.settings.logging is defined
+    - >
+      system.settings.logging.max_log_file_size_mb is defined or
+      system.settings.logging.preserve_logs is defined
+
+- name: Configure users
+  puzzle.opnsense.system_access_users:
+    username: "{{ user.username }}"
+    password: "{{ user.password }}"
+    disabled: "{{ user.disabled | default(omit) }}"
+    full_name: "{{ user.full_name | default(omit) }}"
+    email: "{{ user.email | default(omit) }}"
+    comment: "{{ user.comment | default(omit) }}"
+    landing_page: "{{ user.landing_page | default(omit) }}"
+    shell: "{{ user.shell | default(omit) }}"
+    expires: "{{ user.expires | default(omit) }}"
+    otp_seed: "{{ user.otp_seed | default(omit) }}"
+    authorizedkeys: "{{ user.authorizedkeys | default(omit) }}"
+    groups: "{{ user.groups | default(omit) }}"
+    apikeys: "{{ user.apikeys | default(omit) }}"
+    scope: "{{ user.scope | default(omit) }}"
+    uid: "{{ user.uid | default(omit) }}"
+    state: "{{ user.state | default(omit) }}"
+  loop: "{{ system.access.users }}"
+  loop_control:
+    loop_var: user
+    label: "{{ user.username }}"
+  when: system.access.users is defined
+
+- name: Configure system HA settings
+  puzzle.opnsense.system_high_availability_settings:
+    disable_preempt: "{{ system.high_availability.disable_preempt | default(omit) }}"
+    disconnect_dialup_interfaces: "{{ system.high_availability.disconnect_dialup_interfaces | default(omit) }}"
+    synchronize_states: "{{ system.high_availability.synchronize_states | default(omit) }}"
+    synchronize_interface: "{{ system.high_availability.synchronize_interface }}"
+    sync_compatibility: "{{ system.high_availability.sync_compatibility | default(omit) }}"
+    synchronize_peer_ip: "{{ system.high_availability.synchronize_peer_ip | default(omit) }}"
+    synchronize_config_to_ip: "{{ system.high_availability.synchronize_config_to_ip | default(omit) }}"
+    remote_system_username: "{{ system.high_availability.remote_system_username | default(omit) }}"
+    remote_system_password: "{{ system.high_availability.remote_system_password | default(omit) }}"
+    services_to_synchronize: "{{ system.high_availability.services_to_synchronize | default(omit) }}"
+  when: system.high_availability is defined
+
+- name: Configure interface assignments
+  puzzle.opnsense.interfaces_assignments:
+    identifier: "{{ interface.identifier }}"
+    device: "{{ interface.device }}"
+    description: "{{ interface.description | default(omit) }}"
+  loop: "{{ interfaces.assignments }}"
+  loop_control:
+    loop_var: interface
+  when: interfaces.assignments is defined
+
+- name: Configure firewall aliases
+  puzzle.opnsense.firewall_alias:
+    name: "{{ alias.name }}"
+    type: "{{ alias.type }}"
+    enabled: "{{ alias.enabled | default(omit) }}"
+    content: "{{ alias.content | default(omit) }}"
+    description: "{{ alias.description | default(omit) }}"
+    interface: "{{ alias.interface | default(omit) }}"
+    protocol: "{{ alias.protocol | default(omit) }}"
+    refreshfrequency:
+      days: "{{ alias.refreshfrequency.days | default(omit) }}"
+      hours: "{{ alias.refreshfrequency.hours | default(omit) }}"
+    state: "{{ alias.state | default(omit) }}"
+    statistics: "{{ alias.statistics | default(omit) }}"
+  loop: "{{ firewall.aliases }}"
+  loop_control:
+    loop_var: alias
+  when: firewall.aliases is defined
+
+- name: Configure firewall rules
+  puzzle.opnsense.firewall_rules:
+    interface: "{{ rule.interface }}"
+    action: "{{ rule.action | default(omit) }}"
+    description: "{{ rule.description | default(omit) }}"
+    category: "{{ rule.category | default(omit) }}"
+    direction: "{{ rule.direction | default(omit) }}"
+    disabled: "{{ rule.disabled | default(omit) }}"
+    quick: "{{ rule.quick | default(omit) }}"
+    ipprotocol: "{{ rule.ipprotocol | default(omit) }}"
+    protocol: "{{ rule.protocol | default(omit) }}"
+    source: "{{ rule.source | default(omit) }}"
+    destination: "{{ rule.destination | default(omit) }}"
+    log: "{{ rule.log | default(omit) }}"
+    state: "{{ rule.state | default(omit) }}"
+  loop: "{{ firewall.rules }}"
+  loop_control:
+    loop_var: rule
+  when: firewall.rules is defined
