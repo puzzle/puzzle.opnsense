@@ -7,7 +7,7 @@ according to this roles defaults specification.
 Role Variables
 --------------
 
-The variables must be structured in a way that each puzzle.opnsense module has its own block. Each module related block
+The variables must be structured in a way that each puzzle.opnsense module has its own variable section . Each module related variable section
 is then structured just like the corresponding module parameters as documented in the modules themselves.
 The top level structure must be structured as follows:
 ```yaml
