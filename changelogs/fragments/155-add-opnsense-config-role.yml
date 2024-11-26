@@ -1,3 +1,0 @@
----
-minor_changes:
-  - puzzle.opnsense.opnsense_configure - Addition of an ansible role to the collection

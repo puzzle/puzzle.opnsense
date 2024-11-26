@@ -4,6 +4,20 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.5.0
+======
+
+Minor Changes
+-------------
+
+- puzzle.opnsense.opnsense_configure - Addition of an ansible role to the collection
+
+Bugfixes
+--------
+
+- puzzle.opnsense.system_access_users - Thanks to @GBBx fixed a bug which falsely adds empty parameters to user instance.
+- puzzle.opnsense.system_access_users - Thanks to @GBBx fixed a bug while user deletion.
+
 v1.4.1
 ======
 

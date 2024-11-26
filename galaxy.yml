@@ -2,7 +2,7 @@
 
 namespace: puzzle
 name: opnsense
-version: 1.4.1
+version: 1.5.0
 readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
