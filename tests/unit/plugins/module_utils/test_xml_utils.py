@@ -464,3 +464,24 @@ def test_elements_equal_with_children():
     e2.extend([e2c1, e2c2])
 
     assert xml_utils.elements_equal(e1, e2)
+
+
+def test_elements_not_equal_with_children():
+    """
+    Tests elements_equal function checks recursively elements.
+    """
+    e1 = Element("test")
+    e1c1 = Element("child_1")
+    e1c1.text = "some_text"
+    e1c2 = Element("child_2")
+    e1c2.text = "some_text_as_well"
+    e1.extend([e1c1, e1c2])
+
+    e2 = Element("test")
+    e2c1 = Element("child_1")
+    e2c1.text = "some_text     \n"
+    e2c2 = Element("child_2")
+    e2c2.text = "\n   wrong_text     \n"
+    e2.extend([e2c1, e2c2])
+
+    assert not xml_utils.elements_equal(e1, e2)
