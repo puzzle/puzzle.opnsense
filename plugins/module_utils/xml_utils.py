@@ -210,8 +210,8 @@ def elements_equal(e1, e2) -> bool:
 
         return (
             e1_text == e2_text
-            or e1_text == "1" and e2_text == ""
-            or e2_text == "1" and e1_text == ""
+            or (e1_text == "1" and e2_text == "")
+            or (e2_text == "1" and e1_text == "")
         )
 
     # Tags have children
