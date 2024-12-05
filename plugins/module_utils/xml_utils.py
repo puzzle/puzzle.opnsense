@@ -208,7 +208,11 @@ def elements_equal(e1, e2) -> bool:
         e1_text: Optional[str] = "" if e1.text is None else str(e1.text).strip()
         e2_text: Optional[str] = "" if e2.text is None else str(e2.text).strip()
 
-        return e1_text == e2_text or e1_text == "1" and e2_text == "" or e2_text == "1" and e1_text == ""
+        return (
+            e1_text == e2_text
+            or e1_text == "1" and e2_text == ""
+            or e2_text == "1" and e1_text == ""
+        )
 
     # Tags have children
     return all(
