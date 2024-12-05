@@ -415,6 +415,21 @@ def test_elements_equal_without_children_whitespace_matches():
     assert xml_utils.elements_equal(e1, e2)
 
 
+def test_elements_equal_str_num_and_int():
+    """
+    Test that elements_equal function considers a string number equal to an integer number
+
+    eg:
+    <test/> == <test>   </test>
+    """
+    e1 = Element("test")
+    e1.text = 1
+    e2 = Element("test")
+    e2.text = "1"
+
+    assert xml_utils.elements_equal(e1, e2)
+
+
 def test_elements_equal_without_children_none_and_1():
     """
     Tests elements_equal function matches a boolean flag "1" the same as an empty element.
@@ -440,10 +455,12 @@ def test_elements_equal_with_children():
     e1c2 = Element("child_2")
     e1c2.text = "some_text_as_well"
     e1.extend([e1c1, e1c2])
+
     e2 = Element("test")
     e2c1 = Element("child_1")
     e2c1.text = "some_text     \n"
     e2c2 = Element("child_2")
-    e2c2.text = "\n   some_text     \n"
+    e2c2.text = "\n   some_text_as_well     \n"
     e2.extend([e2c1, e2c2])
+
     assert xml_utils.elements_equal(e1, e2)
