@@ -448,6 +448,7 @@ def test_elements_equal_without_children_none_and_1():
 def test_elements_equal_with_children():
     """
     Tests elements_equal function matches recursively equal elements.
+    Elements having children with the same content should be equal.
     """
     e1 = Element("test")
     e1c1 = Element("child_1")
@@ -468,7 +469,8 @@ def test_elements_equal_with_children():
 
 def test_elements_not_equal_with_children():
     """
-    Tests elements_equal function checks recursively elements.
+    Tests elements_equal function checks elements recursively.
+    Elements having children with different content should not be equal.
     """
     e1 = Element("test")
     e1c1 = Element("child_1")
