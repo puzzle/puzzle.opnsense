@@ -187,17 +187,6 @@ def etree_to_dict(input_etree: Element) -> dict:
     return {input_etree.tag: result}
 
 
-def _is_whitespace_or_none(text) -> bool:
-    """
-    Checks if a given string is a string of whitespace characters or None.
-    Args:
-        text: the string to perform the check on.
-    Returns:
-        bool: True if the 'text' string is None or a whitespace string.
-    """
-    return text is None or text.strip() == ""
-
-
 def elements_equal(e1, e2) -> bool:
     """
     Compare two XML elements for equality.
@@ -216,10 +205,13 @@ def elements_equal(e1, e2) -> bool:
     if len(e1) == 0 and len(e2) == 0:
         # 1. Check if texts are exactly the same (ignoring whitespaces and None)
         # 2. or check if one text is '1' and the other is None with no children
+        e1_text: Optional[str] = "" if e1.text is None else str(e1.text).strip()
+        e2_text: Optional[str] = "" if e2.text is None else str(e2.text).strip()
+
         return (
-            (_is_whitespace_or_none(e1.text) == _is_whitespace_or_none(e2.text))
-            or (e1.text == "1" and not e2.text and not e2)
-            or (e2.text == "1" and not e1.text and not e1)
+            e1_text == e2_text
+            or (e1_text == "1" and e2_text == "")
+            or (e2_text == "1" and e1_text == "")
         )
 
     # Tags have children
