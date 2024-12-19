@@ -241,11 +241,9 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <interface/>
                 <counters>0</counters>
                 <updatefreq/>
-                <content>
-                CF
-                DZ
-                AG
-                </content>
+                <content>CF
+DZ
+AG</content>
                 <description>geoip_test</description>
             </alias>
             <alias uuid="7e776c20-5658-45fb-924d-9fd833eae142">
