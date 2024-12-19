@@ -28,6 +28,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index impor
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.xml_utils import (
     elements_equal,
+    etree_to_dict
 )
 
 # Test version map for OPNsense versions and modules
@@ -459,8 +460,8 @@ def test_firewall_alias_to_etree():
     orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[0]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -488,8 +489,8 @@ def test_firewall_alias_to_etree_with_content():
     orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[5]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -517,8 +518,8 @@ def test_firewall_alias_to_etree_with_updatefreq():
     orig_alias: Element = test_etree_opnsense.find("OPNsense/Firewall/Alias/aliases")[4]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -548,8 +549,8 @@ def test_firewall_alias_to_etree_with_bgpasn_none():
     ]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -579,8 +580,8 @@ def test_firewall_alias_to_etree_with_bgpasn_ipv4():
     ]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -610,8 +611,8 @@ def test_firewall_alias_to_etree_with_bgpasn_ipv6():
     ]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -641,8 +642,8 @@ def test_firewall_alias_to_etree_with_bgpasn_ipv4_ipv6():
     ]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -1317,9 +1318,10 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_vali
         12
     ]
 
-    assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+    # description has changed
+    assert not elements_equal(test_element, orig_alias), (
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
@@ -1376,8 +1378,8 @@ def test_firewall_alias_from_ansible_module_params_with_content_type_bgpasn_list
     ]
 
     assert elements_equal(test_element, orig_alias), (
-        f"{xml_utils.etree_to_dict(test_element)}\n"
-        f"{xml_utils.etree_to_dict(orig_alias)}"
+        f"{etree_to_dict(test_element)}\n"
+        f"{etree_to_dict(orig_alias)}"
     )
 
 
