@@ -7,6 +7,7 @@ interfaces_assignments_utils module_utils: Module_utils to configure OPNsense in
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict, Any
+from pprint import pprint
 
 
 from xml.etree.ElementTree import Element, ElementTree, SubElement
@@ -59,6 +60,8 @@ class InterfaceAssignment:
     identifier: str
     device: str
     descr: Optional[str] = None
+    enable: Optional[bool] = False
+    lock: Optional[bool] = False
 
     # since only the above attributes are needed, the rest is handled here
     extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
@@ -68,6 +71,8 @@ class InterfaceAssignment:
         identifier: str,
         device: str,
         descr: Optional[str] = None,
+        enable: Optional[bool] = False,
+        lock: Optional[bool] = False,
         **kwargs,
     ):
         self.identifier = identifier
@@ -75,6 +80,7 @@ class InterfaceAssignment:
         if descr is not None:
             self.descr = descr
         self.extra_attrs = kwargs
+        self.enable = enable
 
     @staticmethod
     def from_xml(element: Element) -> "InterfaceAssignment":
@@ -127,7 +133,12 @@ class InterfaceAssignment:
         # Special handling for 'device' and 'descr'
         SubElement(main_element, "if").text = interface_assignment_dict.get("device")
         SubElement(main_element, "descr").text = interface_assignment_dict.get("descr")
-
+        if getattr(self, "enable", None):
+             SubElement(main_element, "enable").text = "1"
+             # Enumerate the basic attributes if the interface is enabled
+             
+        if getattr(self, "lock", None):
+             SubElement(main_element, "lock").text = "1"
         # handle special cases
         if getattr(self, "alias-subnet", None):
             interface_assignment_dict["extra_attrs"]["alias-subnet"] = getattr(
@@ -152,7 +163,6 @@ class InterfaceAssignment:
             interface_assignment_dict["extra_attrs"]["track6-prefix-id"] = getattr(
                 self, "track6-prefix-id", None
             )
-
         # Serialize extra attributes
         for key, value in interface_assignment_dict["extra_attrs"].items():
             if (
@@ -212,6 +222,15 @@ class InterfaceAssignment:
             "identifier": params.get("identifier"),
             "device": params.get("device"),
             "descr": params.get("description"),
+            "enable": params.get("enabled"),
+            "lock": params.get("locked"),
+            # "blockpriv": params.get("block_private"),
+            # "blockbogons": params.get("block_bogons"),
+            # "spoofmac": params.get("mac_address"),
+            # "promisc": params.get("promiscuous_mode"),
+            # "mtu": params.get("mtu"),
+            # "mss": params.get("mss"),
+            # "gateway_interface": params.get("dynamic_gateway"),
         }
 
         interface_assignment_dict = {
@@ -219,7 +238,6 @@ class InterfaceAssignment:
             for key, value in interface_assignment_dict.items()
             if value is not None
         }
-
         return cls(**interface_assignment_dict)
 
 
@@ -376,27 +394,26 @@ class InterfacesSet(OPNsenseModuleConfig):
             raise OPNSenseDeviceNotFoundError(
                 "Device was not found on OPNsense Instance!"
             )
-
-        interface_to_update: Optional[InterfaceAssignment] = next(
-            (
-                interface
-                for interface in self._interfaces_assignments
-                if interface.device == interface_assignment.device
+        for interface in self._interfaces_assignments:
+            if (
+                interface.device == interface_assignment.device
                 or interface.identifier == interface_assignment.identifier
-            ),
-            None,
-        )
-
+            ):
+                interface_to_update = interface
+                print(interface_to_update)
+                break
+            else:
+                interface_to_update = None
         if not interface_to_update:
-
             interface_to_create: InterfaceAssignment = InterfaceAssignment(
                 identifier=interface_assignment.identifier,
                 device=interface_assignment.device,
                 descr=interface_assignment.descr,
+                enable=interface_assignment.enable,
             )
 
             self._interfaces_assignments.append(interface_to_create)
-
+            pprint(interface_to_create)
             return
 
         if (
@@ -404,19 +421,29 @@ class InterfacesSet(OPNsenseModuleConfig):
             or interface_assignment.device == interface_to_update.device
         ):
 
-            if interface_assignment.identifier in identifier_list_set:
+            if interface_assignment.identifier in identifier_list_set or interface_assignment.device == interface_to_update.device:
 
                 # Merge extra_attrs
                 interface_assignment.extra_attrs.update(interface_to_update.extra_attrs)
 
                 # Update the existing interface
                 interface_to_update.__dict__.update(interface_assignment.__dict__)
-
+      
             else:
                 raise OPNSenseDeviceAlreadyAssignedError(
                     "This device is already assigned, please unassign this device first"
-                )
 
+                                )
+        elif interface_assignment.enable != interface_to_update.enable:
+            if interface_assignment.enable:
+                # Merge extra_attrs
+                interface_assignment.extra_attrs.update(interface_to_update.extra_attrs)
+
+                # Update the existing interface
+                interface_to_update.__dict__.update(interface_assignment.__dict__)
+            else:
+                interface_assignment.enable = False
+                interface_to_update.__dict__.update(interface_assignment.__dict__)
         else:
             raise OPNSenseDeviceAlreadyAssignedError(
                 "This device is already assigned, please unassign this device first"
