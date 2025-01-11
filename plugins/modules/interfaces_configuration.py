@@ -26,11 +26,11 @@ options:
       - "Technical identifier of the interface, used by hasync for example"
     type: str
     required: true
-  # device:
-  #   description:
-  #     - Physical Device Name eg. vtnet0, ipsec1000 etc,.
-  #   type: str
-  #   required: true
+  device:
+    description:
+      - Physical Device Name eg. vtnet0, ipsec1000 etc,.
+    type: str
+    required: true
   description:
     description:
       - Interface name shown in the GUI. Identifier in capital letters if not provided.
@@ -41,6 +41,7 @@ options:
     description:
       - Enable or disable the interface
     type: bool
+    default: false
     required: false
   locked:
     description:
@@ -57,16 +58,16 @@ options:
         - When set, this option blocks traffic from IP addresses that are reserved for private networks as per RFC 1918 (10/8, 172.16/12, 192.168/16) as well as loopback addresses (127/8) and Carrier-grade NAT addresses (100.64/10). This option should only be set for WAN interfaces that use the public IP address space.
       type: bool
       required: false
-  # ipv4_configuration_type:
-  #   description:
-  #     - 
-  #   type: str
-  #   required: false
-  # ipv6_configuration_type:
-  #   description:
-  #     - 
-  #   type: str
-  #   required: false
+  ipv4_configuration_type:
+    description:
+      - 
+    type: str
+    required: false
+  ipv6_configuration_type:
+    description:
+      - 
+    type: str
+    required: false
   ipv4_address:
     description:
       - 
@@ -132,6 +133,12 @@ options:
       - If the destination is directly reachable via an interface requiring no intermediary system to act as a gateway, you can select this option which allows dynamic gateways to be created without direct target addresses. Some tunnel types support this.
     type: bool
     required: false
+  state:
+    description:
+      - 
+    type: str
+    choices: ['present', 'absent']
+    required: false
 '''
 
 EXAMPLES = r'''
@@ -191,12 +198,14 @@ def main():
 
     module_args = {
         "identifier": {"type": "str", "required": True},
-        # "device": {"type": "str", "required": True},
+        "device": {"type": "str", "required": True},
         "description": {"type": "str", "required": False},
         "enabled": {"type": "bool", "required": False, "default": False},
         "locked": {"type": "bool", "required": False, "default": False},
         "block_private": {"type": "bool", "required": False, "default": False},
         "block_bogons": {"type": "bool", "required": False, "default": False},
+        "ipv4_configuration_type": {"type": "str", "required": False, "choices": ["none", "static", "dhcp", "pppoe"], "default": "none"},
+        "ipv6_configuration_type": {"type": "str", "required": False, "choices": ["none", "static", "dhcp6", "slaac", "track6"], "default": "none"},
         "ipv4_address": {"type": "str", "required": False},
         "ipv4_subnet": {"type": "int", "required": False},
         "ipv4_gateway": {"type": "str", "required": False},
@@ -210,6 +219,7 @@ def main():
         "mtu": {"type": "int", "required": False},
         "mss": {"type": "int", "required": False},
         "dynamic_gateway": {"type": "bool", "required": False, "default": False},
+        "state": {"type": "str", "required": False, "choices": ["present", "absent"], "default": "present"},
     }
 
     module = AnsibleModule(
@@ -228,29 +238,31 @@ def main():
         "diff": None,
     }
 
-    interface_setting = InterfaceConfiguration.from_ansible_module_params(module.params)
+    interface_configuration = InterfaceConfiguration.from_ansible_module_params(module.params)
 
     with InterfacesSet() as interfaces_set:
-
         try:
-            interfaces_set.update(interface_setting)
+            existing_interface = interfaces_set.find(identifier=module.params["identifier"])
 
-        except (
-            OPNSenseDeviceNotFoundError
-        ) as opnsense_device_not_found_error_error_message:
-            module.fail_json(msg=str(opnsense_device_not_found_error_error_message))
+            if module.params["state"] == "absent":
+                if existing_interface:
+                    interfaces_set.remove(existing_interface)
+                    result["changed"] = True
+                else:
+                    result["changed"] = False
+            else:
+                if existing_interface:
+                    interfaces_set.update(interface_configuration)
+                else:
+                    interfaces_set.add(interface_configuration)
+                result["changed"] = interfaces_set.changed
 
-        except (
-            OPNSenseDeviceAlreadyAssignedError
-        ) as opnsense_device_already_assigned_error_message:
-            module.fail_json(msg=str(opnsense_device_already_assigned_error_message))
-
-        except OPNSenseGetInterfacesError as opnsense_get_interfaces_error_message:
-            module.fail_json(msg=str(opnsense_get_interfaces_error_message))
-
-        if interfaces_set.changed:
-            result["diff"] = interfaces_set.diff
-            result["changed"] = True
+        except OPNSenseDeviceNotFoundError as e:
+            module.fail_json(msg=str(e))
+        except OPNSenseDeviceAlreadyAssignedError as e:
+            module.fail_json(msg=str(e))
+        except OPNSenseGetInterfacesError as e:
+            module.fail_json(msg=str(e))
 
         if interfaces_set.changed and not module.check_mode:
             interfaces_set.save()
@@ -263,7 +275,6 @@ def main():
                         details=cmd_result,
                     )
 
-        # Return results
         module.exit_json(**result)
 
 
