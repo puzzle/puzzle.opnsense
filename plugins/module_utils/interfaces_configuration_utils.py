@@ -59,8 +59,6 @@ class InterfaceConfiguration:
 
     identifier: str
     device: str
-    descr: Optional[str] = None
-    enabled: Optional[bool] = False
 
     # since only the above attributes are needed, the rest is handled here
     extra_attrs: Dict[str, Any] = field(default_factory=dict, repr=False)
@@ -69,56 +67,53 @@ class InterfaceConfiguration:
         self,
         identifier: str,
         device: str,
-        descr: Optional[str] = None,
-        enabled: Optional[bool] = False,
+        extra_attrs: Dict[str, Any] = None,
         **kwargs,
     ):
         self.identifier = identifier
         self.device = device
-        if descr is not None:
-            self.descr = descr
-        self.enabled = enabled
-        self.extra_attrs = kwargs
+        self.extra_attrs = extra_attrs or {}
 
     @staticmethod
     def from_xml(element: Element) -> "InterfaceConfiguration":
         """
-        Converts XML element to InterfaceConfiguration instance.
+        Converts XML element to a dictionary representing the interface configuration.
 
         Args:
-            element (Element): XML element representing an interface.
+            element (Element): XML element representing interfaces.
 
         Returns:
-            InterfaceConfiguration: An instance with attributes derived from the XML.
-
-        Processes XML to dict, assigning 'identifier' and 'device' from keys and
-        'if' element. Assumes single key processing.
+            InterfaceConfiguration: Instance of InterfaceConfiguration.
         """
-
-        interface_configuration_dict: dict = xml_utils.etree_to_dict(element)
+        try:
+            interface_configuration_dict: dict = xml_utils.etree_to_dict(element)
+        except Element.ParseError as e:
+            raise ValueError(f"Failed to parse XML: {e}")
 
         # Extract identifier and device
         identifier = list(interface_configuration_dict.keys())[0]
         interface_data = interface_configuration_dict[identifier]
         device = interface_data.pop("if", None)
+        extra_attrs = {}
 
-        # Translate boolean values
+        # Translate boolean values and collect extra attributes
         for key, value in interface_data.items():
             if value == "1":
-                interface_data[key] = True
+                extra_attrs[key] = True
             elif value == "0":
-                interface_data[key] = False
+                extra_attrs[key] = False
+            else:
+                extra_attrs[key] = value
 
         # Create the InterfaceConfiguration instance
         interface_configuration = InterfaceConfiguration(
             identifier=identifier,
             device=device,
-            descr=interface_data.pop("descr", None),
-            enabled=interface_data.pop("enable", False),
-            **interface_data  # Include all other attributes
+            extra_attrs=extra_attrs  # Include all other attributes
         )
 
         return interface_configuration
+
 
     def to_etree(self) -> Element:
         """
@@ -133,85 +128,24 @@ class InterfaceConfiguration:
         boolean values translate to '1' for true.
         """
 
+        # Ensure the instance attributes are accessed correctly
         interface_configuration_dict: dict = asdict(self)
-
-        exceptions = ["dhcphostname", "mtu", "subnet", "gateway", "media", "mediaopt"]
 
         # Create the main element
         main_element = Element(interface_configuration_dict["identifier"])
-
-        # Special handling for 'device' and 'descr'
         SubElement(main_element, "if").text = interface_configuration_dict.get("device")
-        SubElement(main_element, "descr").text = interface_configuration_dict.get("descr")
-
-        # Add 'enabled' attribute
-        if interface_configuration_dict.get("enabled") == True:
-            SubElement(main_element, "enable").text = "1"
-
-        # handle special cases
-        if getattr(self, "alias-subnet", None):
-            interface_configuration_dict["extra_attrs"]["alias-subnet"] = getattr(
-                self, "alias-subnet", None
-            )
-
-            interface_configuration_dict["extra_attrs"]["alias-address"] = getattr(
-                self, "alias-address", None
-            )
-
-        if getattr(self, "dhcp6-ia-pd-len", None):
-            interface_configuration_dict["extra_attrs"]["dhcp6-ia-pd-len"] = getattr(
-                self, "dhcp6-ia-pd-len", None
-            )
-
-        if getattr(self, "track6-interface", None):
-            interface_configuration_dict["extra_attrs"]["track6-interface"] = getattr(
-                self, "track6-interface", None
-            )
-
-        if getattr(self, "track6-prefix-id", None):
-            interface_configuration_dict["extra_attrs"]["track6-prefix-id"] = getattr(
-                self, "track6-prefix-id", None
-            )
 
         # Serialize extra attributes
         for key, value in interface_configuration_dict["extra_attrs"].items():
-            if (
-                key
-                in [
-                    "spoofmac",
-                    "alias-address",
-                    "alias-subnet",
-                    "dhcp6-ia-pd-len",
-                    "adv_dhcp_pt_timeout",
-                    "adv_dhcp_pt_retry",
-                    "adv_dhcp_pt_select_timeout",
-                    "adv_dhcp_pt_reboot",
-                    "adv_dhcp_pt_backoff_cutoff",
-                    "adv_dhcp_pt_initial_interval",
-                    "adv_dhcp_pt_values",
-                    "adv_dhcp_send_options",
-                    "adv_dhcp_request_options",
-                    "adv_dhcp_required_options",
-                    "adv_dhcp_option_modifiers",
-                    "adv_dhcp_config_advanced",
-                    "adv_dhcp_config_file_override",
-                    "adv_dhcp_config_file_override_path",
-                    "dhcprejectfrom",
-                    "track6-interface",
-                    "track6-prefix-id",
-                ]
-                and value is None
-            ):
-                sub_element = SubElement(main_element, key)
-            if value is None and key not in exceptions:
-                continue
+            # if key in ["identifier", "device"]:
+            #     continue  # Skip these as they are already handled
             if value is True:
-                sub_element = SubElement(main_element, key)
-                sub_element.text = "1"
+                SubElement(main_element, key).text = "1"
+            elif value is False:
+                continue
+                # SubElement(main_element, key).text = "0"
             elif value is not None:
-                sub_element = SubElement(main_element, key)
-                sub_element.text = str(value)
-            
+                SubElement(main_element, key).text = value
 
         return main_element
 
@@ -230,33 +164,29 @@ class InterfaceConfiguration:
         instantiate the class, focusing on 'identifier', 'device', and 'descr'.
         """
 
-        interface_configuration_dict = {
-            "identifier": params.get("identifier"),
-            "device": params.get("device"),
-            "descr": params.get("description"),
-            "enabled": params.get("enabled"),
-            "extra_attrs": {
-                key: value
-                for key, value in params.items()
-                if value is not None
-                and key
-                not in [
-                    "identifier",
-                    "device",
-                    "description",
-                    "enabled",
-                    "state",
-                ]
-            },
-        }
+        # interface_configuration_dict = {
+        #     "identifier": params.get("identifier"),
+        #     "device": params.get("device"),
+        # }
+        device = params.get("device")
+        identifier = params.get("identifier")
+        # interface_configuration_dict = {
+        #     key: value
+        #     for key, value in interface_configuration_dict.items()
+        #     if value is not None
+        # }
+        extra_attrs = {}
+        for key, value in params.items():
+            if value is not None and key not in [
+                "identifier",
+                "device",
+                "ipv4_configuration_type",
+                "ipv6_configuration_type",
+                "state",
+            ]:
+                extra_attrs[key] = value
 
-        interface_configuration_dict = {
-            key: value
-            for key, value in interface_configuration_dict.items()
-            if value is not None
-        }
-
-        return cls(**interface_configuration_dict)
+        return cls(identifier,device,extra_attrs)
 
 
 class InterfacesSet(OPNsenseModuleConfig):
@@ -323,8 +253,6 @@ class InterfacesSet(OPNsenseModuleConfig):
         for current, saved in zip(current_interfaces, saved_interfaces):
             if current.identifier != saved.identifier or \
             current.device != saved.device or \
-            current.descr != saved.descr or \
-            current.enabled != saved.enabled or \
             current.extra_attrs != saved.extra_attrs:
                 return True
 
@@ -436,8 +364,6 @@ class InterfacesSet(OPNsenseModuleConfig):
             interface_to_create: InterfaceConfiguration = InterfaceConfiguration(
                 identifier=interface_configuration.identifier,
                 device=interface_configuration.device,
-                descr=interface_configuration.descr,
-                enabled=interface_configuration.enabled,
                 extra_attrs=interface_configuration.extra_attrs,
             )
 

@@ -442,18 +442,18 @@ options:
     type: str
     required: False
     aliases: ["mac_address"]
-  subnet:
-    description:
-      - Subnet.
-    type: int
-    required: False
-    aliases: ["subnet"]
-  subnetv6:
-    description:
-      - IPv6 subnet.
-    type: int
-    required: False
-    aliases: ["subnet_v6"]
+  # subnet:
+  #   description:
+  #     - Subnet.
+  #   type: int
+  #   required: False
+  #   aliases: ["subnet"]
+  # subnetv6:
+  #   description:
+  #     - IPv6 subnet.
+  #   type: int
+  #   required: False
+  #   aliases: ["subnet_v6"]
   track6_interface:
     description:
       - Track6 interface.
@@ -1059,7 +1059,7 @@ def main():
         argument_spec=module_args,
         supports_check_mode=True,
         required_one_of=[
-            ["identifier", "device", "descr"],
+            ["identifier", "device"],
         ],
     )
 
@@ -1071,21 +1071,21 @@ def main():
         "diff": None,
     }
 
-    if module.params["ipv4_configuration_type"] == "static" and module.params["ipv4_address"] is not None:
+    if module.params["ipv4_configuration_type"] == "static" and module.params["ipaddr"] is not None:
         try:
-            ip, subnet = module.params["ipv4_address"].split("/")
+            ip, subnet = module.params["ipaddr"].split("/")
             module.params["ipaddr"] = ip
-            module.params["subnet"] = subnet
+            module.params["subnet"] = str(subnet)
         except ValueError:
             module.fail_json(msg="Invalid IPv4 address format")
     else:
         module.params["ipaddr"] = module.params["ipv4_configuration_type"]
 
-    if module.params["ipv6_configuration_type"] == "static" and module.params["ipv6_address"] is not None:
+    if module.params["ipv6_configuration_type"] == "static" and module.params["ipaddr6"] is not None:
         try:
-            ip6, subnet6 = module.params["ipv6_address"].split("/")
+            ip6, subnet6 = module.params["ipaddr6"].split("/")
             module.params["ipaddr6"] = ip6
-            module.params["subnet6"] = subnet6
+            module.params["subnet6"] = str(subnet6)
         except ValueError:
             module.fail_json(msg="Invalid IPv6 address format")
     else:
