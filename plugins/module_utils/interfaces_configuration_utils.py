@@ -406,15 +406,14 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         if not interface_to_update:
             raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.")
-
-        if interface_configuration.device in free_interfaces or interface_configuration.device == interface_to_update.device:
-            if interface_configuration.identifier in identifier_list_set:
-                # Merge extra_attrs
-                interface_configuration.extra_attrs.update(interface_to_update.extra_attrs)
-                # Update the existing interface
-                interface_to_update.__dict__.update(interface_configuration.__dict__)
-            else:
-                raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first")
+        if interface_configuration.device == interface_configuration.device in free_interfaces or (interface_to_update.device or interface_configuration.identifier == interface_to_update.identifier):
+            # Merge extra_attrs
+            interface_to_update.extra_attrs.update(interface_configuration.extra_attrs)
+            
+            # Update only changed attributes
+            for attr, value in interface_configuration.__dict__.items():
+                if value != getattr(interface_to_update, attr):
+                    setattr(interface_to_update, attr, value)
         else:
             raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first")
 

@@ -386,17 +386,29 @@ options:
       - Opnsense Device.
     type: str
     required: False
+  ipv4_configuration_type:
+    description:
+      - IPv4 configuration type. Options are none, static, dhcp, pppoe.
+    type: str
+    required: False
+    choices: ["none", "static", "dhcp", "pppoe"]
   ipaddr:
     description:
       - IP address.
     type: str
-    required: False
+    when: "ipv4_configuration_type == 'static'"
     aliases: ["ip_address"]
+  ipv6_configuration_type:
+    description:
+      - IPv6 configuration type. Options are none, static, dhcp6, slaac, track6.
+    type: str
+    required: False
+    choices: ["none", "static", "dhcp6", "slaac", "track6"]
   ipaddrv6:
     description:
       - IPv6 address.
     type: str
-    required: False
+    when: "ipv6_configuration_type == 'static'"
     aliases: ["ip_address_v6"]
   media:
     description:
@@ -442,18 +454,6 @@ options:
     type: str
     required: False
     aliases: ["mac_address"]
-  # subnet:
-  #   description:
-  #     - Subnet.
-  #   type: int
-  #   required: False
-  #   aliases: ["subnet"]
-  # subnetv6:
-  #   description:
-  #     - IPv6 subnet.
-  #   type: int
-  #   required: False
-  #   aliases: ["subnet_v6"]
   track6_interface:
     description:
       - Track6 interface.
@@ -809,14 +809,12 @@ def main():
       "blockprivate": {
           "type": "bool",
           "required": False, 
-          "default": False,
           "description": "Block traffic claiming to come from private addresses. On WAN interfaces, this kind of traffic should not happen legitimately.",
           "aliases": ["block_private"]
         },
         "blockbogons": {
             "type": "bool",
             "required": False,
-            "default": False,
             "description": "Block traffic claiming to come from reserved IP addresses. On WAN interfaces, this kind of traffic should not happen legitimately.",
             "aliases": ["block_bogons"]
         },
@@ -895,7 +893,6 @@ def main():
       "enable": {
           "type": "bool",
           "required": False,
-          "default": False,
           "aliases": ["enabled"]
       },
       "gateway": {
@@ -937,17 +934,9 @@ def main():
       "ipaddr": {
           "type": "str",
           "required": False,
-          "default": "none",
           "when": "ipv4_configuration_type == 'static'",
           "aliases": ["ipv4_address"]
       },
-      # "subnet": {
-      #     "type": "int",
-      #     "required": False,
-      #     "default": "none",
-      #     "when": "ipv4_configuration_type == 'static'",
-      #     "aliases": ["ipv4_subnet"]
-      # },
       "ipv6_configuration_type": {
           "type": "str", "required": False, 
           "choices": ["none", "static", "dhcp6", "slaac", "track6"],
@@ -956,21 +945,12 @@ def main():
       "ipaddr6": {
           "type": "str",
           "required": False,
-          "default": "none",
           "when": "ipv6_configuration_type == 'static'",
           "aliases": ["ipv6_address"]
       },
-      # "subnet6": {
-      #     "type": "int",
-      #     "required": False,
-      #     "default": "none",
-      #     "when": "ipv6_configuration_type == 'static'",
-      #     "aliases": ["ipv6_subnet"]
-      # },
       "lock": {
           "type": "bool",
           "required": False,
-          "default": False,
           "aliases": ["locked"]
       },
       "media": {
