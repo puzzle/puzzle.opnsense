@@ -361,7 +361,6 @@ options:
       - Gateway.
     type: str
     required: False
-    when: "ipv4_configuration_type == 'static'"
     aliases: ["ipv4_gateway"]
   gateway_6rd:
     description:
@@ -374,41 +373,27 @@ options:
       - IPv6 gateway.
     type: str
     required: False
-    when: "ipv6_configuration_type == 'static'"
     aliases: ["ipv6_gateway"]
   hw_settings_overwrite:
     description:
       - Overwrite hardware settings.
     type: bool
     required: False
-  device:
+  if:
     description:
       - Opnsense Device.
     type: str
     required: False
-  ipv4_configuration_type:
-    description:
-      - IPv4 configuration type. Options are none, static, dhcp, pppoe.
-    type: str
-    required: False
-    choices: ["none", "static", "dhcp", "pppoe"]
+    aliases: ["device"]
   ipaddr:
     description:
       - IP address.
     type: str
-    when: "ipv4_configuration_type == 'static'"
     aliases: ["ip_address"]
-  ipv6_configuration_type:
-    description:
-      - IPv6 configuration type. Options are none, static, dhcp6, slaac, track6.
-    type: str
-    required: False
-    choices: ["none", "static", "dhcp6", "slaac", "track6"]
   ipaddrv6:
     description:
       - IPv6 address.
     type: str
-    when: "ipv6_configuration_type == 'static'"
     aliases: ["ip_address_v6"]
   media:
     description:
@@ -472,6 +457,19 @@ options:
     type: str
     required: False
     aliases: ["track6_ifid"]
+  subnet:
+    description:
+      - IPv4 Subnet mask in CIDR notation.
+    type: int
+    required: False
+    when: "ipaddr"
+    required: False
+  subnet6:
+    description:
+      - IPv6 Subnet mask in CIDR notation.
+    type: int
+    when: "ipaddr6"
+    required: False
   state:
     description:
       - State of the interface configuration.
@@ -528,6 +526,7 @@ opnsense_configure_output:
 '''
 # fmt: on
 
+import ipaddress
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
     InterfacesSet,
@@ -536,6 +535,32 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configu
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
 )
+
+def validate_ipaddr_and_subnet(ipaddr, subnet):
+    choices = ["none", "dhcp", "pppoe"]
+    if ipaddr in choices:
+        return ipaddr, None
+    try:
+        ip = ipaddress.ip_address(ipaddr)
+        if subnet is None:
+            raise ValueError("Subnet must be provided when ipaddr is an IP address.")
+        ip_network = ipaddress.ip_network(f"{ipaddr}/{subnet}", strict=False)
+        return ipaddr, str(subnet)
+    except ValueError as e:
+        raise ValueError(f"Invalid value for ipaddr or subnet: {e}")
+
+def validate_ipaddr6_and_subnet6(ipaddr6, subnet6):
+    choices = ["none", "dhcp", "pppoe"]
+    if ipaddr6 in choices:
+        return ipaddr6, None
+    try:
+        ip6 = ipaddress.ip_address(ipaddr6)
+        if subnet6 is None:
+            raise ValueError("Subnet must be provided when ipaddr6 is an IP address.")
+        ip_network6 = ipaddress.ip_network(f"{ipaddr6}/{subnet6}", strict=False)
+        return ipaddr6, str(subnet6)
+    except ValueError as e:
+        raise ValueError(f"Invalid value for ipaddr6 or subnet6: {e}")
 
 
 def main():
@@ -899,8 +924,6 @@ def main():
           "type": "str",
           "required": False,
           "description": "Gateway.",
-          "when": "ipv4_configuration_type == 'static'",
-          "aliases": ["ipv4_gateway"]
       },
       "gateway_6rd": {
           "type": "str",
@@ -912,7 +935,6 @@ def main():
           "type": "str",
           "required": False,
           "description": "IPv6 gateway.",
-          "when": "ipv6_configuration_type == 'static'",
           "aliases": ["ipv6_gateway"]
       },
       "hw_settings_overwrite": {
@@ -920,32 +942,20 @@ def main():
           "required": False,
           "description": "Overwrite hardware settings.",
       },
-      "device": {
+      "if": {
           "type": "str",
           "required": False,
           "description": "Opnsense Device",
-      },
-      "ipv4_configuration_type": {
-          "type": "str",
-          "required": False,
-          "choices": ["none", "static", "dhcp", "pppoe"],
-          "default": "none"
+          "aliases": ["device"]
       },
       "ipaddr": {
           "type": "str",
           "required": False,
-          "when": "ipv4_configuration_type == 'static'",
           "aliases": ["ipv4_address"]
-      },
-      "ipv6_configuration_type": {
-          "type": "str", "required": False, 
-          "choices": ["none", "static", "dhcp6", "slaac", "track6"],
-          "default": "none"
       },
       "ipaddr6": {
           "type": "str",
           "required": False,
-          "when": "ipv6_configuration_type == 'static'",
           "aliases": ["ipv6_address"]
       },
       "lock": {
@@ -997,18 +1007,6 @@ def main():
           "description": "Spoof MAC address.",
           "aliases": ["mac_address"]
       },
-      "ipv4_address": {
-          "type": "int",
-          "required": False,
-          "description": "IPv4 Address in CIDR notation.",
-          "when": "ipv4_configuration_type == 'static'",
-      },
-      "ipv6_address": {
-          "type": "int",
-          "required": False,
-          "description": "IPv6 Address in CIDR notation.",
-          "when": "ipv6_configuration_type == 'static'",
-      },
       "track6_interface": {
           "type": "str",
           "required": False,
@@ -1027,6 +1025,18 @@ def main():
           "description": "Track6 IFID.",
           "aliases": ["track6_ifid"]
       },
+      "subnet": {
+          "type": "int",
+          "required": False,
+          "description": "IPv$ Subnet mask in CIDR notation.",
+          "when": "ipaddr",
+      },
+      "subnet6": {
+          "type": "int",
+          "required": False,
+          "description": "IPv6 Subnet mask in CIDR notation.",
+          "when": "ipaddr6",
+      },
       "state": {
           "type": "str",
           "required": False,
@@ -1039,7 +1049,7 @@ def main():
         argument_spec=module_args,
         supports_check_mode=True,
         required_one_of=[
-            ["identifier", "device"],
+            ["identifier"],
         ],
     )
 
@@ -1050,26 +1060,18 @@ def main():
         "invocation": module.params,
         "diff": None,
     }
-
-    if module.params["ipv4_configuration_type"] == "static" and module.params["ipaddr"] is not None:
-        try:
-            ip, subnet = module.params["ipaddr"].split("/")
-            module.params["ipaddr"] = ip
-            module.params["subnet"] = str(subnet)
-        except ValueError:
-            module.fail_json(msg="Invalid IPv4 address format")
-    else:
-        module.params["ipaddr"] = module.params["ipv4_configuration_type"]
-
-    if module.params["ipv6_configuration_type"] == "static" and module.params["ipaddr6"] is not None:
-        try:
-            ip6, subnet6 = module.params["ipaddr6"].split("/")
-            module.params["ipaddr6"] = ip6
-            module.params["subnet6"] = str(subnet6)
-        except ValueError:
-            module.fail_json(msg="Invalid IPv6 address format")
-    else:
-        module.params["ipaddr6"] = module.params["ipv6_configuration_type"]
+    if module.params["ipaddr"]:
+      # Validate ipaddr and subnet parameters
+      try:
+          module.params["ipaddr"], module.params["subnet"] = validate_ipaddr_and_subnet(module.params["ipaddr"], module.params["subnet"])
+      except ValueError as e:
+          module.fail_json(msg=str(e))
+    if module.params["ipaddr6"]:
+    # Validate ipaddr6 and subnet6 parameters
+      try:
+          module.params["ipaddr6"], module.params["subnet6"] = validate_ipaddr6_and_subnet6(module.params["ipaddr6"], module.params["subnet6"])
+      except ValueError as e:
+          module.fail_json(msg=str(e))
 
     interface_configuration = InterfaceConfiguration.from_ansible_module_params(module.params)
 
