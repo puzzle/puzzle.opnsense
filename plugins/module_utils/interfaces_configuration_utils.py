@@ -138,11 +138,9 @@ class InterfaceConfiguration:
         for key, value in interface_configuration_dict["extra_attrs"].items():
             if key in ["identifier", "if"]:
                 continue  # Skip these as they are already handled
-            if value is True:
-                SubElement(main_element, key).text = "1"
-            elif value is False:
-                continue
-                # SubElement(main_element, key).text = "0"
+            if isinstance(value, bool):
+                if value:  # Only add if the value is True
+                    SubElement(main_element, key).text = "1"
             elif value is not None:
                 SubElement(main_element, key).text = value
         return main_element
@@ -162,18 +160,13 @@ class InterfaceConfiguration:
         instantiate the class, focusing on 'identifier', 'device', and 'descr'.
         """
         identifier = params.get("identifier")
-        # interface_configuration_dict = {
-        #     key: value
-        #     for key, value in interface_configuration_dict.items()
-        #     if value is not None
-        # }
         extra_attrs = {}
         for key, value in params.items():
-            if key not in [
-                "identifier",
-                "state",
-            ]:
-                extra_attrs[key] = value
+            if key not in ["identifier", "state"]:
+                if isinstance(value, bool):
+                    extra_attrs[key] = value
+                elif value is not None:
+                    extra_attrs[key] = str(value)
 
         return cls(identifier,extra_attrs)
 
@@ -378,7 +371,16 @@ class InterfacesSet(OPNsenseModuleConfig):
             ]
         else:
             # Add new interface configuration
-            self._interfaces_configuration.append(interface_configuration)
+            interface_to_add = InterfaceConfiguration(
+                identifier=interface_configuration.identifier,
+            )
+            for attr, value in interface_configuration.extra_attrs.items():
+                # ensure that null and False values are not added
+                if value:
+                    print(f"Adding {attr} upon creation with value {value}")
+                    interface_to_add.extra_attrs.update({attr: value})
+                    
+            self._interfaces_configuration.append(interface_to_add)
 
     def remove(self, interface_configuration: InterfaceConfiguration) -> None:
         """

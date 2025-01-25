@@ -277,13 +277,11 @@ options:
       - Alias address.
     type: str
     required: False
-    aliases: ["alias_address"]
   alias_subnet:
     description:
       - Alias subnet.
     type: int
     required: False
-    aliases: ["alias_subnet"]
   descr:
     description:
       - Description of the interface.
@@ -295,19 +293,16 @@ options:
       - Length of DHCPv6 IA_PD.
     type: int
     required: False
-    aliases: ["dhcp6_ia_pd_len"]
   dhcp6_prefix_id:
     description:
       - ID for DHCPv6 prefix.
     type: int
     required: False
-    aliases: ["dhcp6_prefix_id"]
   dhcp6_ifid:
     description:
       - IFID for DHCPv6.
     type: str
     required: False
-    aliases: ["dhcp6_ifid"]
   dhcp6vlanprio:
     description:
       - VLAN priority for DHCPv6.
@@ -367,7 +362,6 @@ options:
       - 6RD gateway.
     type: str
     required: False
-    aliases: ["gateway_6rd"]
   gatewayv6:
     description:
       - IPv6 gateway.
@@ -389,12 +383,12 @@ options:
     description:
       - IP address.
     type: str
-    aliases: ["ip_address"]
+    aliases: ["ipv4_address"]
   ipaddrv6:
     description:
       - IPv6 address.
     type: str
-    aliases: ["ip_address_v6"]
+    aliases: ["ipv6_address"]
   media:
     description:
       - Media type.
@@ -432,7 +426,6 @@ options:
       - IPv4 prefix length for 6RD.
     type: int
     required: False
-    aliases: ["prefix_6rd_v4plen"]
   spoofmac:
     description:
       - Spoof MAC address.
@@ -444,19 +437,16 @@ options:
       - Track6 interface.
     type: str
     required: False
-    aliases: ["track6_interface"]
   track6_prefix_id:
     description:
       - Track6 prefix ID.
     type: int
     required: False
-    aliases: ["track6_prefix_id"]
   track6_ifid:
     description:
       - Track6 IFID.
     type: str
     required: False
-    aliases: ["track6_ifid"]
   subnet:
     description:
       - IPv4 Subnet mask in CIDR notation.
@@ -464,12 +454,14 @@ options:
     required: False
     when: "ipaddr"
     required: False
+    aliases: ["ipv4_subnet"]
   subnet6:
     description:
       - IPv6 Subnet mask in CIDR notation.
     type: int
     when: "ipaddr6"
     required: False
+    aliases: ["ipv6_subnet"]
   state:
     description:
       - State of the interface configuration.
@@ -545,7 +537,7 @@ def validate_ipaddr_and_subnet(ipaddr, subnet):
         if subnet is None:
             raise ValueError("Subnet must be provided when ipaddr is an IP address.")
         ip_network = ipaddress.ip_network(f"{ipaddr}/{subnet}", strict=False)
-        return ipaddr, str(subnet)
+        return ipaddr, subnet
     except ValueError as e:
         raise ValueError(f"Invalid value for ipaddr or subnet: {e}")
 
@@ -558,10 +550,27 @@ def validate_ipaddr6_and_subnet6(ipaddr6, subnet6):
         if subnet6 is None:
             raise ValueError("Subnet must be provided when ipaddr6 is an IP address.")
         ip_network6 = ipaddress.ip_network(f"{ipaddr6}/{subnet6}", strict=False)
-        return ipaddr6, str(subnet6)
+        return ipaddr6, subnet6
     except ValueError as e:
         raise ValueError(f"Invalid value for ipaddr6 or subnet6: {e}")
 
+# Function to convert aliases to base arguments
+def convert_aliases(args, alias_map):
+    """
+    Converts any module arguments that are aliases into the base argument.
+
+    Args:
+        args (dict): The dictionary of arguments to convert.
+        alias_map (dict): The dictionary mapping aliases to base arguments.
+
+    Returns:
+        dict: The dictionary with aliases converted to base arguments.
+    """
+    converted_args = {}
+    for key, value in args.items():
+        base_key = alias_map.get(key, key)
+        converted_args[base_key] = value
+    return converted_args
 
 def main():
     """
@@ -924,12 +933,12 @@ def main():
           "type": "str",
           "required": False,
           "description": "Gateway.",
+          "aliases": ["ipv4_gateway"]
       },
       "gateway_6rd": {
           "type": "str",
           "required": False,
           "description": "6RD gateway.",
-          "aliases": ["gateway_6rd"]
       },
       "gatewayv6": {
           "type": "str",
@@ -967,7 +976,6 @@ def main():
           "type": "str",
           "required": False,
           "description": "Media type.",
-          "aliases": ["media"]
       },
       "mediaopt": {
           "type": "str",
@@ -999,7 +1007,6 @@ def main():
           "type": "int",
           "required": False,
           "description": "IPv4 prefix length for 6RD.",
-          "aliases": ["prefix_6rd_v4plen"]
       },
       "spoofmac": {
           "type": "str",
@@ -1011,31 +1018,30 @@ def main():
           "type": "str",
           "required": False,
           "description": "Track6 interface.",
-          "aliases": ["track6_interface"]
       },
       "track6_prefix_id": {
           "type": "int",
           "required": False,
           "description": "Track6 prefix ID.",
-          "aliases": ["track6_prefix_id"]
       },
       "track6_ifid": {
           "type": "str",
           "required": False,
           "description": "Track6 IFID.",
-          "aliases": ["track6_ifid"]
       },
       "subnet": {
           "type": "int",
           "required": False,
           "description": "IPv$ Subnet mask in CIDR notation.",
           "when": "ipaddr",
+          "aliases": ["ipv4_subnet"]
       },
       "subnet6": {
           "type": "int",
           "required": False,
           "description": "IPv6 Subnet mask in CIDR notation.",
           "when": "ipaddr6",
+          "aliases": ["ipv6_subnet"]
       },
       "state": {
           "type": "str",
@@ -1044,42 +1050,36 @@ def main():
           "default": "present"
       },
     }
+ 
+     # Create the alias map
+    ALIAS_MAP = {}
+    for key, value in module_args.items():
+        if "aliases" in value:
+            for alias in value["aliases"]:
+                ALIAS_MAP[alias] = key
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-        required_one_of=[
-            ["identifier"],
-        ],
-    )
+    # Initialize the Ansible module
+    module = AnsibleModule(argument_spec=module_args)
 
-    # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
-    # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block
-    result = {
-        "changed": False,
-        "invocation": module.params,
-        "diff": None,
-    }
-    if module.params["ipaddr"]:
-      # Validate ipaddr and subnet parameters
-      try:
-          module.params["ipaddr"], module.params["subnet"] = validate_ipaddr_and_subnet(module.params["ipaddr"], module.params["subnet"])
-      except ValueError as e:
-          module.fail_json(msg=str(e))
-    if module.params["ipaddr6"]:
-    # Validate ipaddr6 and subnet6 parameters
-      try:
-          module.params["ipaddr6"], module.params["subnet6"] = validate_ipaddr6_and_subnet6(module.params["ipaddr6"], module.params["subnet6"])
-      except ValueError as e:
-          module.fail_json(msg=str(e))
+    # Convert aliases to base arguments
+    params = convert_aliases(module.params, ALIAS_MAP)
 
-    interface_configuration = InterfaceConfiguration.from_ansible_module_params(module.params)
+    # Process the converted arguments
+    result = {}
+    if params.get("ipaddr6"):
+        # Validate ipaddr6 and subnet6 parameters
+        try:
+            params["ipaddr6"], params["subnet6"] = validate_ipaddr6_and_subnet6(params["ipaddr6"], params["subnet6"])
+        except ValueError as e:
+            module.fail_json(msg=str(e))
 
+    interface_configuration = InterfaceConfiguration.from_ansible_module_params(params)
+    print(interface_configuration)
     with InterfacesSet() as interfaces_set:
         try:
-            existing_interface = interfaces_set.find(identifier=module.params["identifier"])
+            existing_interface = interfaces_set.find(identifier=params["identifier"])
 
-            if module.params["state"] == "absent":
+            if params["state"] == "absent":
                 if existing_interface:
                     interfaces_set.remove(existing_interface)
                     result["changed"] = True
@@ -1108,7 +1108,6 @@ def main():
                     )
 
         module.exit_json(**result)
-
 
 if __name__ == "__main__":
     main()
