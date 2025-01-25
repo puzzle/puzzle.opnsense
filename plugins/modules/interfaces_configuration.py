@@ -1084,10 +1084,7 @@ def main():
                 else:
                     result["changed"] = False
             else:
-                if existing_interface:
-                    interfaces_set.update(interface_configuration)
-                else:
-                    interfaces_set.add(interface_configuration)
+                interfaces_set.add_or_update(interface_configuration)
                 result["changed"] = interfaces_set.changed
 
         except OPNSenseDeviceNotFoundError as e:
