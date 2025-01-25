@@ -132,12 +132,12 @@ class InterfaceConfiguration:
 
         # Create the main element
         main_element = Element(interface_configuration_dict["identifier"])
-        SubElement(main_element, "if").text = interface_configuration_dict.get("device")
+        SubElement(main_element, "if").text = interface_configuration_dict["extra_attrs"].get("if")
 
         # Serialize extra attributes
         for key, value in interface_configuration_dict["extra_attrs"].items():
-            # if key in ["identifier", "device"]:
-            #     continue  # Skip these as they are already handled
+            if key in ["identifier", "if"]:
+                continue  # Skip these as they are already handled
             if value is True:
                 SubElement(main_element, key).text = "1"
             elif value is False:
@@ -145,7 +145,6 @@ class InterfaceConfiguration:
                 # SubElement(main_element, key).text = "0"
             elif value is not None:
                 SubElement(main_element, key).text = value
-
         return main_element
 
     @classmethod
@@ -162,12 +161,6 @@ class InterfaceConfiguration:
         Filters out None values from the provided parameters and uses them to
         instantiate the class, focusing on 'identifier', 'device', and 'descr'.
         """
-
-        # interface_configuration_dict = {
-        #     "identifier": params.get("identifier"),
-        #     "device": params.get("device"),
-        # }
-        #device = params.get("device")
         identifier = params.get("identifier")
         # interface_configuration_dict = {
         #     key: value
@@ -178,12 +171,11 @@ class InterfaceConfiguration:
         for key, value in params.items():
             if key not in [
                 "identifier",
-                #"device",
                 "state",
             ]:
                 extra_attrs[key] = value
 
-        return cls(identifier,device,extra_attrs)
+        return cls(identifier,extra_attrs)
 
 
 class InterfacesSet(OPNsenseModuleConfig):
@@ -249,7 +241,6 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         for current, saved in zip(current_interfaces, saved_interfaces):
             if current.identifier != saved.identifier or \
-            current.device != saved.device or \
             current.extra_attrs != saved.extra_attrs:
                 return True
 
@@ -328,7 +319,7 @@ class InterfacesSet(OPNsenseModuleConfig):
             OPNSenseDeviceAlreadyAssignedError: If the device is already assigned to another interface.
         """
         device_list_set: set = set(  # pylint: disable=R1718
-            [assignment.device for assignment in self._interfaces_configuration]
+            [assignment.extra_attrs["if"] for assignment in self._interfaces_configuration]
         )
 
         # identifier_list_set: set = set(  # pylint: disable=R1718
@@ -339,7 +330,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         free_interfaces = device_interfaces_set - device_list_set
 
-        if interface_configuration.device not in device_interfaces_set:
+        if interface_configuration.extra_attrs["if"] not in device_interfaces_set:
             raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!")
 
         # Find the corresponding XML element
@@ -365,14 +356,14 @@ class InterfacesSet(OPNsenseModuleConfig):
             print(f"Found interface {interface_to_update.identifier} to update")
             # Get the complete InterfaceConfiguration object from XML
             #interface_to_update = #InterfaceConfiguration.from_xml(interface_element)
-            if interface_to_update.device != interface_configuration.device and interface_configuration.device in free_interfaces:
-                # Update device
-                print(f"Updating device from {interface_to_update.device} to {interface_configuration.device}")
-                interface_to_update.device = interface_configuration.device
+            # if interface_to_update.device != interface_configuration.device and interface_configuration.device in free_interfaces:
+            #     # Update device
+            #     print(f"Updating device from {interface_to_update.device} to {interface_configuration.device}")
+            #     interface_to_update.device = interface_configuration.device
             if interface_configuration.identifier == interface_to_update.identifier:
                 # Merge extra_attrs
                 for attr, value in interface_configuration.extra_attrs.items():
-                    if interface_to_update.extra_attrs.get(attr) != value or not interface_to_update.extra_attrs.get(attr):
+                    if interface_to_update.extra_attrs.get(attr) and value:
                         print(f"Updating {attr} from {interface_to_update.extra_attrs.get(attr)} to {value}")
                         interface_to_update.extra_attrs[attr] = value
                     else:

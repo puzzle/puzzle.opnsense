@@ -490,12 +490,12 @@ EXAMPLES = r'''
 - name: Assign Vagrant interface to device em4
   puzzle.opnsense.interfaces_configuration:
     identifier: "VAGRANT"
-    device: "em4"
+    if: "em4"
 
 - name: Create new assignment
   puzzle.opnsense.interfaces_configuration:
     identifier: "lan"
-    device: "vtnet1"
+    if: "vtnet1"
     description: "lan_interface"
 '''
 
