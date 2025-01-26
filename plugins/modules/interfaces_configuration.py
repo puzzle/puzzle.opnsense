@@ -572,6 +572,23 @@ def convert_aliases(args, alias_map):
         converted_args[base_key] = value
     return converted_args
 
+def filter_explicitly_set_params(params, module_args):
+    """
+    Filters out parameters that are not explicitly set by the user.
+
+    Args:
+        params (dict): The dictionary of parameters to filter.
+        module_args (dict): The dictionary of module arguments with their default values.
+
+    Returns:
+        dict: The dictionary with only explicitly set parameters.
+    """
+    explicitly_set_params = {}
+    for key, value in params.items():
+        if key in module_args and params[key] != module_args[key].get('default', None):
+            explicitly_set_params[key] = value
+    return explicitly_set_params
+
 def main():
     """
     Main function of the interfaces_configuration module
@@ -1063,6 +1080,12 @@ def main():
 
     # Convert aliases to base arguments
     params = convert_aliases(module.params, ALIAS_MAP)
+
+    # Filter out parameters that are not explicitly set by the user
+    params = filter_explicitly_set_params(params, module_args)
+
+    # ensure state is present by default
+    params['state'] = params.get('state', 'present')
 
     # Process the converted arguments
     result = {}
