@@ -455,11 +455,11 @@ options:
     required: False
     when: "ipaddr"
     aliases: ["ipv4_subnet"]
-  subnet6:
+  subnetv6:
     description:
       - IPv6 Subnet mask in CIDR notation.
     type: int
-    when: "ipaddr6"
+    when: "ipaddrv6"
     required: False
     aliases: ["ipv6_subnet"]
   state:
@@ -888,7 +888,7 @@ def main():
         },
         "if": {"type": "str", "required": False, "aliases": ["device"]},
         "ipaddr": {"type": "str", "required": False, "aliases": ["ipv4_address"]},
-        "ipaddr6": {"type": "str", "required": False, "aliases": ["ipv6_address"]},
+        "ipaddrv6": {"type": "str", "required": False, "aliases": ["ipv6_address"]},
         "lock": {"type": "bool", "required": False, "aliases": ["locked"]},
         "media": {
             "type": "str",
@@ -934,10 +934,10 @@ def main():
             "when": "ipaddr",
             "aliases": ["ipv4_subnet"],
         },
-        "subnet6": {
+        "subnetv6": {
             "type": "int",
             "required": False,
-            "when": "ipaddr6",
+            "when": "ipaddrv6",
             "aliases": ["ipv6_subnet"],
         },
         "state": {
@@ -973,16 +973,16 @@ def main():
         # Validate ipaddr and subnet parameters
         try:
             params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(
-                params["ipaddr6"], params["subnet6"]
+                params["ipaddr"], params["subnet"]
             )  # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
 
-    if params.get("ipaddr6"):
+    if params.get("ipaddrv6"):
         # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(
-                params["ipaddr6"], params["subnet6"]
+            params["ipaddrv6"], params["subnetv6"] = validate_ipaddr_and_subnet(
+                params["ipaddrv6"], params["subnetv6"]
             )  # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
