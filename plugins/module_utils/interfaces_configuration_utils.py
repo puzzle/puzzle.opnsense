@@ -301,7 +301,8 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         Raises:
             OPNSenseInterfaceNotFoundError: If the interface configuration is not found.
-            OPNSenseDeviceAlreadyAssignedError: If the device is already assigned to another interface.
+            OPNSenseDeviceAlreadyAssignedError: If the device is already assigned
+                to another interface.
         """
 
         device_interfaces_set: set = set(self.get_interfaces())
@@ -320,10 +321,10 @@ class InterfacesSet(OPNsenseModuleConfig):
                 # Merge extra_attrs
                 for attr, value in interface_configuration.extra_attrs.items():
                     if attr == "if" and value not in device_interfaces_set:
-                        raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!")
+                        raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!") # pylint: disable=C0301
                     interface_to_update.extra_attrs[attr] = value
             else:
-                raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first")
+                raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first") # pylint: disable=C0301
 
             # Update the internal list with the complete updated configuration
             self._interfaces_configuration = [
@@ -340,7 +341,7 @@ class InterfacesSet(OPNsenseModuleConfig):
                 if value:
                     interface_to_add.extra_attrs.update({attr: value})
             if interface_to_add.extra_attrs["if"] not in device_interfaces_set:
-                raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!")
+                raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!") # pylint: disable=C0301
             self._interfaces_configuration.append(interface_to_add)
 
     def remove(self, interface_configuration: InterfaceConfiguration) -> None:
@@ -356,7 +357,7 @@ class InterfacesSet(OPNsenseModuleConfig):
         if interface_configuration in self._interfaces_configuration:
             self._interfaces_configuration.remove(interface_configuration)
         else:
-            raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.")
+            raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.") # pylint: disable=C0301
 
     def find(self, **kwargs) -> Optional[InterfaceConfiguration]:
         """

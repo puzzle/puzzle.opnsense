@@ -7,6 +7,7 @@
 """interfaces_configuration module: Module to configure OPNsense interface settings"""
 
 # pylint: disable=duplicate-code
+# pylint: disable=C0302
 __metaclass__ = type
 
 # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
@@ -519,7 +520,7 @@ opnsense_configure_output:
 
 import ipaddress
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import ( # pylint: disable=C0301
     InterfacesSet,
     InterfaceConfiguration,
     OPNSenseDeviceNotFoundError,
@@ -1019,14 +1020,14 @@ def main():
     if params.get("ipaddr"):
         # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"])
+            params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"]) # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
 
     if params.get("ipaddr6"):
         # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"])
+            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"]) # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
 

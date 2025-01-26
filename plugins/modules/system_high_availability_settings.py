@@ -121,7 +121,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
     UnsupportedVersionForModule,
 )
 
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import ( # pylint: disable=C0301
     OPNSenseGetInterfacesError,
 )
 
