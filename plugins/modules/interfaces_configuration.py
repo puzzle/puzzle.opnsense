@@ -453,7 +453,6 @@ options:
     type: int
     required: False
     when: "ipaddr"
-    required: False
     aliases: ["ipv4_subnet"]
   subnet6:
     description:
@@ -602,343 +601,286 @@ def main():
       "adv_dhcp6_authentication_statement_algorithm": {
           "type": "str",
           "required": False,
-          "description": "Algorithm used for DHCPv6 authentication.",
           "aliases": ["dhcp6_authentication_algorithm"]
       },
       "adv_dhcp6_authentication_statement_authname": {
           "type": "str",
           "required": False,
-          "description": "Authentication name for DHCPv6.",
           "aliases": ["dhcp6_authentication_authname"]
       },
       "adv_dhcp6_authentication_statement_protocol": {
           "type": "str",
           "required": False,
-          "description": "Protocol used for DHCPv6 authentication.",
           "aliases": ["dhcp6_authentication_protocol"]
       },
       "adv_dhcp6_authentication_statement_rdm": {
           "type": "str",
           "required": False,
-          "description": "RDM for DHCPv6 authentication.",
           "aliases": ["dhcp6_authentication_rdm"]
       },
       "adv_dhcp6_config_advanced": {
           "type": "bool",
           "required": False,
-          "description": "Enable advanced DHCPv6 configuration.",
           "aliases": ["dhcp6_config_advanced"]
       },
       "adv_dhcp6_config_file_override": {
           "type": "bool",
           "required": False,
-          "description": "Override DHCPv6 configuration file.",
           "aliases": ["dhcp6_config_file_override"]
       },
       "adv_dhcp6_config_file_override_path": {
           "type": "str",
           "required": False,
-          "description": "Path to override DHCPv6 configuration file.",
           "aliases": ["dhcp6_config_file_override_path"]
       },
       "adv_dhcp6_id_assoc_statement_address": {
           "type": "str",
           "required": False,
-          "description": "DHCPv6 ID association address.",
           "aliases": ["dhcp6_id_assoc_address"]
       },
       "adv_dhcp6_id_assoc_statement_address_enable": {
           "type": "bool",
           "required": False,
-          "description": "Enable DHCPv6 ID association address.",
           "aliases": ["dhcp6_id_assoc_address_enable"]
       },
       "adv_dhcp6_id_assoc_statement_address_id": {
           "type": "int",
           "required": False,
-          "description": "ID for DHCPv6 ID association address.",
           "aliases": ["dhcp6_id_assoc_address_id"]
       },
       "adv_dhcp6_id_assoc_statement_address_pltime": {
           "type": "int",
           "required": False,
-          "description": "Preferred lifetime for DHCPv6 ID association address.",
           "aliases": ["dhcp6_id_assoc_address_pltime"]
       },
       "adv_dhcp6_id_assoc_statement_address_vltime": {
           "type": "int",
           "required": False,
-          "description": "Valid lifetime for DHCPv6 ID association address.",
           "aliases": ["dhcp6_id_assoc_address_vltime"]
       },
       "adv_dhcp6_id_assoc_statement_prefix": {
           "type": "str",
           "required": False,
-          "description": "DHCPv6 ID association prefix.",
           "aliases": ["dhcp6_id_assoc_prefix"]
       },
       "adv_dhcp6_id_assoc_statement_prefix_enable": {
           "type": "bool",
           "required": False,
-          "description": "Enable DHCPv6 ID association prefix.",
           "aliases": ["dhcp6_id_assoc_prefix_enable"]
       },
       "adv_dhcp6_id_assoc_statement_prefix_id": {
           "type": "int",
           "required": False,
-          "description": "ID for DHCPv6 ID association prefix.",
           "aliases": ["dhcp6_id_assoc_prefix_id"]
       },
       "adv_dhcp6_id_assoc_statement_prefix_pltime": {
           "type": "int",
           "required": False,
-          "description": "Preferred lifetime for DHCPv6 ID association prefix.",
           "aliases": ["dhcp6_id_assoc_prefix_pltime"]
       },
       "adv_dhcp6_id_assoc_statement_prefix_vltime": {
           "type": "int",
           "required": False,
-          "description": "Valid lifetime for DHCPv6 ID association prefix.",
           "aliases": ["dhcp6_id_assoc_prefix_vltime"]
       },
       "adv_dhcp6_interface_statement_information_only_enable": {
           "type": "bool",
           "required": False,
-          "description": "Enable information-only mode for DHCPv6 interface.",
           "aliases": ["dhcp6_interface_info_only_enable"]
       },
       "adv_dhcp6_interface_statement_request_options": {
           "type": "str",
           "required": False,
-          "description": "Request options for DHCPv6 interface.",
           "aliases": ["dhcp6_interface_request_options"]
       },
       "adv_dhcp6_interface_statement_script": {
           "type": "str",
           "required": False,
-          "description": "Script for DHCPv6 interface.",
           "aliases": ["dhcp6_interface_script"]
       },
       "adv_dhcp6_interface_statement_send_options": {
           "type": "str",
           "required": False,
-          "description": "Send options for DHCPv6 interface.",
           "aliases": ["dhcp6_interface_send_options"]
       },
       "adv_dhcp6_key_info_statement_expire": {
           "type": "str",
           "required": False,
-          "description": "Expiration time for DHCPv6 key information.",
           "aliases": ["dhcp6_key_info_expire"]
       },
       "adv_dhcp6_key_info_statement_keyid": {
           "type": "int",
           "required": False,
-          "description": "Key ID for DHCPv6 key information.",
           "aliases": ["dhcp6_key_info_keyid"]
       },
       "adv_dhcp6_key_info_statement_keyname": {
           "type": "str",
           "required": False,
-          "description": "Key name for DHCPv6 key information.",
           "aliases": ["dhcp6_key_info_keyname"]
       },
       "adv_dhcp6_key_info_statement_realm": {
           "type": "str",
           "required": False,
-          "description": "Realm for DHCPv6 key information.",
           "aliases": ["dhcp6_key_info_realm"]
       },
       "adv_dhcp6_key_info_statement_secret": {
           "type": "str",
           "required": False,
-          "description": "Secret for DHCPv6 key information.",
           "aliases": ["dhcp6_key_info_secret"]
       },
       "adv_dhcp6_prefix_interface_statement_sla_len": {
           "type": "int",
           "required": False,
-          "description": "SLA length for DHCPv6 prefix.",
           "aliases": ["dhcp6_prefix_sla_len"]
       },
       "adv_dhcp_config_advanced": {
           "type": "bool",
           "required": False,
-          "description": "Enable advanced DHCP configuration.",
           "aliases": ["dhcp_config_advanced"]
       },
       "adv_dhcp_config_file_override": {
           "type": "bool",
           "required": False,
-          "description": "Override DHCP configuration file.",
           "aliases": ["dhcp_config_file_override"]
       },
       "adv_dhcp_config_file_override_path": {
           "type": "str",
           "required": False,
-          "description": "Path to override DHCP configuration file.",
           "aliases": ["dhcp_config_file_override_path"]
       },
       "adv_dhcp_option_modifiers": {
           "type": "str",
           "required": False,
-          "description": "Modifiers for DHCP options.",
           "aliases": ["dhcp_option_modifiers"]
       },
       "adv_dhcp_pt_backoff_cutoff": {
           "type": "int",
           "required": False,
-          "description": "Backoff cutoff time for DHCP.",
           "aliases": ["dhcp_pt_backoff_cutoff"]
       },
       "adv_dhcp_pt_initial_interval": {
           "type": "int",
           "required": False,
-          "description": "Initial interval for DHCP.",
           "aliases": ["dhcp_pt_initial_interval"]
       },
       "adv_dhcp_pt_reboot": {
           "type": "int",
           "required": False,
-          "description": "Reboot time for DHCP.",
           "aliases": ["dhcp_pt_reboot"]
       },
       "adv_dhcp_pt_retry": {
           "type": "int",
           "required": False,
-          "description": "Retry interval for DHCP.",
           "aliases": ["dhcp_pt_retry"]
       },
       "adv_dhcp_pt_select_timeout": {
           "type": "int",
           "required": False,
-          "description": "Select timeout for DHCP.",
           "aliases": ["dhcp_pt_select_timeout"]
       },
       "adv_dhcp_pt_timeout": {
           "type": "int",
           "required": False,
-          "description": "Timeout for DHCP.",
           "aliases": ["dhcp_pt_timeout"]
       },
       "adv_dhcp_pt_values": {
           "type": "str",
           "required": False,
-          "description": "Values for DHCP.",
           "aliases": ["dhcp_pt_values"]
       },
       "adv_dhcp_request_options": {
           "type": "str",
           "required": False,
-          "description": "Request options for DHCP.",
           "aliases": ["dhcp_request_options"]
       },
       "adv_dhcp_required_options": {
           "type": "str",
           "required": False,
-          "description": "Required options for DHCP.",
           "aliases": ["dhcp_required_options"]
       },
       "adv_dhcp_send_options": {
           "type": "str",
           "required": False,
-          "description": "Send options for DHCP.",
           "aliases": ["dhcp_send_options"]
       },
       "alias_address": {
           "type": "str",
           "required": False,
-          "description": "Alias address.",
           "aliases": ["alias_address"]
       },
       "alias_subnet": {
           "type": "int",
           "required": False,
-          "description": "Alias subnet.",
           "aliases": ["alias_subnet"]
       },
       "blockprivate": {
           "type": "bool",
           "required": False, 
-          "description": "Block traffic claiming to come from private addresses. On WAN interfaces, this kind of traffic should not happen legitimately.",
           "aliases": ["block_private"]
         },
         "blockbogons": {
             "type": "bool",
             "required": False,
-            "description": "Block traffic claiming to come from reserved IP addresses. On WAN interfaces, this kind of traffic should not happen legitimately.",
             "aliases": ["block_bogons"]
         },
       "descr": {
           "type": "str",
           "required": False,
-          "description": "Description of the interface.",
           "aliases": ["description"]
       },
       "dhcp6_ia_pd_len": {
           "type": "int",
           "required": False,
-          "description": "Length of DHCPv6 IA_PD.",
           "aliases": ["dhcp6_ia_pd_len"]
       },
       "dhcp6_prefix_id": {
           "type": "int",
           "required": False,
-          "description": "ID for DHCPv6 prefix.",
           "aliases": ["dhcp6_prefix_id"]
       },
       "dhcp6_ifid": {
           "type": "str",
           "required": False,
-          "description": "IFID for DHCPv6.",
           "aliases": ["dhcp6_ifid"]
       },
       "dhcp6vlanprio": {
           "type": "int",
           "required": False,
-          "description": "VLAN priority for DHCPv6.",
           "aliases": ["dhcp6_vlan_prio"]
       },
       "dhcphostname": {
           "type": "str",
           "required": False,
-          "description": "Hostname for DHCP.",
           "aliases": ["dhcp_hostname"]
       },
       "dhcprejectfrom": {
           "type": "str",
           "required": False,
-          "description": "Reject from DHCP.",
           "aliases": ["dhcp_reject_from"]
       },
       "dhcpvlanprio": {
           "type": "int",
           "required": False,
-          "description": "VLAN priority for DHCP.",
           "aliases": ["dhcp_vlan_prio"]
       },
       "disablechecksumoffloading": {
           "type": "bool",
           "required": False,
-          "description": "Disable checksum offloading.",
           "aliases": ["disable_checksum_offloading"]
       },
       "disablelargereceiveoffloading": {
           "type": "bool",
           "required": False,
-          "description": "Disable large receive offloading.",
           "aliases": ["disable_large_receive_offloading"]
       },
       "disablesegmentationoffloading": {
           "type": "bool",
           "required": False,
-          "description": "Disable segmentation offloading.",
           "aliases": ["disable_segmentation_offloading"]
       },
       "disablevlanhwfilter": {
           "type": "bool",
           "required": False,
-          "description": "Disable VLAN hardware filter.",
           "aliases": ["disable_vlan_hw_filter"]
       },
       "enable": {
@@ -949,29 +891,24 @@ def main():
       "gateway": {
           "type": "str",
           "required": False,
-          "description": "Gateway.",
           "aliases": ["ipv4_gateway"]
       },
       "gateway_6rd": {
           "type": "str",
           "required": False,
-          "description": "6RD gateway.",
       },
       "gatewayv6": {
           "type": "str",
           "required": False,
-          "description": "IPv6 gateway.",
           "aliases": ["ipv6_gateway"]
       },
       "hw_settings_overwrite": {
           "type": "bool",
           "required": False,
-          "description": "Overwrite hardware settings.",
       },
       "if": {
           "type": "str",
           "required": False,
-          "description": "Opnsense Device",
           "aliases": ["device"]
       },
       "ipaddr": {
@@ -992,71 +929,58 @@ def main():
       "media": {
           "type": "str",
           "required": False,
-          "description": "Media type.",
       },
       "mediaopt": {
           "type": "str",
           "required": False,
-          "description": "Media option.",
           "aliases": ["media_option"]
       },
       "mss": {
           "type": "int",
           "required": False,
-          "description": "Maximum segment size.",
       },
       "mtu": {
           "type": "int",
           "required": False,
-          "description": "Maximum transmission unit.",
       },
       "prefix_6rd": {
           "type": "str",
           "required": False,
-          "description": "6RD prefix.",
       },
       "prefix_6rd_v4addr": {
           "type": "str",
           "required": False,
-          "description": "IPv4 address for 6RD prefix.",
       },
       "prefix_6rd_v4plen": {
           "type": "int",
           "required": False,
-          "description": "IPv4 prefix length for 6RD.",
       },
       "spoofmac": {
           "type": "str",
           "required": False,
-          "description": "Spoof MAC address.",
           "aliases": ["mac_address"]
       },
       "track6_interface": {
           "type": "str",
           "required": False,
-          "description": "Track6 interface.",
       },
       "track6_prefix_id": {
           "type": "int",
           "required": False,
-          "description": "Track6 prefix ID.",
       },
       "track6_ifid": {
           "type": "str",
           "required": False,
-          "description": "Track6 IFID.",
       },
       "subnet": {
           "type": "int",
           "required": False,
-          "description": "IPv$ Subnet mask in CIDR notation.",
           "when": "ipaddr",
           "aliases": ["ipv4_subnet"]
       },
       "subnet6": {
           "type": "int",
           "required": False,
-          "description": "IPv6 Subnet mask in CIDR notation.",
           "when": "ipaddr6",
           "aliases": ["ipv6_subnet"]
       },

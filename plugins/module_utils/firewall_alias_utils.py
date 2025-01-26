@@ -19,7 +19,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     Group,
 )
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
     InterfacesSet,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
