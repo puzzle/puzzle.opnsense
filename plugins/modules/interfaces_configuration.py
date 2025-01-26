@@ -532,26 +532,16 @@ def validate_ipaddr_and_subnet(ipaddr, subnet):
     if ipaddr in choices:
         return ipaddr, None
     try:
-        ip = ipaddress.ip_address(ipaddr)
         if subnet is None:
             raise ValueError("Subnet must be provided when ipaddr is an IP address.")
-        ip_network = ipaddress.ip_network(f"{ipaddr}/{subnet}", strict=False)
-        return ipaddr, subnet
+        try:
+            ip = ipaddress.ip_address(ipaddr)
+            ip_network = ipaddress.ip_network(f"{ip}/{subnet}", strict=False)
+        except ValueError:
+            raise ValueError("Invalid IPv4 Address.")
+        return ip, ip_network.prefixlen
     except ValueError as e:
         raise ValueError(f"Invalid value for ipaddr or subnet: {e}")
-
-def validate_ipaddr6_and_subnet6(ipaddr6, subnet6):
-    choices = ["none", "dhcp", "pppoe"]
-    if ipaddr6 in choices:
-        return ipaddr6, None
-    try:
-        ip6 = ipaddress.ip_address(ipaddr6)
-        if subnet6 is None:
-            raise ValueError("Subnet must be provided when ipaddr6 is an IP address.")
-        ip_network6 = ipaddress.ip_network(f"{ipaddr6}/{subnet6}", strict=False)
-        return ipaddr6, subnet6
-    except ValueError as e:
-        raise ValueError(f"Invalid value for ipaddr6 or subnet6: {e}")
 
 # Function to convert aliases to base arguments
 def convert_aliases(args, alias_map):
@@ -1013,10 +1003,17 @@ def main():
 
     # Process the converted arguments
     result = {}
-    if params.get("ipaddr6"):
-        # Validate ipaddr6 and subnet6 parameters
+    if params.get("ipaddr"):
+        # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr6"], params["subnet6"] = validate_ipaddr6_and_subnet6(params["ipaddr6"], params["subnet6"])
+            params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"])
+        except ValueError as e:
+            module.fail_json(msg=str(e))
+
+    if params.get("ipaddr6"):
+        # Validate ipaddr and subnet parameters
+        try:
+            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"])
         except ValueError as e:
             module.fail_json(msg=str(e))
 

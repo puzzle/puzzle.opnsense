@@ -2,7 +2,7 @@
 #  GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 """
-interfaces_configuration_utils module_utils: Module_utils to configure OPNsense interface configurations
+interfaces_configuration_utils module_utils: Module_utils to configure OPNsense interfaces.
 """
 
 from dataclasses import dataclass, asdict, field
@@ -176,7 +176,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     Methods:
         __init__(self, path="/conf/config.xml"): Initializes InterfacesSet and loads interfaces.
-        _load_interfaces() -> List["interface_configuration"]: Loads interface assignments from config.
+        _load_interfaces() -> List["interface_configuration"]: Loads interfaces from config.
         changed() -> bool: Checks if current assignments differ from the loaded ones.
         update(InterfaceConfiguration: InterfaceConfiguration): Updates an assignment,
         errors if not found.
@@ -298,7 +298,7 @@ class InterfacesSet(OPNsenseModuleConfig):
         Adds a new interface to the configuration or updates an existing one.
 
         Args:
-            interface_configuration (InterfaceConfiguration): The interface configuration to add or update.
+            interface_configuration (InterfaceConfiguration): The interface to add or update.
 
         Raises:
             OPNSenseInterfaceNotFoundError: If the interface configuration is not found.
@@ -322,8 +322,7 @@ class InterfacesSet(OPNsenseModuleConfig):
                 for attr, value in interface_configuration.extra_attrs.items():
                     if attr == "if" and value not in device_interfaces_set:
                         raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!")
-                    else:
-                        interface_to_update.extra_attrs[attr] = value
+                    interface_to_update.extra_attrs[attr] = value
             else:
                 raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first")
 
@@ -358,8 +357,8 @@ class InterfacesSet(OPNsenseModuleConfig):
         if interface_configuration in self._interfaces_configuration:
             self._interfaces_configuration.remove(interface_configuration)
         else:
-            raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.")   
-          
+            raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.")
+
     def find(self, **kwargs) -> Optional[InterfaceConfiguration]:
         """
         Searches for an interface assignment that matches given criteria.
