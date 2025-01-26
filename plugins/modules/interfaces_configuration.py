@@ -520,13 +520,14 @@ opnsense_configure_output:
 
 import ipaddress
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import ( # pylint: disable=C0301
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (  # pylint: disable=C0301
     InterfacesSet,
     InterfaceConfiguration,
     OPNSenseDeviceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
 )
+
 
 def validate_ipaddr_and_subnet(ipaddr, subnet):
     """
@@ -557,6 +558,7 @@ def validate_ipaddr_and_subnet(ipaddr, subnet):
     except ValueError as e:
         raise ValueError(f"Invalid value for ipaddr or subnet: {e}") from e
 
+
 # Function to convert aliases to base arguments
 def convert_aliases(args, alias_map):
     """
@@ -575,6 +577,7 @@ def convert_aliases(args, alias_map):
         converted_args[base_key] = value
     return converted_args
 
+
 def filter_explicitly_set_params(params, module_args):
     """
     Filters out parameters that are not explicitly set by the user.
@@ -588,9 +591,10 @@ def filter_explicitly_set_params(params, module_args):
     """
     explicitly_set_params = {}
     for key, value in params.items():
-        if key in module_args and params[key] != module_args[key].get('default', None):
+        if key in module_args and params[key] != module_args[key].get("default", None):
             explicitly_set_params[key] = value
     return explicitly_set_params
+
 
 def main():
     """
@@ -598,402 +602,350 @@ def main():
     """
 
     module_args = {
-      "identifier": {
-          "type": "str",
-          "description": "Technical identifier of the interface, used by hasync for example",
-      },
-      "adv_dhcp6_authentication_statement_algorithm": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_authentication_algorithm"]
-      },
-      "adv_dhcp6_authentication_statement_authname": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_authentication_authname"]
-      },
-      "adv_dhcp6_authentication_statement_protocol": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_authentication_protocol"]
-      },
-      "adv_dhcp6_authentication_statement_rdm": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_authentication_rdm"]
-      },
-      "adv_dhcp6_config_advanced": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp6_config_advanced"]
-      },
-      "adv_dhcp6_config_file_override": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp6_config_file_override"]
-      },
-      "adv_dhcp6_config_file_override_path": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_config_file_override_path"]
-      },
-      "adv_dhcp6_id_assoc_statement_address": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_address"]
-      },
-      "adv_dhcp6_id_assoc_statement_address_enable": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_address_enable"]
-      },
-      "adv_dhcp6_id_assoc_statement_address_id": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_address_id"]
-      },
-      "adv_dhcp6_id_assoc_statement_address_pltime": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_address_pltime"]
-      },
-      "adv_dhcp6_id_assoc_statement_address_vltime": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_address_vltime"]
-      },
-      "adv_dhcp6_id_assoc_statement_prefix": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_prefix"]
-      },
-      "adv_dhcp6_id_assoc_statement_prefix_enable": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_prefix_enable"]
-      },
-      "adv_dhcp6_id_assoc_statement_prefix_id": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_prefix_id"]
-      },
-      "adv_dhcp6_id_assoc_statement_prefix_pltime": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_prefix_pltime"]
-      },
-      "adv_dhcp6_id_assoc_statement_prefix_vltime": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_id_assoc_prefix_vltime"]
-      },
-      "adv_dhcp6_interface_statement_information_only_enable": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp6_interface_info_only_enable"]
-      },
-      "adv_dhcp6_interface_statement_request_options": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_interface_request_options"]
-      },
-      "adv_dhcp6_interface_statement_script": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_interface_script"]
-      },
-      "adv_dhcp6_interface_statement_send_options": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_interface_send_options"]
-      },
-      "adv_dhcp6_key_info_statement_expire": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_key_info_expire"]
-      },
-      "adv_dhcp6_key_info_statement_keyid": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_key_info_keyid"]
-      },
-      "adv_dhcp6_key_info_statement_keyname": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_key_info_keyname"]
-      },
-      "adv_dhcp6_key_info_statement_realm": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_key_info_realm"]
-      },
-      "adv_dhcp6_key_info_statement_secret": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_key_info_secret"]
-      },
-      "adv_dhcp6_prefix_interface_statement_sla_len": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_prefix_sla_len"]
-      },
-      "adv_dhcp_config_advanced": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp_config_advanced"]
-      },
-      "adv_dhcp_config_file_override": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["dhcp_config_file_override"]
-      },
-      "adv_dhcp_config_file_override_path": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_config_file_override_path"]
-      },
-      "adv_dhcp_option_modifiers": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_option_modifiers"]
-      },
-      "adv_dhcp_pt_backoff_cutoff": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_backoff_cutoff"]
-      },
-      "adv_dhcp_pt_initial_interval": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_initial_interval"]
-      },
-      "adv_dhcp_pt_reboot": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_reboot"]
-      },
-      "adv_dhcp_pt_retry": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_retry"]
-      },
-      "adv_dhcp_pt_select_timeout": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_select_timeout"]
-      },
-      "adv_dhcp_pt_timeout": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_pt_timeout"]
-      },
-      "adv_dhcp_pt_values": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_pt_values"]
-      },
-      "adv_dhcp_request_options": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_request_options"]
-      },
-      "adv_dhcp_required_options": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_required_options"]
-      },
-      "adv_dhcp_send_options": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_send_options"]
-      },
-      "alias_address": {
-          "type": "str",
-          "required": False,
-          "aliases": ["alias_address"]
-      },
-      "alias_subnet": {
-          "type": "int",
-          "required": False,
-          "aliases": ["alias_subnet"]
-      },
-      "blockprivate": {
-          "type": "bool",
-          "required": False, 
-          "aliases": ["block_private"]
+        "identifier": {
+            "type": "str",
+            "description": "Technical identifier of the interface, used by hasync for example",
         },
-        "blockbogons": {
+        "adv_dhcp6_authentication_statement_algorithm": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_authentication_algorithm"],
+        },
+        "adv_dhcp6_authentication_statement_authname": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_authentication_authname"],
+        },
+        "adv_dhcp6_authentication_statement_protocol": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_authentication_protocol"],
+        },
+        "adv_dhcp6_authentication_statement_rdm": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_authentication_rdm"],
+        },
+        "adv_dhcp6_config_advanced": {
             "type": "bool",
             "required": False,
-            "aliases": ["block_bogons"]
+            "aliases": ["dhcp6_config_advanced"],
         },
-      "descr": {
-          "type": "str",
-          "required": False,
-          "aliases": ["description"]
-      },
-      "dhcp6_ia_pd_len": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_ia_pd_len"]
-      },
-      "dhcp6_prefix_id": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_prefix_id"]
-      },
-      "dhcp6_ifid": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp6_ifid"]
-      },
-      "dhcp6vlanprio": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp6_vlan_prio"]
-      },
-      "dhcphostname": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_hostname"]
-      },
-      "dhcprejectfrom": {
-          "type": "str",
-          "required": False,
-          "aliases": ["dhcp_reject_from"]
-      },
-      "dhcpvlanprio": {
-          "type": "int",
-          "required": False,
-          "aliases": ["dhcp_vlan_prio"]
-      },
-      "disablechecksumoffloading": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["disable_checksum_offloading"]
-      },
-      "disablelargereceiveoffloading": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["disable_large_receive_offloading"]
-      },
-      "disablesegmentationoffloading": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["disable_segmentation_offloading"]
-      },
-      "disablevlanhwfilter": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["disable_vlan_hw_filter"]
-      },
-      "enable": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["enabled"]
-      },
-      "gateway": {
-          "type": "str",
-          "required": False,
-          "aliases": ["ipv4_gateway"]
-      },
-      "gateway_6rd": {
-          "type": "str",
-          "required": False,
-      },
-      "gatewayv6": {
-          "type": "str",
-          "required": False,
-          "aliases": ["ipv6_gateway"]
-      },
-      "hw_settings_overwrite": {
-          "type": "bool",
-          "required": False,
-      },
-      "if": {
-          "type": "str",
-          "required": False,
-          "aliases": ["device"]
-      },
-      "ipaddr": {
-          "type": "str",
-          "required": False,
-          "aliases": ["ipv4_address"]
-      },
-      "ipaddr6": {
-          "type": "str",
-          "required": False,
-          "aliases": ["ipv6_address"]
-      },
-      "lock": {
-          "type": "bool",
-          "required": False,
-          "aliases": ["locked"]
-      },
-      "media": {
-          "type": "str",
-          "required": False,
-      },
-      "mediaopt": {
-          "type": "str",
-          "required": False,
-          "aliases": ["media_option"]
-      },
-      "mss": {
-          "type": "int",
-          "required": False,
-      },
-      "mtu": {
-          "type": "int",
-          "required": False,
-      },
-      "prefix_6rd": {
-          "type": "str",
-          "required": False,
-      },
-      "prefix_6rd_v4addr": {
-          "type": "str",
-          "required": False,
-      },
-      "prefix_6rd_v4plen": {
-          "type": "int",
-          "required": False,
-      },
-      "spoofmac": {
-          "type": "str",
-          "required": False,
-          "aliases": ["mac_address"]
-      },
-      "track6_interface": {
-          "type": "str",
-          "required": False,
-      },
-      "track6_prefix_id": {
-          "type": "int",
-          "required": False,
-      },
-      "track6_ifid": {
-          "type": "str",
-          "required": False,
-      },
-      "subnet": {
-          "type": "int",
-          "required": False,
-          "when": "ipaddr",
-          "aliases": ["ipv4_subnet"]
-      },
-      "subnet6": {
-          "type": "int",
-          "required": False,
-          "when": "ipaddr6",
-          "aliases": ["ipv6_subnet"]
-      },
-      "state": {
-          "type": "str",
-          "required": False,
-          "choices": ["present", "absent"],
-          "default": "present"
-      },
+        "adv_dhcp6_config_file_override": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp6_config_file_override"],
+        },
+        "adv_dhcp6_config_file_override_path": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_config_file_override_path"],
+        },
+        "adv_dhcp6_id_assoc_statement_address": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_address"],
+        },
+        "adv_dhcp6_id_assoc_statement_address_enable": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_address_enable"],
+        },
+        "adv_dhcp6_id_assoc_statement_address_id": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_address_id"],
+        },
+        "adv_dhcp6_id_assoc_statement_address_pltime": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_address_pltime"],
+        },
+        "adv_dhcp6_id_assoc_statement_address_vltime": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_address_vltime"],
+        },
+        "adv_dhcp6_id_assoc_statement_prefix": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_prefix"],
+        },
+        "adv_dhcp6_id_assoc_statement_prefix_enable": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_prefix_enable"],
+        },
+        "adv_dhcp6_id_assoc_statement_prefix_id": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_prefix_id"],
+        },
+        "adv_dhcp6_id_assoc_statement_prefix_pltime": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_prefix_pltime"],
+        },
+        "adv_dhcp6_id_assoc_statement_prefix_vltime": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_id_assoc_prefix_vltime"],
+        },
+        "adv_dhcp6_interface_statement_information_only_enable": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp6_interface_info_only_enable"],
+        },
+        "adv_dhcp6_interface_statement_request_options": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_interface_request_options"],
+        },
+        "adv_dhcp6_interface_statement_script": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_interface_script"],
+        },
+        "adv_dhcp6_interface_statement_send_options": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_interface_send_options"],
+        },
+        "adv_dhcp6_key_info_statement_expire": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_key_info_expire"],
+        },
+        "adv_dhcp6_key_info_statement_keyid": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_key_info_keyid"],
+        },
+        "adv_dhcp6_key_info_statement_keyname": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_key_info_keyname"],
+        },
+        "adv_dhcp6_key_info_statement_realm": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_key_info_realm"],
+        },
+        "adv_dhcp6_key_info_statement_secret": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp6_key_info_secret"],
+        },
+        "adv_dhcp6_prefix_interface_statement_sla_len": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_prefix_sla_len"],
+        },
+        "adv_dhcp_config_advanced": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp_config_advanced"],
+        },
+        "adv_dhcp_config_file_override": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["dhcp_config_file_override"],
+        },
+        "adv_dhcp_config_file_override_path": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_config_file_override_path"],
+        },
+        "adv_dhcp_option_modifiers": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_option_modifiers"],
+        },
+        "adv_dhcp_pt_backoff_cutoff": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_backoff_cutoff"],
+        },
+        "adv_dhcp_pt_initial_interval": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_initial_interval"],
+        },
+        "adv_dhcp_pt_reboot": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_reboot"],
+        },
+        "adv_dhcp_pt_retry": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_retry"],
+        },
+        "adv_dhcp_pt_select_timeout": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_select_timeout"],
+        },
+        "adv_dhcp_pt_timeout": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_pt_timeout"],
+        },
+        "adv_dhcp_pt_values": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_pt_values"],
+        },
+        "adv_dhcp_request_options": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_request_options"],
+        },
+        "adv_dhcp_required_options": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_required_options"],
+        },
+        "adv_dhcp_send_options": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_send_options"],
+        },
+        "alias_address": {
+            "type": "str",
+            "required": False,
+            "aliases": ["alias_address"],
+        },
+        "alias_subnet": {"type": "int", "required": False, "aliases": ["alias_subnet"]},
+        "blockprivate": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["block_private"],
+        },
+        "blockbogons": {"type": "bool", "required": False, "aliases": ["block_bogons"]},
+        "descr": {"type": "str", "required": False, "aliases": ["description"]},
+        "dhcp6_ia_pd_len": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_ia_pd_len"],
+        },
+        "dhcp6_prefix_id": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_prefix_id"],
+        },
+        "dhcp6_ifid": {"type": "str", "required": False, "aliases": ["dhcp6_ifid"]},
+        "dhcp6vlanprio": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp6_vlan_prio"],
+        },
+        "dhcphostname": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_hostname"],
+        },
+        "dhcprejectfrom": {
+            "type": "str",
+            "required": False,
+            "aliases": ["dhcp_reject_from"],
+        },
+        "dhcpvlanprio": {
+            "type": "int",
+            "required": False,
+            "aliases": ["dhcp_vlan_prio"],
+        },
+        "disablechecksumoffloading": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["disable_checksum_offloading"],
+        },
+        "disablelargereceiveoffloading": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["disable_large_receive_offloading"],
+        },
+        "disablesegmentationoffloading": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["disable_segmentation_offloading"],
+        },
+        "disablevlanhwfilter": {
+            "type": "bool",
+            "required": False,
+            "aliases": ["disable_vlan_hw_filter"],
+        },
+        "enable": {"type": "bool", "required": False, "aliases": ["enabled"]},
+        "gateway": {"type": "str", "required": False, "aliases": ["ipv4_gateway"]},
+        "gateway_6rd": {
+            "type": "str",
+            "required": False,
+        },
+        "gatewayv6": {"type": "str", "required": False, "aliases": ["ipv6_gateway"]},
+        "hw_settings_overwrite": {
+            "type": "bool",
+            "required": False,
+        },
+        "if": {"type": "str", "required": False, "aliases": ["device"]},
+        "ipaddr": {"type": "str", "required": False, "aliases": ["ipv4_address"]},
+        "ipaddr6": {"type": "str", "required": False, "aliases": ["ipv6_address"]},
+        "lock": {"type": "bool", "required": False, "aliases": ["locked"]},
+        "media": {
+            "type": "str",
+            "required": False,
+        },
+        "mediaopt": {"type": "str", "required": False, "aliases": ["media_option"]},
+        "mss": {
+            "type": "int",
+            "required": False,
+        },
+        "mtu": {
+            "type": "int",
+            "required": False,
+        },
+        "prefix_6rd": {
+            "type": "str",
+            "required": False,
+        },
+        "prefix_6rd_v4addr": {
+            "type": "str",
+            "required": False,
+        },
+        "prefix_6rd_v4plen": {
+            "type": "int",
+            "required": False,
+        },
+        "spoofmac": {"type": "str", "required": False, "aliases": ["mac_address"]},
+        "track6_interface": {
+            "type": "str",
+            "required": False,
+        },
+        "track6_prefix_id": {
+            "type": "int",
+            "required": False,
+        },
+        "track6_ifid": {
+            "type": "str",
+            "required": False,
+        },
+        "subnet": {
+            "type": "int",
+            "required": False,
+            "when": "ipaddr",
+            "aliases": ["ipv4_subnet"],
+        },
+        "subnet6": {
+            "type": "int",
+            "required": False,
+            "when": "ipaddr6",
+            "aliases": ["ipv6_subnet"],
+        },
+        "state": {
+            "type": "str",
+            "required": False,
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
     }
 
     # Create the alias map
@@ -1013,21 +965,25 @@ def main():
     params = filter_explicitly_set_params(params, module_args)
 
     # ensure state is present by default
-    params['state'] = params.get('state', 'present')
+    params["state"] = params.get("state", "present")
 
     # Process the converted arguments
     result = {}
     if params.get("ipaddr"):
         # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"]) # pylint: disable=C0301
+            params["ipaddr"], params["subnet"] = validate_ipaddr_and_subnet(
+                params["ipaddr6"], params["subnet6"]
+            )  # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
 
     if params.get("ipaddr6"):
         # Validate ipaddr and subnet parameters
         try:
-            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(params["ipaddr6"], params["subnet6"]) # pylint: disable=C0301
+            params["ipaddr6"], params["subnet6"] = validate_ipaddr_and_subnet(
+                params["ipaddr6"], params["subnet6"]
+            )  # pylint: disable=C0301
         except ValueError as e:
             module.fail_json(msg=str(e))
 
@@ -1066,6 +1022,7 @@ def main():
                     )
 
         module.exit_json(**result)
+
 
 if __name__ == "__main__":
     main()

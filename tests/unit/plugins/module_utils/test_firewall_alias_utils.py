@@ -947,7 +947,6 @@ def test_firewall_alias_from_ansible_module_params_with_OPNsenseMaximumTableEntr
 
     with pytest.raises(OPNsenseMaximumTableEntriesExceededError) as excinfo:
         with FirewallAliasSet(sample_config_path) as alias_set:
-
             alias_set.maximumtableentries = 0
             new_alias: FirewallAlias = FirewallAlias.from_ansible_module_params(
                 test_params

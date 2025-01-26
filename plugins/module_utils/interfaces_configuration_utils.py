@@ -18,20 +18,25 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import (
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
 )
+
+
 class OPNSenseDeviceNotFoundError(Exception):
     """
     Exception raised when a Device is not found.
     """
+
 
 class OPNSenseDeviceAlreadyAssignedError(Exception):
     """
     Exception raised when a Device is already assigned to an Interface
     """
 
+
 class OPNSenseInterfaceNotFoundError(Exception):
     """
     Exception raised when an Interface is not found.
     """
+
 
 class OPNSenseGetInterfacesError(Exception):
     """
@@ -100,11 +105,10 @@ class InterfaceConfiguration:
         # Create the InterfaceConfiguration instance
         interface_configuration = InterfaceConfiguration(
             identifier=identifier,
-            extra_attrs=extra_attrs  # Include all other attributes
+            extra_attrs=extra_attrs,  # Include all other attributes
         )
 
         return interface_configuration
-
 
     def to_etree(self) -> Element:
         """
@@ -124,8 +128,6 @@ class InterfaceConfiguration:
 
         # Create the main element
         main_element = Element(interface_configuration_dict["identifier"])
-        # Serialize the device to ensure it is always present
-        #SubElement(main_element, "if").text = interface_configuration_dict["extra_attrs"].get("if")
 
         # Serialize extra attributes
         for key, value in interface_configuration_dict["extra_attrs"].items():
@@ -160,7 +162,7 @@ class InterfaceConfiguration:
                 elif value is not None:
                     extra_attrs[key] = str(value)
 
-        return cls(identifier,extra_attrs)
+        return cls(identifier, extra_attrs)
 
 
 class InterfacesSet(OPNsenseModuleConfig):
@@ -197,7 +199,6 @@ class InterfacesSet(OPNsenseModuleConfig):
         self._interfaces_configuration = self._load_interfaces()
 
     def _load_interfaces(self) -> List["InterfaceConfiguration"]:
-
         element_tree_interfaces: Element = self.get("interfaces")
 
         return [
@@ -225,8 +226,10 @@ class InterfacesSet(OPNsenseModuleConfig):
             return True
 
         for current, saved in zip(current_interfaces, saved_interfaces):
-            if current.identifier != saved.identifier or \
-            current.extra_attrs != saved.extra_attrs:
+            if (
+                current.identifier != saved.identifier
+                or current.extra_attrs != saved.extra_attrs
+            ):
                 return True
 
         return False
@@ -321,14 +324,22 @@ class InterfacesSet(OPNsenseModuleConfig):
                 # Merge extra_attrs
                 for attr, value in interface_configuration.extra_attrs.items():
                     if attr == "if" and value not in device_interfaces_set:
-                        raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!") # pylint: disable=C0301
+                        raise OPNSenseInterfaceNotFoundError(
+                            "Interface was not found on OPNsense Instance!"
+                        )  # pylint: disable=C0301
                     interface_to_update.extra_attrs[attr] = value
             else:
-                raise OPNSenseDeviceAlreadyAssignedError("This device is already assigned, please unassign this device first") # pylint: disable=C0301
+                raise OPNSenseDeviceAlreadyAssignedError(
+                    "This device is already assigned, please unassign this device first"
+                )  # pylint: disable=C0301
 
             # Update the internal list with the complete updated configuration
             self._interfaces_configuration = [
-                interface_to_update if iface.identifier == interface_to_update.identifier else iface
+                (
+                    interface_to_update
+                    if iface.identifier == interface_to_update.identifier
+                    else iface
+                )
                 for iface in self._interfaces_configuration
             ]
         else:
@@ -341,7 +352,9 @@ class InterfacesSet(OPNsenseModuleConfig):
                 if value:
                     interface_to_add.extra_attrs.update({attr: value})
             if interface_to_add.extra_attrs["if"] not in device_interfaces_set:
-                raise OPNSenseInterfaceNotFoundError("Interface was not found on OPNsense Instance!") # pylint: disable=C0301
+                raise OPNSenseInterfaceNotFoundError(
+                    "Interface was not found on OPNsense Instance!"
+                )  # pylint: disable=C0301
             self._interfaces_configuration.append(interface_to_add)
 
     def remove(self, interface_configuration: InterfaceConfiguration) -> None:
@@ -357,7 +370,9 @@ class InterfacesSet(OPNsenseModuleConfig):
         if interface_configuration in self._interfaces_configuration:
             self._interfaces_configuration.remove(interface_configuration)
         else:
-            raise OPNSenseInterfaceNotFoundError(f"Interface {interface_configuration.identifier} not found.") # pylint: disable=C0301
+            raise OPNSenseInterfaceNotFoundError(
+                f"Interface {interface_configuration.identifier} not found."
+            )  # pylint: disable=C0301
 
     def find(self, **kwargs) -> Optional[InterfaceConfiguration]:
         """

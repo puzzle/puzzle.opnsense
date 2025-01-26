@@ -1300,7 +1300,6 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-
         test_interface_assignment: InterfaceAssignment = (
             InterfaceAssignment.from_ansible_module_params(test_params)
         )
@@ -1482,7 +1481,6 @@ def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         result = interfaces_set.get_interfaces()
@@ -1502,7 +1500,6 @@ def test_get_interfaces_success(
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
@@ -1525,7 +1522,6 @@ def test_get_interfaces_success(
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
