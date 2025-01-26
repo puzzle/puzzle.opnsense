@@ -156,6 +156,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_configuration": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "system_high_availability_settings": {
             # Add other mappings here
             "hasync": "hasync",
@@ -309,6 +327,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_configuration": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "system_high_availability_settings": {
             # Add other mappings here
             "hasync": "hasync",
@@ -445,6 +481,24 @@ VERSION_MAP = {
             },
         },
         "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "interfaces_configuration": {
             "interfaces": "interfaces",
             # Add other mappings here.
             "php_requirements": [
@@ -616,6 +670,24 @@ VERSION_MAP = {
                 },
             },
         },
+        "interfaces_configuration": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "system_high_availability_settings": {
             # Add other mappings here
             "hasync": "hasync",
@@ -753,6 +825,24 @@ VERSION_MAP = {
             },
         },
         "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
+        "interfaces_configuration": {
             "interfaces": "interfaces",
             # Add other mappings here.
             "php_requirements": [

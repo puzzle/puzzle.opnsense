@@ -286,7 +286,6 @@ def main():
     ansible_alias_state: str = module.params.get("state")
 
     with FirewallAliasSet() as alias_set:
-
         if ansible_alias_state == "present":
             alias_set.add_or_update(ansible_alias)
         else:

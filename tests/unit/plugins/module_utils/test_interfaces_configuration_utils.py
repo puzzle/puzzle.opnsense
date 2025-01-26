@@ -11,7 +11,7 @@ from xml.etree.ElementTree import Element
 import pytest
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
     InterfaceAssignment,
     InterfacesSet,
     OPNSenseDeviceNotFoundError,
@@ -25,7 +25,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.module_index impor
 # Test version map for OPNsense versions and modules
 TEST_VERSION_MAP = {
     "OPNsense Test": {
-        "interfaces_assignments": {
+        "interfaces_configuration": {
             "interfaces": "interfaces",
             "php_requirements": [],
             "configure_functions": {},
@@ -1287,7 +1287,7 @@ def test_simple_interface_assignment_from_ansible_module_params_simple(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1300,7 +1300,6 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-
         test_interface_assignment: InterfaceAssignment = (
             InterfaceAssignment.from_ansible_module_params(test_params)
         )
@@ -1322,7 +1321,7 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1355,7 +1354,7 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1382,7 +1381,7 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_devic
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1412,7 +1411,7 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_ident
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1445,7 +1444,7 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_ident
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.InterfacesSet.get_interfaces",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.InterfacesSet.get_interfaces",
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
@@ -1475,14 +1474,13 @@ def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.opnsense_utils.run_command",
     return_value={"stdout": "em0,em1,em2", "stderr": None},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         result = interfaces_set.get_interfaces()
@@ -1495,14 +1493,13 @@ def test_get_interfaces_success(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.opnsense_utils.run_command",
     return_value={"stdout": "", "stderr": None},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseGetInterfacesError) as excinfo:
@@ -1518,14 +1515,13 @@ def test_get_interfaces_success(
     return_value="OPNsense Test",
 )
 @patch(
-    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils.opnsense_utils.run_command",
+    "ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils.opnsense_utils.run_command",
     return_value={"stdout": "", "stderr": "there was an error"},
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
 def test_get_interfaces_success(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
-
     # Assuming InterfacesSet needs a configuration path and we have sample_config_path defined
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseGetInterfacesError) as excinfo:

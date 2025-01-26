@@ -19,7 +19,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils impor
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     Group,
 )
-from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignments_utils import (
+from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (  # pylint: disable=C0301
     InterfacesSet,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.enum_utils import ListEnum
@@ -109,7 +109,6 @@ class FirewallAlias:
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
-
         # set default attributes
         self.uuid: Optional[str] = kwargs.get("uuid", str(uuid.uuid4()))
         self.enabled: bool = True
@@ -135,7 +134,6 @@ class FirewallAlias:
 
             # Check if the value is a string and the field_type is a subclass of ListEnum
             if isinstance(value, str) and issubclass(field_type, ListEnum):
-
                 # Convert string to ListEnum
                 setattr(self, field_name, field_type.from_string(value))
 
@@ -270,7 +268,6 @@ class FirewallAlias:
         del firewall_alias_dict["uuid"]
 
         for alias_key, alias_val in firewall_alias_dict.copy().items():
-
             if alias_key in ["enabled", "counters"]:
                 firewall_alias_dict[alias_key] = "0" if alias_val is False else "1"
                 continue
@@ -504,7 +501,6 @@ class FirewallAliasSet(OPNsenseModuleConfig):
 
         gid_content = []
         for group in type_opnvpngroup_alias.content:
-
             gid_content.append(
                 next((g for g in self.group_list if g.name == group), None).gid
             )
@@ -608,7 +604,6 @@ class FirewallAliasSet(OPNsenseModuleConfig):
         }
 
         for content_value in content_values:
-
             # since not all types need validation, unhandled types are ingnored
             if not content_type_map.get(content_type.value):
                 return True
@@ -618,7 +613,6 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             )
 
             if not validation_function(content_value):
-
                 raise OPNsenseContentValidationError(
                     content_type_map[content_type.value]["error_message"].format(
                         entry=content_value
