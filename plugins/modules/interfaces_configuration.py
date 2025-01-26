@@ -528,7 +528,20 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configu
 )
 
 def validate_ipaddr_and_subnet(ipaddr, subnet):
-    choices = ["none", "dhcp", "pppoe"]
+    """
+    Validates the given IP address and subnet.
+
+    Args:
+        ipaddr (str): The IP address to validate.
+        subnet (str): The subnet to validate.
+
+    Returns:
+        tuple: A tuple containing the validated IP address and subnet.
+
+    Raises:
+        ValueError: If the IP address or subnet is invalid.
+    """
+    choices = ["none", "dhcp", "dhcp6", "pppoe"]
     if ipaddr in choices:
         return ipaddr, None
     try:
@@ -537,11 +550,11 @@ def validate_ipaddr_and_subnet(ipaddr, subnet):
         try:
             ip = ipaddress.ip_address(ipaddr)
             ip_network = ipaddress.ip_network(f"{ip}/{subnet}", strict=False)
-        except ValueError:
-            raise ValueError("Invalid IPv4 Address.")
+        except ValueError as exc:
+            raise ValueError("Invalid IPv4 Address.") from exc
         return ip, ip_network.prefixlen
     except ValueError as e:
-        raise ValueError(f"Invalid value for ipaddr or subnet: {e}")
+        raise ValueError(f"Invalid value for ipaddr or subnet: {e}") from e
 
 # Function to convert aliases to base arguments
 def convert_aliases(args, alias_map):
@@ -981,19 +994,19 @@ def main():
           "default": "present"
       },
     }
- 
-     # Create the alias map
-    ALIAS_MAP = {}
+
+    # Create the alias map
+    alias_map = {}
     for key, value in module_args.items():
         if "aliases" in value:
             for alias in value["aliases"]:
-                ALIAS_MAP[alias] = key
+                alias_map[alias] = key
 
     # Initialize the Ansible module
     module = AnsibleModule(argument_spec=module_args)
 
     # Convert aliases to base arguments
-    params = convert_aliases(module.params, ALIAS_MAP)
+    params = convert_aliases(module.params, alias_map)
 
     # Filter out parameters that are not explicitly set by the user
     params = filter_explicitly_set_params(params, module_args)

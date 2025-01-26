@@ -64,7 +64,6 @@ class InterfaceConfiguration:
         self,
         identifier: str,
         extra_attrs: Dict[str, Any] = None,
-        **kwargs,
     ):
         self.identifier = identifier
         self.extra_attrs = extra_attrs or {}
@@ -83,7 +82,7 @@ class InterfaceConfiguration:
         try:
             interface_configuration_dict: dict = xml_utils.etree_to_dict(element)
         except Element.ParseError as e:
-            raise ValueError(f"Failed to parse XML: {e}")
+            raise ValueError(f"Failed to parse XML: {e}") from e
 
         # Extract identifier
         identifier = list(interface_configuration_dict.keys())[0]
