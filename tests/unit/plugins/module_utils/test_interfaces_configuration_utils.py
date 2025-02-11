@@ -206,7 +206,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                     <dnsallowoverride/>
                     <group>
                     <name>admins</name>
-                    <description>System Administrators</description>
+                    <descr>System Administrators</descr>
                     <scope>system</scope>
                     <gid>1999</gid>
                     <member>0</member>
@@ -525,7 +525,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <revision>
                 <username>(root)</username>
                 <time>1712239765.0467</time>
-                <description>Updated plugin interface configuration</description>
+                <descr>Updated plugin interface configuration</descr>
                 </revision>
                 <OPNsense>
                 <captiveportal version="1.0.1">
@@ -632,12 +632,12 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <events/>
                 <format/>
                 <reminder>10</reminder>
-                <description/>
+                <descr/>
                 </alert>
                 <service uuid="f85a8cf8-a81e-4cf4-8cb0-c1fc2b10cb24">
                 <enabled>1</enabled>
                 <name>$HOST</name>
-                <description/>
+                <descr/>
                 <type>system</type>
                 <pidfile/>
                 <match/>
@@ -655,7 +655,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="12aabe3a-3671-496d-aa9e-aa2018c766e3">
                 <enabled>1</enabled>
                 <name>RootFs</name>
-                <description/>
+                <descr/>
                 <type>filesystem</type>
                 <pidfile/>
                 <match/>
@@ -673,7 +673,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="325389a3-13df-4679-b0d3-1d238a83787b">
                 <enabled>0</enabled>
                 <name>carp_status_change</name>
-                <description/>
+                <descr/>
                 <type>custom</type>
                 <pidfile/>
                 <match/>
@@ -691,7 +691,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="9c07f6fd-c55a-43fa-9513-363ac364b383">
                 <enabled>0</enabled>
                 <name>gateway_alert</name>
-                <description/>
+                <descr/>
                 <type>custom</type>
                 <pidfile/>
                 <match/>
@@ -1271,7 +1271,7 @@ def test_simple_interface_configuration_from_ansible_module_params_simple(
     test_params: dict = {
         "identifier": "wan",
         "device": "vtnet1",
-        "description": "lan_interface",
+        "descr": "lan_interface",
     }
     test_interface_configuration: InterfaceConfiguration = (
         InterfaceConfiguration.from_ansible_module_params(test_params)
@@ -1296,7 +1296,7 @@ def test_interface_configuration_from_ansible_module_params_with_description_upd
     test_params: dict = {
         "identifier": "lan",
         "device": "em1",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         test_interface_configuration: InterfaceConfiguration = (
@@ -1330,7 +1330,7 @@ def test_interface_configuration_from_ansible_module_params_with_device_update(
     test_params: dict = {
         "identifier": "wan",
         "device": "em4",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         test_interface_configuration: InterfaceConfiguration = (
@@ -1363,7 +1363,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_de
     test_params: dict = {
         "identifier": "wan",
         "device": "test",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseInterfaceNotFoundError) as excinfo:
@@ -1390,7 +1390,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_id
     test_params: dict = {
         "identifier": "test",
         "device": "em0",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
@@ -1420,7 +1420,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_id
     test_params: dict = {
         "identifier": "test",
         "device": "em4",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         test_interface_configuration: InterfaceConfiguration = (
@@ -1453,7 +1453,7 @@ def test_interface_configuration_from_ansible_module_params_with_duplicate_devic
     test_params: dict = {
         "identifier": "wan",
         "device": "em1",
-        "description": "duplicate device",
+        "descr": "duplicate device",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
