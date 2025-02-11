@@ -5,11 +5,11 @@
 interfaces_configuration_utils module_utils: Module_utils to configure OPNsense interfaces.
 """
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 
 
-from xml.etree.ElementTree import Element, ElementTree, SubElement
+from xml.etree.ElementTree import Element, SubElement
 
 from ansible_collections.puzzle.opnsense.plugins.module_utils import (
     xml_utils,
@@ -68,10 +68,10 @@ class InterfaceConfiguration:
     def __init__(
         self,
         identifier: str,
-        extra_attrs: Dict[str, Any] = None,
+        **kwargs
     ):
         self.identifier = identifier
-        self.extra_attrs = extra_attrs or {}
+        self.extra_attrs = kwargs or {}
 
     @staticmethod
     def from_xml(element: Element) -> "InterfaceConfiguration":
@@ -102,10 +102,11 @@ class InterfaceConfiguration:
                 extra_attrs[key] = False
             else:
                 extra_attrs[key] = value
+
         # Create the InterfaceConfiguration instance
         interface_configuration = InterfaceConfiguration(
             identifier=identifier,
-            extra_attrs=extra_attrs,  # Include all other attributes
+            **extra_attrs,  # Include all other attributes
         )
 
         return interface_configuration
@@ -123,21 +124,28 @@ class InterfaceConfiguration:
         boolean values translate to '1' for true.
         """
 
-        # Ensure the instance attributes are accessed correctly
-        interface_configuration_dict: dict = asdict(self)
-
         # Create the main element
-        main_element = Element(interface_configuration_dict["identifier"])
+        main_element = Element(self.identifier)
+        if "device" in self.extra_attrs:
+            self.extra_attrs["if"] = self.extra_attrs.pop("device")
 
         # Serialize extra attributes
-        for key, value in interface_configuration_dict["extra_attrs"].items():
-            if key in ["identifier", "if"]:
+        for key, value in self.extra_attrs.items():
+            if key in ["identifier", "device"]:
                 continue  # Skip these as they are already handled
+
+            xml_key = key
+            # options for adv_dhcp... or internal_dynamic configs are written with '_' to the XML
+            if not key.startswith("adv_dhcp_") and not key == "internal_dynamic":
+                xml_key = key.replace("_", "-")
+
             if isinstance(value, bool):
-                if value:  # Only add if the value is True
-                    SubElement(main_element, key).text = "1"
-            elif value is not None:
-                SubElement(main_element, key).text = value
+                if value == 1:  # Only add if the value is True
+                    SubElement(main_element, xml_key).text = "1"
+                elif value is False or value == 0:
+                    SubElement(main_element, xml_key).text = "0"
+            else:
+                SubElement(main_element, xml_key).text = value
         return main_element
 
     @classmethod
@@ -153,16 +161,18 @@ class InterfaceConfiguration:
 
         Creates an InterfaceConfiguration from the ansible Parameters.
         """
-        identifier = params.get("identifier")
+        identifier = params.pop("identifier")
         extra_attrs = {}
+        if "device" in params:
+            params["if"] = params.pop("device")
         for key, value in params.items():
-            if key not in ["identifier", "state"]:
+            if key not in ["state"]:
                 if isinstance(value, bool):
                     extra_attrs[key] = value
                 elif value is not None:
                     extra_attrs[key] = str(value)
 
-        return cls(identifier, extra_attrs)
+        return cls(identifier, **extra_attrs)
 
 
 class InterfacesSet(OPNsenseModuleConfig):
@@ -310,52 +320,33 @@ class InterfacesSet(OPNsenseModuleConfig):
 
         device_interfaces_set: set = set(self.get_interfaces())
 
-        interface_to_update: Optional[InterfaceConfiguration] = next(
-            (
-                interface
-                for interface in self._interfaces_configuration
-                if interface.identifier == interface_configuration.identifier
-            ),
-            None,
-        )
+        # check if the input interface name is a valid interface on the device
+        new_if_config_device: Optional[str] = interface_configuration.extra_attrs.get("if", None)
 
-        if interface_to_update:
-            if interface_configuration.identifier == interface_to_update.identifier:
-                # Merge extra_attrs
-                for attr, value in interface_configuration.extra_attrs.items():
-                    if attr == "if" and value not in device_interfaces_set:
-                        raise OPNSenseInterfaceNotFoundError(
-                            "Interface was not found on OPNsense Instance!"
-                        )  # pylint: disable=C0301
-                    interface_to_update.extra_attrs[attr] = value
-            else:
-                raise OPNSenseDeviceAlreadyAssignedError(
-                    "This device is already assigned, please unassign this device first"
-                )  # pylint: disable=C0301
-
-            # Update the internal list with the complete updated configuration
-            self._interfaces_configuration = [
-                (
-                    interface_to_update
-                    if iface.identifier == interface_to_update.identifier
-                    else iface
-                )
-                for iface in self._interfaces_configuration
-            ]
-        else:
-            # Add new interface configuration
-            interface_to_add = InterfaceConfiguration(
-                identifier=interface_configuration.identifier,
+        if new_if_config_device not in device_interfaces_set:
+            raise OPNSenseInterfaceNotFoundError(
+                "Interface was not found on OPNsense Instance!"
             )
-            for attr, value in interface_configuration.extra_attrs.items():
-                # ensure that null and False values are not added
-                if value:
-                    interface_to_add.extra_attrs.update({attr: value})
-            if interface_to_add.extra_attrs["if"] not in device_interfaces_set:
-                raise OPNSenseInterfaceNotFoundError(
-                    "Interface was not found on OPNsense Instance!"
-                )  # pylint: disable=C0301
-            self._interfaces_configuration.append(interface_to_add)
+
+        # check if the input interface is already assigned to another if-config
+        existing_if_configs = list(filter(lambda if_cfg: if_cfg.extra_attrs.get("if", None) == new_if_config_device, self._interfaces_configuration))
+
+        # if an existing interface config with the dame 'if' but a different identifier is detected
+        # then we cannot allow a reassignment of a physical device to another interface and therefore
+        # raise an exception
+        if len(existing_if_configs) and existing_if_configs[0].identifier != interface_configuration.identifier:
+            raise OPNSenseDeviceAlreadyAssignedError(
+                "This device is already assigned, please unassign this device first"
+            )
+
+        existing_id_configs = list(filter(lambda if_cfg: if_cfg.identifier == interface_configuration.identifier, self._interfaces_configuration))
+
+        if len(existing_id_configs):
+            # update
+            existing_id_configs[0].extra_attrs.update(**interface_configuration.extra_attrs)
+        else:
+            # add
+            self._interfaces_configuration.append(interface_configuration)
 
     def remove(self, interface_configuration: InterfaceConfiguration) -> None:
         """
