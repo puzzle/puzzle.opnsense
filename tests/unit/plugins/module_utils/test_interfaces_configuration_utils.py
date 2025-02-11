@@ -12,7 +12,7 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
     InterfaceConfiguration,
     InterfacesSet,
-    OPNSenseDeviceNotFoundError,
+    OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
 )
@@ -1366,13 +1366,13 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_de
         "description": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        with pytest.raises(OPNSenseDeviceNotFoundError) as excinfo:
+        with pytest.raises(OPNSenseInterfaceNotFoundError) as excinfo:
             test_interface_configuration: InterfaceConfiguration = (
                 InterfaceConfiguration.from_ansible_module_params(test_params)
             )
             interfaces_set.update(test_interface_configuration)
             interfaces_set.save()
-        assert "Device was not found on OPNsense Instance!" in str(excinfo.value)
+        assert "Interface was not found on OPNsense Instance!" in str(excinfo.value)
 
 
 @patch(
