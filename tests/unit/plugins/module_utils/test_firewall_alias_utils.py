@@ -51,7 +51,7 @@ TEST_VERSION_MAP = {
             ],
             "configure_functions": {},
         },
-        "interfaces_assignments": {
+        "interfaces_configuration": {
             "interfaces": "interfaces",
             "php_requirements": [],
             "configure_functions": {},

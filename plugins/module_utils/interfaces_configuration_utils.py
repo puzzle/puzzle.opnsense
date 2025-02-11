@@ -173,15 +173,15 @@ class InterfacesSet(OPNsenseModuleConfig):
     interface configuration within an OPNsense config file.
 
     Attributes:
-        _interfaces_configuration (List[InterfaceConfiguration]): List of interface assignments.
+        _interfaces_configuration (List[InterfaceConfiguration]): List of interface configurations.
 
     Methods:
         __init__(self, path="/conf/config.xml"): Initializes InterfacesSet and loads interfaces.
         _load_interfaces() -> List["interface_configuration"]: Loads interfaces from config.
-        changed() -> bool: Checks if current assignments differ from the loaded ones.
-        update(InterfaceConfiguration: InterfaceConfiguration): Updates an assignment,
+        changed() -> bool: Checks if current configurations differ from the loaded ones.
+        update(InterfaceConfiguration: InterfaceConfiguration): Updates a configuration,
         errors if not found.
-        find(**kwargs) -> Optional[InterfaceConfiguration]: Finds an assignment matching
+        find(**kwargs) -> Optional[InterfaceConfiguration]: Finds a configuration matching
         specified attributes.
         save() -> bool: Saves changes to the config file if there are modifications.
     """
@@ -236,13 +236,13 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     def get_interfaces(self) -> List[InterfaceConfiguration]:
         """
-        Retrieves a list of interface assignments from an OPNSense device via a PHP function.
+        Retrieves a list of interface confiugrations from an OPNSense device via a PHP function.
 
         The function queries the device using specified PHP requirements and config functions.
         It processes the stdout, extracts interface data, and handles errors.
 
         Returns:
-            list[InterfaceConfiguration]: A list of interface assignments parsed
+            list[InterfaceConfiguration]: A list of interface configurations parsed
                                        from the PHP function's output.
 
         Raises:
@@ -359,7 +359,7 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     def remove(self, interface_configuration: InterfaceConfiguration) -> None:
         """
-        Removes an interface assignment from the configuration.
+        Removes an interface configuration from the configuration.
 
         Args:
             interface_configuration (InterfaceConfiguration): The interface configuration to remove.
@@ -376,36 +376,45 @@ class InterfacesSet(OPNsenseModuleConfig):
 
     def find(self, **kwargs) -> Optional[InterfaceConfiguration]:
         """
-        Searches for an interface assignment that matches given criteria.
+        Searches for an interface configuration that matches given criteria.
 
-        Iterates through the list of interface assignments, checking if each one
+        Iterates through the list of interface configurations, checking if each one
         matches all provided keyword arguments. If a match is found, returns the
-        corresponding interface assignment. If no match is found, returns None.
+        corresponding interface configuration. If no match is found, returns None.
 
         Args:
-            **kwargs: Key-value pairs to match against attributes of interface assignments.
+            **kwargs: Key-value pairs to match against attributes of interface configurations.
 
         Returns:
-            Optional[InterfaceConfiguration]: The first interface assignment that matches
+            Optional[InterfaceConfiguration]: The first interface configuration that matches
             the criteria, or None if no match is found.
         """
+        identifier_match: Optional[List[InterfaceConfiguration]] = None
+        if "identifier" in kwargs:
+            identifier_match = list(filter(lambda ifcfg: ifcfg.identifier == kwargs["identifier"], self._interfaces_configuration))
 
-        for interface_configuration in self._interfaces_configuration:
-            match = all(
-                getattr(interface_configuration, key, None) == value
-                for key, value in kwargs.items()
-            )
-            if match:
-                return interface_configuration
+        if identifier_match and len(identifier_match):
+            return identifier_match[0]
+
+        extra_attr_matches: List[InterfaceConfiguration] = list(filter(
+            lambda if_cfg: set(kwargs.items()).issubset(set(if_cfg.extra_attrs.items())), self._interfaces_configuration
+        ))
+        if len(extra_attr_matches) > 1:
+            # TODO handle ambiguous matches
+            pass
+
+        if len(extra_attr_matches):
+            return extra_attr_matches[0]
+
         return None
 
     def save(self) -> bool:
         """
-        Saves the current state of interface assignments to the OPNsense configuration file.
+        Saves the current state of interface configurations to the OPNsense configuration file.
 
-        Checks if there have been changes to the interface assignments. If not, it
+        Checks if there have been changes to the interface configurations. If not, it
         returns False indicating no need to save. It then locates the parent element
-        for interface assignments in the XML tree and replaces existing entries with
+        for interface configurations in the XML tree and replaces existing entries with
         the updated set from memory. After updating, it writes the new XML tree to
         the configuration file and reloads the configuration to reflect changes.
 
