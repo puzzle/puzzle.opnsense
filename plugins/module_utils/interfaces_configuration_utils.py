@@ -430,24 +430,13 @@ class InterfacesSet(OPNsenseModuleConfig):
             return False
 
         # Use 'find' to get the single parent element
-        parent_element = self._config_xml_tree.find(
+        interfaces_element = self._config_xml_tree.find(
             self._config_maps["interfaces_configuration"]["interfaces"]
         )
 
-        # Assuming 'parent_element' correctly refers to the container of interface elements
-        for interface_element in list(parent_element):
-            parent_element.remove(interface_element)
-
-        # Now, add updated interface elements
-        parent_element.extend(
-            [
-                interface_configuration.to_etree()
-                for interface_configuration in self._interfaces_configuration
-            ]
+        interfaces_element.clear()
+        interfaces_element.extend(
+            [interface_configuration.to_etree() for interface_configuration in self._interfaces_configuration]
         )
 
-        # Write the updated XML tree to the file
-        tree = ElementTree(self._config_xml_tree)
-        tree.write(self._config_path, encoding="utf-8", xml_declaration=True)
-
-        return True
+        return super().save(override_changed=True)
