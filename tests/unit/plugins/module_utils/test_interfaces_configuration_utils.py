@@ -1302,7 +1302,7 @@ def test_interface_configuration_from_ansible_module_params_with_description_upd
         test_interface_configuration: InterfaceConfiguration = (
             InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_configuration)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
 
         interfaces_set.save()
@@ -1336,7 +1336,7 @@ def test_interface_configuration_from_ansible_module_params_with_device_update(
         test_interface_configuration: InterfaceConfiguration = (
             InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_configuration)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
         interfaces_set.save()
 
@@ -1370,7 +1370,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_de
             test_interface_configuration: InterfaceConfiguration = (
                 InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_configuration)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
         assert "Interface was not found on OPNsense Instance!" in str(excinfo.value)
 
@@ -1397,7 +1397,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_id
             test_interface_configuration: InterfaceConfiguration = (
                 InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_configuration)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
         assert (
             "This device is already assigned, please unassign this device first"
@@ -1426,7 +1426,7 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_id
         test_interface_configuration: InterfaceConfiguration = (
             InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_configuration)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
         interfaces_set.save()
 
@@ -1460,7 +1460,7 @@ def test_interface_configuration_from_ansible_module_params_with_duplicate_devic
             test_interface_configuration: InterfaceConfiguration = (
                 InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_configuration)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
         assert (
             "This device is already assigned, please unassign this device first"
