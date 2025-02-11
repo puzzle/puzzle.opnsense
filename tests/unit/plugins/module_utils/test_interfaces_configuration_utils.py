@@ -1133,8 +1133,8 @@ def test_simple_interface_configuration_from_xml_to_etree():
         test_etree_interface_configuration
     )
     assert test_interface_configuration.identifier == "opt1"
-    assert test_interface_configuration.device == "em3"
-    assert test_interface_configuration.descr == "DMZ"
+    assert test_interface_configuration.extra_attrs["if"] == "em3"
+    assert test_interface_configuration.extra_attrs["descr"] == "DMZ"
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
     orig_test_interface_configuration: Element = list(list(test_etree_opnsense)[4])[2]
@@ -1160,8 +1160,8 @@ def test_wan_interface_configuration_to_etree():
         blockpriv=1,
         ipaddrv6="dhcp6",
         lock=1,
+        dhcp6_ia_pd_len="0"
     )
-    setattr(test_interface_configuration, "dhcp6-ia-pd-len", "0")
 
     test_element = test_interface_configuration.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
@@ -1182,9 +1182,9 @@ def test_lan_interface_configuration_to_etree():
         blockbogons=1,
         ipaddrv6="track6",
         lock=1,
+        track6_interface="wan",
+        track6_prefix_id="0"
     )
-    setattr(test_interface_configuration, "track6-interface", "wan")
-    setattr(test_interface_configuration, "track6-prefix-id", "0")
 
     test_element = test_interface_configuration.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
@@ -1229,10 +1229,9 @@ def test_opt2_interface_configuration_to_etree():
         adv_dhcp_config_advanced=None,
         adv_dhcp_config_file_override=None,
         adv_dhcp_config_file_override_path=None,
+        alias_address=None,
+        alias_subnet=32,
     )
-
-    setattr(test_interface_configuration, "alias-address", None)
-    setattr(test_interface_configuration, "alias-subnet", "32")
 
     test_element = test_interface_configuration.to_etree()
 
@@ -1277,8 +1276,8 @@ def test_simple_interface_configuration_from_ansible_module_params_simple(
         InterfaceConfiguration.from_ansible_module_params(test_params)
     )
     assert test_interface_configuration.identifier == "wan"
-    assert test_interface_configuration.device == "vtnet1"
-    assert test_interface_configuration.descr == "lan_interface"
+    assert test_interface_configuration.extra_attrs["if"] == "vtnet1"
+    assert test_interface_configuration.extra_attrs["descr"] == "lan_interface"
 
 
 @patch(
@@ -1310,8 +1309,8 @@ def test_interface_configuration_from_ansible_module_params_with_description_upd
     with InterfacesSet(sample_config_path) as new_interfaces_set:
         new_test_interface_configuration = new_interfaces_set.find(identifier="lan")
         assert new_test_interface_configuration.identifier == "lan"
-        assert new_test_interface_configuration.device == "em1"
-        assert new_test_interface_configuration.descr == "test_interface"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em1"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
@@ -1343,8 +1342,8 @@ def test_interface_configuration_from_ansible_module_params_with_device_update(
     with InterfacesSet(sample_config_path) as new_interfaces_set:
         new_test_interface_configuration = new_interfaces_set.find(identifier="wan")
         assert new_test_interface_configuration.identifier == "wan"
-        assert new_test_interface_configuration.device == "em4"
-        assert new_test_interface_configuration.descr == "test_interface"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em4"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
@@ -1433,8 +1432,8 @@ def test_interface_configuration_from_ansible_module_params_with_not_existing_id
     with InterfacesSet(sample_config_path) as new_interfaces_set:
         new_test_interface_configuration = new_interfaces_set.find(identifier="test")
         assert new_test_interface_configuration.identifier == "test"
-        assert new_test_interface_configuration.device == "em4"
-        assert new_test_interface_configuration.descr == "test_interface"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em4"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
