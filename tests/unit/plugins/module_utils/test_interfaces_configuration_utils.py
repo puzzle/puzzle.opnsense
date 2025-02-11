@@ -3,13 +3,11 @@
 # pylint: skip-file
 import os
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-
 import pytest
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
     InterfaceConfiguration,
@@ -30,6 +28,7 @@ TEST_VERSION_MAP = {
             "php_requirements": [],
             "configure_functions": {},
         },
+
     }
 }
 
@@ -464,12 +463,12 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <updated>
                 <username>root@10.0.5.2</username>
                 <time>1584202093.9701</time>
-                <description>/firewall_rules_edit.php made changes</description>
+                <descr>/firewall_rules_edit.php made changes</descr>
                 </updated>
                 <created>
                 <username>root@10.0.5.2</username>
                 <time>1584202093.9701</time>
-                <description>/firewall_rules_edit.php made changes</description>
+                <descr>/firewall_rules_edit.php made changes</descr>
                 </created>
                 </rule>
                 </filter>
