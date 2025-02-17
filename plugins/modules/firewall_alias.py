@@ -17,6 +17,12 @@ author:
 module: firewall_alias
 short_description: Configure firewall aliases.
 version_added: 1.4.0
+
+deprecated:
+  removed_in: 2.0.0
+  why: This configuration is supported using the API and therefore implemented in the ansibleguy.opnsense collection.
+  alternative: Use ansibleguy.opnsense.alias instead.
+
 description: Module to configure opnsense firewall aliases
 options:
   enabled:
