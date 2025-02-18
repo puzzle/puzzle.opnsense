@@ -14,7 +14,6 @@ from xml.etree.ElementTree import Element, ElementTree
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.config_utils import (
     OPNsenseModuleConfig,
-    UnsupportedModuleSettingError,
 )
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     Group,
