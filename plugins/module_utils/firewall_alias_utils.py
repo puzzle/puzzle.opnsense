@@ -659,18 +659,7 @@ class FirewallAliasSet(OPNsenseModuleConfig):
             self.is_interface(alias.interface)
 
         if alias.type == FirewallAliasType.OPNVPNGROUP:
-            if self.opnsense_version > "23.1":
-                self.set_authgroup(type_opnvpngroup_alias=alias)
-            else:
-                raise UnsupportedModuleSettingError(
-                    f"OPNVPNGROUP type is not supported in OPNsense {self.opnsense_version}"
-                )
-
-        if alias.type in [FirewallAliasType.DYNAMICIPV6HOST, FirewallAliasType.BGPASN]:
-            if self.opnsense_version < "23.7":
-                raise UnsupportedModuleSettingError(
-                    f"{alias.type} type is not supported in OPNsense {self.opnsense_version}"
-                )
+            self.set_authgroup(type_opnvpngroup_alias=alias)
 
         existing_alias: Optional[FirewallAlias] = next(
             (a for a in self._aliases if a.name == alias.name), None

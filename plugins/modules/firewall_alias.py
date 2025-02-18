@@ -47,11 +47,10 @@ options:
       - networkgroup (Combine different network type aliases into one)
       - macaddress (MAC address or partial mac addresses like f4:90:ea)
       - bgpasn (Maps autonomous system (AS) numbers to networks where they
-        are responsible for) supported >= version 23.7
+        are responsible for) supported
       - dynamicipv6host (A Host entry that will auto update on a
-        prefixchange) supported >= version 23.7
-      - opnvpngroup (Map user groups to logged in OpenVPN users) supported
-        >= version 23.1
+        prefixchange) supported
+      - opnvpngroup (Map user groups to logged in OpenVPN users)
       - internal (Internal aliases which are managed by the product)
       - external (Externally managed alias, this only handles the
         placeholder. Content is set from another source (plugin, api call,
