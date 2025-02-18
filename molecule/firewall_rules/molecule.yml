@@ -16,16 +16,6 @@ driver:
   parallel: true
 
 platforms:
-  - name: "22.7"
-    hostname: false
-    box: puzzle/opnsense
-    box_version: "22.7"
-    memory: 1024
-    cpus: 2
-    instance_raw_config_args:
-      - 'vm.guest = :freebsd'
-      - 'ssh.sudo_command = "%c"'
-      - 'ssh.shell = "/bin/sh"'
   - name: "23.1"
     box: puzzle/opnsense
     hostname: false
