@@ -18,5 +18,5 @@ system:
       hostname: "firewall01"
       domain: "test.local"
       timezone: "Europe/Zurich"
-interfaces: []
+interfaces: {}
 firewall: {}
