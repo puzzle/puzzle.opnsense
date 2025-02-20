@@ -560,5 +560,23 @@ VERSION_MAP = {
             ],
             "configure_functions": {},
         },
+        "interfaces_assignments": {
+            "interfaces": "interfaces",
+            # Add other mappings here.
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/filter.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/rrd.inc",
+                "/usr/local/etc/inc/interfaces.inc",
+            ],
+            "configure_functions": {
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
     },
 }
