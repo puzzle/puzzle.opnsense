@@ -1,0 +1,22 @@
+---
+system:
+  high_availability:
+    synchronize_interface: LAN
+    synchronize_config_to_ip: 224.0.0.240
+    synchronize_peer_ip: 224.0.0.241
+    disable_preempt: true
+    disconnect_dialup_interfaces: true
+    synchronize_states: true
+    remote_system_username: opnsense
+    remote_system_password: v3rys3cure
+    services_to_synchronize:
+      - aliases
+      - rules
+      - ipsec
+  settings:
+    general:
+      hostname: "firewall01"
+      domain: "test.local"
+      timezone: "Europe/Zurich"
+interfaces: {}
+firewall: {}

@@ -12,7 +12,6 @@
       - dhcpd
       - dhcpdv6
       - dhcrelay
-      - widgets
       - dnsforwarder
       - categories
       - ifgroups
