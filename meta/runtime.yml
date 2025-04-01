@@ -1,2 +1,16 @@
 ---
 requires_ansible: '>=2.11.0'  # Use '>=2.9.10' instead, if needed
+plugin_routing:
+  modules:
+    firewall_alias:
+      deprecation:
+        removal_version: 2.0.0
+        warning_text: Use ansibleguy.opnsense.alias instead.
+    firewall_rules:
+      deprecation:
+        removal_version: 2.0.0
+        warning_text: Use ansibleguy.opnsense.rule instead.
+    system_settings_logging:
+      deprecation:
+        removal_version: 2.0.0
+        warning_text: Use ansibleguy.opnsense.syslog instead.
