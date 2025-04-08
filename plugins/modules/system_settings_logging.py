@@ -23,7 +23,7 @@ version_added: "1.0.0"
 deprecated:
   removed_in: 2.0.0
   why: This configuration is supported using the API and therefore implemented in the ansibleguy.opnsense collection.
-  alternative: Use ansibleguy.opnsense.syslog instead.
+  alternative: Use L(ansibleguy.opnsense.syslog, https://opnsense.ansibleguy.net/modules/syslog.html) instead.
 
 description:
   - Module to configure system logging
