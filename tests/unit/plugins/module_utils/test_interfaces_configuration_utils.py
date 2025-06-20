@@ -3,18 +3,16 @@
 # pylint: skip-file
 import os
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-
 import pytest
-
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_configuration_utils import (
-    InterfaceAssignment,
+    InterfaceConfiguration,
     InterfacesSet,
-    OPNSenseDeviceNotFoundError,
+    OPNSenseInterfaceNotFoundError,
     OPNSenseDeviceAlreadyAssignedError,
     OPNSenseGetInterfacesError,
 )
@@ -30,6 +28,7 @@ TEST_VERSION_MAP = {
             "php_requirements": [],
             "configure_functions": {},
         },
+
     }
 }
 
@@ -207,7 +206,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                     <dnsallowoverride/>
                     <group>
                     <name>admins</name>
-                    <description>System Administrators</description>
+                    <descr>System Administrators</descr>
                     <scope>system</scope>
                     <gid>1999</gid>
                     <member>0</member>
@@ -464,12 +463,12 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <updated>
                 <username>root@10.0.5.2</username>
                 <time>1584202093.9701</time>
-                <description>/firewall_rules_edit.php made changes</description>
+                <descr>/firewall_rules_edit.php made changes</descr>
                 </updated>
                 <created>
                 <username>root@10.0.5.2</username>
                 <time>1584202093.9701</time>
-                <description>/firewall_rules_edit.php made changes</description>
+                <descr>/firewall_rules_edit.php made changes</descr>
                 </created>
                 </rule>
                 </filter>
@@ -526,7 +525,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <revision>
                 <username>(root)</username>
                 <time>1712239765.0467</time>
-                <description>Updated plugin interface configuration</description>
+                <descr>Updated plugin interface configuration</descr>
                 </revision>
                 <OPNsense>
                 <captiveportal version="1.0.1">
@@ -633,12 +632,12 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <events/>
                 <format/>
                 <reminder>10</reminder>
-                <description/>
+                <descr/>
                 </alert>
                 <service uuid="f85a8cf8-a81e-4cf4-8cb0-c1fc2b10cb24">
                 <enabled>1</enabled>
                 <name>$HOST</name>
-                <description/>
+                <descr/>
                 <type>system</type>
                 <pidfile/>
                 <match/>
@@ -656,7 +655,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="12aabe3a-3671-496d-aa9e-aa2018c766e3">
                 <enabled>1</enabled>
                 <name>RootFs</name>
-                <description/>
+                <descr/>
                 <type>filesystem</type>
                 <pidfile/>
                 <match/>
@@ -674,7 +673,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="325389a3-13df-4679-b0d3-1d238a83787b">
                 <enabled>0</enabled>
                 <name>carp_status_change</name>
-                <description/>
+                <descr/>
                 <type>custom</type>
                 <pidfile/>
                 <match/>
@@ -692,7 +691,7 @@ TEST_XML: str = """<?xml version="1.0"?>
                 <service uuid="9c07f6fd-c55a-43fa-9513-363ac364b383">
                 <enabled>0</enabled>
                 <name>gateway_alert</name>
-                <description/>
+                <descr/>
                 <type>custom</type>
                 <pidfile/>
                 <match/>
@@ -1126,27 +1125,27 @@ def sample_config_path(request):
     os.unlink(temp_file.name)
 
 
-def test_simple_interface_assignment_from_xml_to_etree():
+def test_simple_interface_configuration_from_xml_to_etree():
     test_etree_opnsense: Element = ElementTree.fromstring(TEST_XML)
 
-    test_etree_interface_assignment: Element = list(list(test_etree_opnsense)[4])[2]
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment.from_xml(
-        test_etree_interface_assignment
+    test_etree_interface_configuration: Element = list(list(test_etree_opnsense)[4])[2]
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration.from_xml(
+        test_etree_interface_configuration
     )
-    assert test_interface_assignment.identifier == "opt1"
-    assert test_interface_assignment.device == "em3"
-    assert test_interface_assignment.descr == "DMZ"
+    assert test_interface_configuration.identifier == "opt1"
+    assert test_interface_configuration.extra_attrs["if"] == "em3"
+    assert test_interface_configuration.extra_attrs["descr"] == "DMZ"
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(test_etree_opnsense)[4])[2]
+    orig_test_interface_configuration: Element = list(list(test_etree_opnsense)[4])[2]
 
     assert xml_utils.elements_equal(
-        test_interface_assignment.to_etree(), orig_test_interface_assignment
+        test_interface_configuration.to_etree(), orig_test_interface_configuration
     )
 
 
-def test_wan_interface_assignment_to_etree():
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
+def test_wan_interface_configuration_to_etree():
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration(
         identifier="wan",
         device="em2",
         descr="WAN",
@@ -1161,18 +1160,18 @@ def test_wan_interface_assignment_to_etree():
         blockpriv=1,
         ipaddrv6="dhcp6",
         lock=1,
+        dhcp6_ia_pd_len="0"
     )
-    setattr(test_interface_assignment, "dhcp6-ia-pd-len", "0")
 
-    test_element = test_interface_assignment.to_etree()
+    test_element = test_interface_configuration.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(orig_etree)[4])[0]
+    orig_test_interface_configuration: Element = list(list(orig_etree)[4])[0]
 
-    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+    assert xml_utils.elements_equal(test_element, orig_test_interface_configuration)
 
 
-def test_lan_interface_assignment_to_etree():
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
+def test_lan_interface_configuration_to_etree():
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration(
         identifier="lan",
         device="em1",
         enable=1,
@@ -1183,30 +1182,30 @@ def test_lan_interface_assignment_to_etree():
         blockbogons=1,
         ipaddrv6="track6",
         lock=1,
+        track6_interface="wan",
+        track6_prefix_id="0"
     )
-    setattr(test_interface_assignment, "track6-interface", "wan")
-    setattr(test_interface_assignment, "track6-prefix-id", "0")
 
-    test_element = test_interface_assignment.to_etree()
+    test_element = test_interface_configuration.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(orig_etree)[4])[1]
+    orig_test_interface_configuration: Element = list(list(orig_etree)[4])[1]
 
-    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+    assert xml_utils.elements_equal(test_element, orig_test_interface_configuration)
 
 
-def test_opt1_interface_assignment_to_etree():
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
+def test_opt1_interface_configuration_to_etree():
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration(
         identifier="opt1", device="em3", descr="DMZ", spoofmac=None, lock=1
     )
-    test_element = test_interface_assignment.to_etree()
+    test_element = test_interface_configuration.to_etree()
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(orig_etree)[4])[2]
+    orig_test_interface_configuration: Element = list(list(orig_etree)[4])[2]
 
-    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+    assert xml_utils.elements_equal(test_element, orig_test_interface_configuration)
 
 
-def test_opt2_interface_assignment_to_etree():
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
+def test_opt2_interface_configuration_to_etree():
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration(
         identifier="opt2",
         device="em0",
         descr="VAGRANT",
@@ -1230,21 +1229,20 @@ def test_opt2_interface_assignment_to_etree():
         adv_dhcp_config_advanced=None,
         adv_dhcp_config_file_override=None,
         adv_dhcp_config_file_override_path=None,
+        alias_address=None,
+        alias_subnet=32,
     )
 
-    setattr(test_interface_assignment, "alias-address", None)
-    setattr(test_interface_assignment, "alias-subnet", "32")
-
-    test_element = test_interface_assignment.to_etree()
+    test_element = test_interface_configuration.to_etree()
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(orig_etree)[4])[3]
+    orig_test_interface_configuration: Element = list(list(orig_etree)[4])[3]
 
-    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+    assert xml_utils.elements_equal(test_element, orig_test_interface_configuration)
 
 
-def test_lo0_interface_assignment_to_etree():
-    test_interface_assignment: InterfaceAssignment = InterfaceAssignment(
+def test_lo0_interface_configuration_to_etree():
+    test_interface_configuration: InterfaceConfiguration = InterfaceConfiguration(
         internal_dynamic="1",
         identifier="lo0",
         device="lo0",
@@ -1258,28 +1256,28 @@ def test_lo0_interface_assignment_to_etree():
         virtual="1",
     )
 
-    test_element = test_interface_assignment.to_etree()
+    test_element = test_interface_configuration.to_etree()
 
     orig_etree: Element = ElementTree.fromstring(TEST_XML)
-    orig_test_interface_assignment: Element = list(list(orig_etree)[4])[4]
+    orig_test_interface_configuration: Element = list(list(orig_etree)[4])[4]
 
-    assert xml_utils.elements_equal(test_element, orig_test_interface_assignment)
+    assert xml_utils.elements_equal(test_element, orig_test_interface_configuration)
 
 
-def test_simple_interface_assignment_from_ansible_module_params_simple(
+def test_simple_interface_configuration_from_ansible_module_params_simple(
     sample_config_path,
 ):
     test_params: dict = {
         "identifier": "wan",
         "device": "vtnet1",
-        "description": "lan_interface",
+        "descr": "lan_interface",
     }
-    test_interface_assignment: InterfaceAssignment = (
-        InterfaceAssignment.from_ansible_module_params(test_params)
+    test_interface_configuration: InterfaceConfiguration = (
+        InterfaceConfiguration.from_ansible_module_params(test_params)
     )
-    assert test_interface_assignment.identifier == "wan"
-    assert test_interface_assignment.device == "vtnet1"
-    assert test_interface_assignment.descr == "lan_interface"
+    assert test_interface_configuration.identifier == "wan"
+    assert test_interface_configuration.extra_attrs["if"] == "vtnet1"
+    assert test_interface_configuration.extra_attrs["descr"] == "lan_interface"
 
 
 @patch(
@@ -1291,28 +1289,28 @@ def test_simple_interface_assignment_from_ansible_module_params_simple(
     return_value=["em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_description_update(
+def test_interface_configuration_from_ansible_module_params_with_description_update(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "lan",
         "device": "em1",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: InterfaceAssignment = (
-            InterfaceAssignment.from_ansible_module_params(test_params)
+        test_interface_configuration: InterfaceConfiguration = (
+            InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_assignment)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
 
         interfaces_set.save()
 
     with InterfacesSet(sample_config_path) as new_interfaces_set:
-        new_test_interface_assignment = new_interfaces_set.find(identifier="lan")
-        assert new_test_interface_assignment.identifier == "lan"
-        assert new_test_interface_assignment.device == "em1"
-        assert new_test_interface_assignment.descr == "test_interface"
+        new_test_interface_configuration = new_interfaces_set.find(identifier="lan")
+        assert new_test_interface_configuration.identifier == "lan"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em1"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
@@ -1325,27 +1323,27 @@ def test_interface_assignment_from_ansible_module_params_with_description_update
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_device_update(
+def test_interface_configuration_from_ansible_module_params_with_device_update(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "wan",
         "device": "em4",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: InterfaceAssignment = (
-            InterfaceAssignment.from_ansible_module_params(test_params)
+        test_interface_configuration: InterfaceConfiguration = (
+            InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_assignment)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
         interfaces_set.save()
 
     with InterfacesSet(sample_config_path) as new_interfaces_set:
-        new_test_interface_assignment = new_interfaces_set.find(identifier="wan")
-        assert new_test_interface_assignment.identifier == "wan"
-        assert new_test_interface_assignment.device == "em4"
-        assert new_test_interface_assignment.descr == "test_interface"
+        new_test_interface_configuration = new_interfaces_set.find(identifier="wan")
+        assert new_test_interface_configuration.identifier == "wan"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em4"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
@@ -1358,22 +1356,22 @@ def test_interface_assignment_from_ansible_module_params_with_device_update(
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_not_existing_device(
+def test_interface_configuration_from_ansible_module_params_with_not_existing_device(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "wan",
         "device": "test",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        with pytest.raises(OPNSenseDeviceNotFoundError) as excinfo:
-            test_interface_assignment: InterfaceAssignment = (
-                InterfaceAssignment.from_ansible_module_params(test_params)
+        with pytest.raises(OPNSenseInterfaceNotFoundError) as excinfo:
+            test_interface_configuration: InterfaceConfiguration = (
+                InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_assignment)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
-        assert "Device was not found on OPNsense Instance!" in str(excinfo.value)
+        assert "Interface was not found on OPNsense Instance!" in str(excinfo.value)
 
 
 @patch(
@@ -1385,20 +1383,20 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_devic
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_not_existing_identifier_and_used_device(
+def test_interface_configuration_from_ansible_module_params_with_not_existing_identifier_and_used_device(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "test",
         "device": "em0",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
-            test_interface_assignment: InterfaceAssignment = (
-                InterfaceAssignment.from_ansible_module_params(test_params)
+            test_interface_configuration: InterfaceConfiguration = (
+                InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_assignment)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
         assert (
             "This device is already assigned, please unassign this device first"
@@ -1415,27 +1413,27 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_ident
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_not_existing_identifier_and_not_used_device(
+def test_interface_configuration_from_ansible_module_params_with_not_existing_identifier_and_not_used_device(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "test",
         "device": "em4",
-        "description": "test_interface",
+        "descr": "test_interface",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
-        test_interface_assignment: InterfaceAssignment = (
-            InterfaceAssignment.from_ansible_module_params(test_params)
+        test_interface_configuration: InterfaceConfiguration = (
+            InterfaceConfiguration.from_ansible_module_params(test_params)
         )
-        interfaces_set.update(test_interface_assignment)
+        interfaces_set.add_or_update(test_interface_configuration)
         assert interfaces_set.changed
         interfaces_set.save()
 
     with InterfacesSet(sample_config_path) as new_interfaces_set:
-        new_test_interface_assignment = new_interfaces_set.find(identifier="test")
-        assert new_test_interface_assignment.identifier == "test"
-        assert new_test_interface_assignment.device == "em4"
-        assert new_test_interface_assignment.descr == "test_interface"
+        new_test_interface_configuration = new_interfaces_set.find(identifier="test")
+        assert new_test_interface_configuration.identifier == "test"
+        assert new_test_interface_configuration.extra_attrs["if"] == "em4"
+        assert new_test_interface_configuration.extra_attrs["descr"] == "test_interface"
         new_interfaces_set.save()
 
 
@@ -1448,20 +1446,20 @@ def test_interface_assignment_from_ansible_module_params_with_not_existing_ident
     return_value=["em0", "em1", "em2", "em3", "em4"],
 )
 @patch.dict(in_dict=VERSION_MAP, values=TEST_VERSION_MAP, clear=True)
-def test_interface_assignment_from_ansible_module_params_with_duplicate_device(
+def test_interface_configuration_from_ansible_module_params_with_duplicate_device(
     mock_get_version, mock_get_interfaces, sample_config_path
 ):
     test_params: dict = {
         "identifier": "wan",
         "device": "em1",
-        "description": "duplicate device",
+        "descr": "duplicate device",
     }
     with InterfacesSet(sample_config_path) as interfaces_set:
         with pytest.raises(OPNSenseDeviceAlreadyAssignedError) as excinfo:
-            test_interface_assignment: InterfaceAssignment = (
-                InterfaceAssignment.from_ansible_module_params(test_params)
+            test_interface_configuration: InterfaceConfiguration = (
+                InterfaceConfiguration.from_ansible_module_params(test_params)
             )
-            interfaces_set.update(test_interface_assignment)
+            interfaces_set.add_or_update(test_interface_configuration)
             interfaces_set.save()
         assert (
             "This device is already assigned, please unassign this device first"
