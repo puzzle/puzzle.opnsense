@@ -1,5 +1,5 @@
 # Default owners for everything in the repo
-* @ombre8 @dongiovanni83 @acteru @rekup @killuuuhh
+* @ombre8 @dongiovanni83 @rekup @killuuuhh
 
 # Documentation
 /docs/ @ombre8 @dongiovanni83
@@ -8,13 +8,13 @@
 .github/ @ombre8 @dongiovanni83
 
 # Tests
-tests/ @ombre8 @dongiovanni83 @acteru
+tests/ @ombre8 @dongiovanni83
 
 # Molecule tests
-molecule/ @ombre8 @dongiovanni83 @acteru
+molecule/ @ombre8 @dongiovanni83
 
 # Core modules
-plugins/modules/ @ombre8 @dongiovanni83 @acteru @rekup @killuuuhh
+plugins/modules/ @ombre8 @dongiovanni83 @rekup @killuuuhh
 
 # Module utilities
-plugins/module_utils/ @ombre8 @dongiovanni83 @acteru @rekup @killuuuhh
+plugins/module_utils/ @ombre8 @dongiovanni83 @rekup @killuuuhh
