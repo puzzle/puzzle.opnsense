@@ -84,9 +84,21 @@ We use the following guidelines:
 * [Ansible Development Guide](https://docs.ansible.com/ansible/devel/dev_guide/index.html)
 * [Ansible Collection Development Guide](https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#contributing-to-collections)
 
-## Collection maintenance
+## Security
 
-If you have questions or need help, feel free to mention them in the proposals.
+For security-related concerns, please see our [Security Policy](SECURITY.md). To report a security vulnerability, please follow the instructions in the security policy document.
+
+## Collection Maintenance
+
+### Issue and PR Management
+
+We aim to respond to all issues and pull requests within one week. If you don't receive a response within this timeframe, feel free to ping the thread.
+
+### Maintenance Team
+
+This collection is maintained by the team listed in the [CODEOWNERS](CODEOWNERS) file. If you're interested in becoming a maintainer, please open an issue to discuss this with the current maintainers.
+
+### Becoming a Maintainer
 
 To learn how to maintain / become a maintainer of this collection, refer to the [Maintainer guidelines](https://docs.ansible.com/ansible/devel/community/maintainers.html).
 
@@ -110,7 +122,7 @@ it!
 See the [changelog](https://github.com/puzzle/puzzle.opnsense/tree/main/CHANGELOG.rst).
 
 ## Roadmap
- 
+
 We plan to regularly release minor and patch versions, whenever new features are added or bugs fixed. Our collection follows [semantic versioning](https://semver.org/), so breaking changes will only happen in major releases.
 
 ## More information
