@@ -4,13 +4,13 @@
   become: true
   tasks:
     - name: Test interface lan, device em1 description update
-      puzzle.opnsense.interfaces_assignments:
+      puzzle.opnsense.interfaces_configuration:
         identifier: "lan"
         device: "em1"
         description: "LAN1"
 
     - name: Test interface wan, device update from em2 to em3
-      puzzle.opnsense.interfaces_assignments:
+      puzzle.opnsense.interfaces_configuration:
         identifier: "wan"
         device: "em3"
         description: "wan_interface"
@@ -25,7 +25,7 @@
         success_msg: "This device is already assigned, please unassign this device first"
 
     - name: Test unknown identifier to used device description update
-      puzzle.opnsense.interfaces_assignments:
+      puzzle.opnsense.interfaces_configuration:
         identifier: "unknown_identifier"
         device: "em1"
         description: "unknown_identifier"
@@ -40,7 +40,7 @@
         success_msg: "This device is already assigned, please unassign this device first"
 
     - name: Test interface lan, unknown_device update
-      puzzle.opnsense.interfaces_assignments:
+      puzzle.opnsense.interfaces_configuration:
         identifier: "lan"
         device: "unknown_device"
       register: unknown_device_result

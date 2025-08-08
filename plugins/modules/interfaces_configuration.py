@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 author:
   - Kyle Hammond (@kdhlab)
 module: interfaces_configuration
-version_added: "1.2.1"
+version_added: "1.6.0"
 short_description: This module can be used to configure assigned interface settings
 description:
   - Module to configure interface settings for OPNsense.
@@ -283,6 +283,18 @@ options:
       - Alias subnet.
     type: int
     required: False
+  blockbogons:
+    description:
+      - Block bogons (invalid IP addresses).
+    type: bool
+    required: False
+    aliases: ["block_bogons"]
+  blockprivate:
+    description:
+      - Block private IP addresses.
+    type: bool
+    required: False
+    aliases: ["block_private"]
   descr:
     description:
       - Description of the interface.
@@ -352,6 +364,12 @@ options:
     type: bool
     required: False
     aliases: ["disable_vlan_hw_filter"]
+  enable:
+    description:
+      - Enable the interface.
+    type: bool
+    required: False
+    aliases: ["enabled"]
   gateway:
     description:
       - Gateway.
@@ -390,6 +408,12 @@ options:
       - IPv6 address.
     type: str
     aliases: ["ipv6_address"]
+  lock:
+    description:
+      - Lock the interface.
+    type: bool
+    required: False
+    aliases: ["locked"]
   media:
     description:
       - Media type.
@@ -453,13 +477,11 @@ options:
       - IPv4 Subnet mask in CIDR notation.
     type: int
     required: False
-    when: "ipaddr"
     aliases: ["ipv4_subnet"]
   subnetv6:
     description:
       - IPv6 Subnet mask in CIDR notation.
     type: int
-    when: "ipaddrv6"
     required: False
     aliases: ["ipv6_subnet"]
   state:
@@ -604,7 +626,6 @@ def main():
     module_args = {
         "identifier": {
             "type": "str",
-            "description": "Technical identifier of the interface, used by hasync for example",
         },
         "adv_dhcp6_authentication_statement_algorithm": {
             "type": "str",
@@ -715,26 +736,31 @@ def main():
             "type": "str",
             "required": False,
             "aliases": ["dhcp6_key_info_expire"],
+            "no_log": True,
         },
         "adv_dhcp6_key_info_statement_keyid": {
             "type": "int",
             "required": False,
             "aliases": ["dhcp6_key_info_keyid"],
+            "no_log": True,
         },
         "adv_dhcp6_key_info_statement_keyname": {
             "type": "str",
             "required": False,
             "aliases": ["dhcp6_key_info_keyname"],
+            "no_log": True,
         },
         "adv_dhcp6_key_info_statement_realm": {
             "type": "str",
             "required": False,
             "aliases": ["dhcp6_key_info_realm"],
+            "no_log": True,
         },
         "adv_dhcp6_key_info_statement_secret": {
             "type": "str",
             "required": False,
             "aliases": ["dhcp6_key_info_secret"],
+            "no_log": True,
         },
         "adv_dhcp6_prefix_interface_statement_sla_len": {
             "type": "int",
@@ -814,9 +840,11 @@ def main():
         "alias_address": {
             "type": "str",
             "required": False,
-            "aliases": ["alias_address"],
         },
-        "alias_subnet": {"type": "int", "required": False, "aliases": ["alias_subnet"]},
+        "alias_subnet": {
+            "type": "int",
+            "required": False,
+        },
         "blockprivate": {
             "type": "bool",
             "required": False,
@@ -827,14 +855,17 @@ def main():
         "dhcp6_ia_pd_len": {
             "type": "int",
             "required": False,
-            "aliases": ["dhcp6_ia_pd_len"],
+
         },
         "dhcp6_prefix_id": {
             "type": "int",
             "required": False,
-            "aliases": ["dhcp6_prefix_id"],
+
         },
-        "dhcp6_ifid": {"type": "str", "required": False, "aliases": ["dhcp6_ifid"]},
+        "dhcp6_ifid": {
+            "type": "str",
+            "required": False,
+        },
         "dhcp6vlanprio": {
             "type": "int",
             "required": False,
@@ -931,13 +962,11 @@ def main():
         "subnet": {
             "type": "int",
             "required": False,
-            "when": "ipaddr",
             "aliases": ["ipv4_subnet"],
         },
         "subnetv6": {
             "type": "int",
             "required": False,
-            "when": "ipaddrv6",
             "aliases": ["ipv6_subnet"],
         },
         "state": {
@@ -988,7 +1017,6 @@ def main():
             module.fail_json(msg=str(e))
 
     interface_configuration = InterfaceConfiguration.from_ansible_module_params(params)
-    print(interface_configuration)
     with InterfacesSet() as interfaces_set:
         try:
             existing_interface = interfaces_set.find(identifier=params["identifier"])

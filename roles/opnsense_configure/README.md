@@ -24,7 +24,7 @@ system:
       # system_settings_logging module parameters
     
 interfaces:
-  assignments: [] # list of interface assignments, where the users follows the interfaces_assignments module parameter structure
+  assignments: [] # list of interface assignments, where the users follows the interfaces_configuration module parameter structure
 
 firewall:
   aliases: [] # list of aliases, where the users follows the firewall_alias module parameter structure

@@ -61,8 +61,8 @@
     services_to_synchronize: "{{ system.high_availability.services_to_synchronize | default(omit) }}"
   when: system.high_availability is defined
 
-- name: Configure interface assignments
-  puzzle.opnsense.interfaces_assignments:
+- name: Configure interface configuration
+  puzzle.opnsense.interfaces_configuration:
     identifier: "{{ interface.identifier }}"
     device: "{{ interface.device }}"
     description: "{{ interface.description | default(omit) }}"
