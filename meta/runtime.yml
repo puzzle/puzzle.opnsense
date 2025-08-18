@@ -2,8 +2,8 @@
 requires_ansible: '>=2.11.0'  # Use '>=2.9.10' instead, if needed
 plugin_routing:
   modules:
-    interfaces_configuration:
+    interfaces_assignments:
       redirect: puzzle.opnsense.interfaces_configuration
       deprecation:
-        warning_text: 'Use puzzle.opnsense.interfaces_configuration instead'
+        warning_text: 'Use puzzle.opnsense.interfaces_assignments instead'
         removal_version: '2.0.0'
