@@ -1,0 +1,98 @@
+---
+
+- name: Static IPv4 to DHCP
+  block:
+    - name: Set static IPv4 configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with Static IP"
+        ipv4_address: "192.168.1.1"
+        ipv4_subnet: 24
+        gateway: "244.178.44.111"
+        enabled: true
+      register: ipv4_static_result
+
+    - name: Get the current config after static configuration
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: static_ipv4_config
+
+    - name: Verify static IPv4 configs in XML
+      ansible.builtin.assert:
+        that:
+          - "'<ipaddr>192.168.1.1</ipaddr>' in (static_ipv4_config.content | b64decode)"
+          - "'<subnet>24</subnet>' in (static_ipv4_config.content | b64decode)"
+          - "'<gateway>244.178.44.111</gateway>' in (static_ipv4_config.content | b64decode)"
+        fail_msg: "Static configuration did not set ipv4 address, netmask or gateway"
+
+    - name: Configure DHCP for interface
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with DHCP"
+        enabled: true
+        dhcp_hostname: "test-firewall"
+        dhcp_vlan_prio: 1
+
+    - name: Get the current config after DHCP configuration
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: dhcp_config
+
+    - name: Verify that static IPv4 configs are removed
+      ansible.builtin.assert:
+        that:
+          - "'<ipaddr>dhcp</ipaddr>' in (dhcp_config.content | b64decode)"
+          - "'<subnet>' not in (dhcp_config.content | b64decode)"
+          - "'<gateway>' not in (dhcp_config.content | b64decode)"
+        fail_msg: "DHCP configuration did not remove ipv4 address, netmask or gateway"
+
+
+- name: Static IPv6 to DHCPv6
+  block:
+    - name: Set static IPv6 configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with Static IPv6"
+        ipv6_address: "2001:db8::1"
+        ipv6_subnet: 64
+        enabled: true
+      register: ipv6_static_result
+
+    - name: Get the current config after static configuration
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: static_ipv6_config
+
+    - name: Verify static IPv6 configs in XML
+      ansible.builtin.assert:
+        that:
+          - "'<ipaddrv6>2001:db8::1</ipaddrv6>' in (static_ipv6_config.content | b64decode)"
+          - "'<subnetv6>64</subnetv6>' in (static_ipv6_config.content | b64decode)"
+        fail_msg: "Static configuration did not set ipv6 address or netmask"
+
+    - name: Configure DHCPv6 for interface
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "DHCPv6 Test"
+        ipv6_address: "dhcp6"
+        dhcp6_ia_pd_len: 56
+        dhcp6_prefix_id: 1
+        dhcp6_vlan_prio: 3
+        enabled: true
+      register: dhcp6_result
+
+    - name: Get the current config after DHCPv6 configuration
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: dhcp6_config
+
+    - name: Verify that static IPv6 configs are removed
+      ansible.builtin.assert:
+        that:
+          - "'<ipaddrv6>dhcp6</ipaddrv6>' in (dhcp6_config.content | b64decode)"
+          - "'<subnetv6>' not in (dhcp6_config.content | b64decode)"
+        fail_msg: "DHCPv6 configuration did not remove ipv6 address or netmask"
