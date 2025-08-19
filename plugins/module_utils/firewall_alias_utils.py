@@ -181,7 +181,7 @@ class FirewallAlias:
 
     @staticmethod
     def refreshfrequency_to_updatefreq(
-        refreshfrequency: Dict[str, int]
+        refreshfrequency: Dict[str, int],
     ) -> Optional[Union[int, str]]:
         """
         Converts a dictionary with 'days' and 'hours' to a total number of days,
