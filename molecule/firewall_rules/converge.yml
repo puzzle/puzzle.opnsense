@@ -38,7 +38,7 @@
               <description>/firewall_rules_edit.php made changes</description>
             </created>
           </rule>
-
+      changed_when: false
 
       # Test basic functionality with different actions
     - name: "Action: Test pass action"

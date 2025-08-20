@@ -59,7 +59,7 @@ modules inside of the ``plugins`` directory, which requires to have additional
 subfolders for each contained plugin type. The ``plugins`` directory could
 therefore look like this:
 
-.. code-block::
+.. code-block:: text
 
  puzzle.opnsense
   └─ plugins
@@ -76,7 +76,7 @@ The official Ansible Documentation (`Collection Structure
 provides further reference regarding collection structure guidelines.
 
 Using the OPNsense Module Config XML in Plugins
-----------------------------------------
+-----------------------------------------------
 
 The ``OPNsenseModuleConfig`` utility module provides a convenient and efficient way to interact with the OPNsense configuration file located at ``/conf/config.xml`` within Ansible plugins. This utility is designed to offer a context manager that significantly simplifies the process of accessing, modifying, and managing configuration values in a structured and error-resistant manner.
 
@@ -156,22 +156,22 @@ Example
             "system_settings_general": {
                 "hostname": "system/hostname",
                 "domain": "system/domain",
-                ...
+                # ...
                 "php_requirements": [
                     "/usr/local/etc/inc/config.inc",
-                    ...
+                    # ...
                 ],
                 "configure_functions": {
                     "system_hostname_configure": {
                         "name": "system_hostname_configure",
-                        ...
+                        # ...
                     },
-                    ...
+                    # ...
                 },
             }
         },
         "25.1": {
-            ...
+            # ...
         },
     }
 
@@ -183,10 +183,10 @@ This detailed and version-specific mapping ensures the utility module operates c
 Add Support for new OPNsense releases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When there is a new OPNsense release we need to update the [VERSION_MAP](https://github.com/puzzle/puzzle.opnsense/blob/main/plugins/module_utils/module_index.py#L31) and verify the location of the existing xpaths, php requirements and configure function. A good start is to diff the PHP files from the old and the new release. Also all the implemented Tests will help you to get up to speed with a new release. Add the new release to your molecule platforms and run molecule against the new release.
+When there is a new OPNsense release we need to update the `VERSION_MAP <https://github.com/puzzle/puzzle.opnsense/blob/main/plugins/module_utils/module_index.py#L31>`__ and verify the location of the existing xpaths, php requirements and configure function. A good start is to diff the PHP files from the old and the new release. Also all the implemented Tests will help you to get up to speed with a new release. Add the new release to your molecule platforms and run molecule against the new release.
 
 Using Molecule
-=============
+==============
 
 Run Ansible directly against a running instance of OPNsense managed by Molecule.
 System requirements for this workflow is to have **vagrant** installed alongside with **virtualbox**.
@@ -258,7 +258,7 @@ command:
 
 
 2. Add tests to your scenario
-----------------------------
+-----------------------------
 
 Molecule runs its scenario tests during its 'converge' stage.
 Therefore your actual tests are required to be written inside a
@@ -279,7 +279,7 @@ Therefore your actual tests are required to be written inside a
         - name: Test output
           assert:
             that:
-              - "Hello John" == output.result
+              - '"Hello John" == output.result'
 
 
 These tests can now be executed using molecule:
@@ -332,14 +332,14 @@ Local Unit Tests
 The make target ``test-unit`` runs all unittests using ``ansible-test``.
 Simply execute the following command:
 
-.. code-block::
+.. code-block:: bash
 
  make test-unit
 
 Unittests generate a coverage report after each run which can be viewed using
 the ``test-coverage-report`` make target:
 
-.. code-block::
+.. code-block:: bash
 
  make test-coverage-report
 
@@ -349,7 +349,7 @@ Local Sanity Tests
 
 Sanity tests are executed using the ``test-sanity`` make target.
 
-.. code-block::
+.. code-block:: bash
 
  make test-sanity
 
@@ -362,7 +362,7 @@ E.g. add an ``ansible.cfg`` which sets the ``collections_paths`` variable.
 Here is important to note, that under ``collections_paths`` Ansible expects a
 directory structure like this:
 
-.. code-block::
+.. code-block:: text
 
  ansible_collections
   ├─ NAMESPACE_1
@@ -385,21 +385,23 @@ steps as a review guideline:
 
 1. Clone the Fork or add it as a new remote:
 
-   .. code-block::
+   .. code-block:: bash
+
     git remote add NEW_REMOTE_NAME REMOTE_URL
     git checkout NEW_REMOTE_NAME/BRANCH_NAME
 
    For example checking out the branch ``feature/review-guide`` of the fork
    ``dongiovanni83/puzzle.opnsense`` you would use this workflow:
 
-   .. code-block::
+   .. code-block:: bash
+
     git remote add dongiovanni83 git@github.com:dongiovanni83/puzzle.opnsense.git
     git checkout dongiovanni83/feature/review-guide
 
 
 2. If documentation has been added, build the site and check it locally:
 
-   .. code-block::
+   .. code-block:: bash
 
     make build-doc
 
@@ -408,7 +410,7 @@ steps as a review guideline:
 
 3. Run all tests locally:
 
-   .. code-block::
+   .. code-block:: bash
 
     make test
 
