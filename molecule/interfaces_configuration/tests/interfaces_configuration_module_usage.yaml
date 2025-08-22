@@ -1,0 +1,238 @@
+---
+- name: Test basic interface configuration with description
+  block:
+    - name: Test basic interface configuration with description
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN Interface"
+        enabled: true
+      register: basic_config_result
+
+    - name: Verify basic configuration was successful
+      ansible.builtin.assert:
+        that:
+          - basic_config_result is succeeded
+          - basic_config_result is changed
+        fail_msg: "Basic interface configuration failed"
+        success_msg: "Basic interface configuration successful"
+
+- name: Test static IPv4 configuration
+  block:
+    - name: Test static IPv4 configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with Static IP"
+        ipv4_address: "192.168.1.1"
+        ipv4_subnet: 24
+        enabled: true
+      register: ipv4_static_result
+
+    - name: Verify IPv4 static configuration
+      ansible.builtin.assert:
+        that:
+          - ipv4_static_result is succeeded
+          - ipv4_static_result is changed
+        fail_msg: "IPv4 static configuration failed"
+        success_msg: "IPv4 static configuration successful"
+
+- name: Test invalid IPv4 address validation
+  block:
+    - name: Test invalid IPv4 address validation
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        ipv4_address: "invalid_ip"
+        ipv4_subnet: 24
+      register: invalid_ipv4_result
+      ignore_errors: yes
+
+    - name: Verify invalid IPv4 address is rejected
+      ansible.builtin.assert:
+        that:
+          - invalid_ipv4_result is failed
+        fail_msg: "Invalid IPv4 address should be rejected"
+        success_msg: "Invalid IPv4 address correctly rejected"
+
+- name: Test static IPv6 configuration
+  block:
+    - name: Test static IPv6 configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with IPv6"
+        ipv6_address: "2001:db8::1"
+        ipv6_subnet: 64
+        enabled: true
+      register: ipv6_static_result
+
+    - name: Verify IPv6 static configuration
+      ansible.builtin.assert:
+        that:
+          - ipv6_static_result is succeeded
+          - ipv6_static_result is changed
+        fail_msg: "IPv6 static configuration failed"
+        success_msg: "IPv6 static configuration successful"
+
+- name: Test DHCP hostname configuration
+  block:
+    - name: Test DHCP hostname configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "wan"
+        device: "em2"
+        description: "WAN with DHCP"
+        dhcp_hostname: "test-firewall"
+        dhcp_vlan_prio: 1
+        enabled: true
+      register: dhcp_config_result
+
+    - name: Verify DHCP configuration
+      ansible.builtin.assert:
+        that:
+          - dhcp_config_result is succeeded
+        fail_msg: "DHCP configuration failed"
+        success_msg: "DHCP configuration successful"
+
+    - name: Get the current config after DHCP configuration
+      ansible.builtin.slurp:
+        src: /conf/config.xml
+      register: dhcp_config
+
+    - name: Verify ipv4 address is 'dhcp' and netmask and gateway are removed when DHCP is enabled
+      ansible.builtin.assert:
+        that:
+          - "'<ipaddr>dhcp</ipaddr>' in (dhcp_config.content | b64decode)"
+          - "'<subnet>' not in (dhcp_config.content | b64decode)"
+          - "'<gateway>' not in (dhcp_config.content | b64decode)"
+        fail_msg: "DHCP configuration removed ipv4 address or netmask or gateway"
+
+- name: Test hardware settings configuration
+  block:
+    - name: Test hardware settings configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with HW Settings"
+        mtu: 1500
+        disable_checksum_offloading: true
+        disable_large_receive_offloading: false
+        disable_segmentation_offloading: true
+        enabled: true
+      register: hw_settings_result
+
+    - name: Verify hardware settings configuration
+      ansible.builtin.assert:
+        that:
+          - hw_settings_result is succeeded
+        fail_msg: "Hardware settings configuration failed"
+        success_msg: "Hardware settings configuration successful"
+
+- name: Test security settings (block private/bogons)
+  block:
+    - name: Test security settings (block private/bogons)
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "wan"
+        device: "em2"
+        description: "WAN with Security"
+        block_private: true
+        block_bogons: true
+        enabled: true
+      register: security_settings_result
+
+    - name: Verify security settings configuration
+      ansible.builtin.assert:
+        that:
+          - security_settings_result is succeeded
+        fail_msg: "Security settings configuration failed"
+        success_msg: "Security settings configuration successful"
+
+- name: Test interface creation with state present (explicit)
+  block:
+    - name: Test interface creation with state present (explicit)
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "opt1"
+        device: "em3"
+        description: "OPT1 Test Interface"
+        state: present
+        enabled: true
+      register: state_present_result
+
+    - name: Verify interface creation
+      ansible.builtin.assert:
+        that:
+          - state_present_result is succeeded
+        fail_msg: "Interface creation with state present failed"
+        success_msg: "Interface creation with state present successful"
+
+- name: Test DHCPv6 advanced configuration
+  block:
+    - name: Test DHCPv6 advanced configuration
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "em1"
+        description: "LAN with DHCPv6"
+        dhcp6_vlan_prio: 2
+        dhcp6_ia_pd_len: 56
+        dhcp6_prefix_id: 1
+        enabled: true
+      register: dhcp6_config_result
+
+    - name: Verify DHCPv6 configuration
+      ansible.builtin.assert:
+        that:
+          - dhcp6_config_result is succeeded
+        fail_msg: "DHCPv6 configuration failed"
+        success_msg: "DHCPv6 configuration successful"
+
+
+- name: Test device already assigned error
+  block:
+    - name: Test device already assigned error
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "wan"
+        device: "em1"  # em1 is already assigned to lan
+        description: "Should fail - device conflict"
+      register: device_conflict_result
+      ignore_errors: yes
+
+    - name: Verify device conflict is handled
+      ansible.builtin.assert:
+        that:
+          - device_conflict_result is failed
+        fail_msg: "Device conflict should be detected and fail"
+        success_msg: "Device conflict correctly detected"
+
+- name: Test unknown identifier with existing device
+  block:
+    - name: Test unknown identifier with existing device
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "unknown_identifier"
+        device: "em1"
+        description: "Should fail - unknown identifier"
+      register: unknown_identifier_result
+      ignore_errors: yes
+
+    - name: Verify unknown identifier error
+      ansible.builtin.assert:
+        that:
+          - unknown_identifier_result is failed
+        fail_msg: "Unknown identifier should be rejected"
+        success_msg: "Unknown identifier correctly rejected"
+
+- name: Test non-existent device error
+  block:
+    - name: Test non-existent device error
+      puzzle.opnsense.interfaces_configuration:
+        identifier: "lan"
+        device: "nonexistent_device"
+        description: "Should fail - device doesn't exist"
+      register: nonexistent_device_result
+      ignore_errors: yes
+
+    - name: Verify non-existent device error
+      ansible.builtin.assert:
+        that:
+          - nonexistent_device_result is failed
+        fail_msg: "Non-existent device should be rejected"
+        success_msg: "Non-existent device correctly rejected"

@@ -1016,7 +1016,7 @@ def main():
         except ValueError as e:
             module.fail_json(msg=str(e))
 
-    interface_configuration = InterfaceConfiguration.from_ansible_module_params(params)
+    interface_configuration = InterfaceConfiguration.from_ansible_module_params(params.copy())
     with InterfacesSet() as interfaces_set:
         try:
             existing_interface = interfaces_set.find(identifier=params["identifier"])

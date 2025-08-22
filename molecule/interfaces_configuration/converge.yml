@@ -3,52 +3,5 @@
   hosts: all
   become: true
   tasks:
-    - name: Test interface lan, device em1 description update
-      puzzle.opnsense.interfaces_configuration:
-        identifier: "lan"
-        device: "em1"
-        description: "LAN1"
-
-    - name: Test interface wan, device update from em2 to em3
-      puzzle.opnsense.interfaces_configuration:
-        identifier: "wan"
-        device: "em3"
-        description: "wan_interface"
-      register: device_already_assigned_result
-      ignore_errors: yes
-
-    - name: "Verify that the device update failed since the device is already assigned"
-      ansible.builtin.assert:
-        that:
-          - device_already_assigned_result is failed
-        fail_msg: "This device is already assigned, please unassign this device first"
-        success_msg: "This device is already assigned, please unassign this device first"
-
-    - name: Test unknown identifier to used device description update
-      puzzle.opnsense.interfaces_configuration:
-        identifier: "unknown_identifier"
-        device: "em1"
-        description: "unknown_identifier"
-      register: unknown_identifier_result
-      ignore_errors: yes
-
-    - name: "Verify that the device update failed since the device is already assigned"
-      ansible.builtin.assert:
-        that:
-          - unknown_identifier_result is failed
-        fail_msg: "This device is already assigned, please unassign this device first"
-        success_msg: "This device is already assigned, please unassign this device first"
-
-    - name: Test interface lan, unknown_device update
-      puzzle.opnsense.interfaces_configuration:
-        identifier: "lan"
-        device: "unknown_device"
-      register: unknown_device_result
-      ignore_errors: yes
-
-    - name: "Verify that the device update failed due to non-existing device"
-      ansible.builtin.assert:
-        that:
-          - unknown_device_result is failed
-        fail_msg: "Interface update should fail due to non-existing device"
-        success_msg: "Interface update failed as expected due to non-existing device"
+    - include_tasks: tests/interfaces_configuration_module_usage.yml
+    - include_tasks: tests/interfaces_configuration_config_types.yml
