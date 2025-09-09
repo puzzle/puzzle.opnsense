@@ -8,7 +8,7 @@ ansible = "==9.2.0"
 molecule = "24.2.0"
 antsibull-docs = "==2.9.0"
 coverage = "==7.3.2"
-molecule-plugins = {extras = ["vagrant"], version = "==23.5.3"}
+molecule-plugins = {extras = ["vagrant"], version = "==23.7.0"}
 pytest = "==8.1.1"
 pytest-forked = "==1.6.0"
 pytest-xdist = "==3.5.0"
