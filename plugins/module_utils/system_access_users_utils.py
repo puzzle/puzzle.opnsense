@@ -421,7 +421,9 @@ class User:
             if not apikey["key"]:
                 key = base64.b64encode(os.urandom(60)).decode("utf-8")
 
-                if not apikey["secret"]:
+                secret: Optional[str] = apikey.get("secret", None)
+
+                if not secret:
                     secret = base64.b64encode(os.urandom(60)).decode("utf-8")
 
                 api_keys.append({"key": key, "secret": secret})
