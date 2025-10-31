@@ -4,15 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ansible = "==11.9.0"
-molecule = "25.1.0"
+ansible = "==12.1.0"
+molecule = "25.9.0"
 antsibull-docs = "==2.21.0"
-coverage = "==7.6.1"
-pytest = "==8.4.1"
+coverage = "==7.11.0"
+pytest = "==8.4.2"
 pytest-forked = "==1.6.0"
 pytest-xdist = "==3.8.0"
-pyyaml = "==6.0.2"
-pylint = "==3.3.8"
-black = "==25.1.0"
+pyyaml = "==6.0.3"
+pylint = "==4.0.2"
+black = "==25.9.0"
 antsibull-changelog = "==0.34.0"
-molecule-plugins = {extras = ["vagrant"], version = "==23.7.0"}
+molecule-plugins = {extras = ["vagrant"], version = "==25.8.12"}
