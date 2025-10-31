@@ -219,10 +219,10 @@ or less like this:
         parallel: true
 
     platforms:
-        - name: "23.7"
+        - name: "25.7"
           box: puzzle/opnsense
           hostname: false
-          box_version: "23.7"
+          box_version: "25.7"
           memory: 1024
           cpus: 2
           instance_raw_config_args:
