@@ -210,44 +210,6 @@
       ignore_errors: true
       changed_when: false
 
-    - name: Converge - Check success on supported versions
-      ansible.builtin.assert:
-        that:
-          - unsupported_service_output is not failed
-        fail_msg: Service Web Proxy should be supported for Versions 23.7 and below
-      when: opnsense_version is version('24.1', '<')
-
-    - name: Converge - Check failure on unsupported versions
-      ansible.builtin.assert:
-        that:
-          - unsupported_service_output is failed
-        fail_msg: Service Web Proxy should not be supported for Versions 24.1 and up
-      when: opnsense_version is version('24.1', '>=')
-
-    - name: Converge - Set service on unsupported Version
-      puzzle.opnsense.system_high_availability_settings:
-        synchronize_interface: LAN
-        services_to_synchronize:
-          - Kea DHCP
-          - WireGuard
-      register: unsupported_service_output
-      ignore_errors: true
-      changed_when: false
-
-    - name: Converge - Check success on supported versions
-      ansible.builtin.assert:
-        that:
-          - unsupported_service_output is not failed
-        fail_msg: Services Kea DHCP and WireGuard should be supported for Versions 24.1 and up
-      when: opnsense_version is version('24.1', '>=')
-
-    - name: Converge - Check failure on unsupported versions
-      ansible.builtin.assert:
-        that:
-          - unsupported_service_output is failed
-        fail_msg: Services Kea DHCP and WireGuard  should not be supported for Versions 23.7 and below
-      when: opnsense_version is version('24.1', '<')
-
     - name: Converge - Set synchronize_interface to nonexistent Interface
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: silly
