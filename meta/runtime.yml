@@ -5,12 +5,16 @@ plugin_routing:
     firewall_alias:
       deprecation:
         removal_version: 2.0.0
-        warning_text: Use ansibleguy.opnsense.alias instead.
+        warning_text: Use oxlorg.opnsense.alias instead.
     firewall_rules:
       deprecation:
         removal_version: 2.0.0
-        warning_text: Use ansibleguy.opnsense.rule instead.
+        warning_text: Use oxlorg.opnsense.rule instead.
     system_settings_logging:
       deprecation:
         removal_version: 2.0.0
-        warning_text: Use ansibleguy.opnsense.syslog instead.
+        warning_text: Use oxlorg.opnsense.syslog instead.
+    system_access_users:
+      deprecation:
+        removal_version: 2.0.0
+        warning_text: Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.
