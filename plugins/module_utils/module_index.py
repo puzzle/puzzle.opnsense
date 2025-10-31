@@ -627,26 +627,6 @@ VERSION_MAP = {
                 },
             },
         },
-        "system_high_availability_settings": {
-            "hasync": "hasync",
-            "synchronize_states": "hasync/pfsyncenabled",
-            "synchronize_interface": "hasync/pfsyncinterface",
-            "synchronize_peer_ip": "hasync/pfsyncpeerip",
-            "synchronize_config_to_ip": "hasync/synchronizetoip",
-            "remote_system_username": "hasync/username",
-            "sync_compatibility": "hasync/pfsyncversion",
-            "remote_system_password": "hasync/password",
-            "disable_preempt": "hasync/disablepreempt",
-            "disconnect_dialup_interfaces": "hasync/disconnectppps",
-            "sync_services": "hasync/syncitems",
-            "php_requirements": [
-                "/usr/local/etc/inc/interfaces.inc",
-                "/usr/local/etc/inc/util.inc",
-                "/usr/local/etc/inc/config.inc",
-                "/usr/local/etc/inc/plugins.inc",
-            ],
-            "configure_functions": {},
-        },
         "interfaces_assignments": {
             "interfaces": "interfaces",
             # Add other mappings here.
