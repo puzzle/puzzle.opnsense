@@ -20,6 +20,10 @@ version_added: "1.2.0"
 short_description: Configure high availability settings
 description:
   - Module to configure high availability system settings
+deprecated:
+  removed_in: 3.0.0
+  why: This configuration is supported using the API and therefore implemented in the oxlorg.opnsense collection.
+  alternative: Use L(oxlorg.opnsense ha modules, https://ansible-opnsense.oxl.app/modules/hasync.html) instead.
 options:
   disable_preempt:
     description: "When this device is configured as CARP master it will try to switch to master when powering up, this option will keep this one slave if there already is a master on the network. A reboot is required to take effect."

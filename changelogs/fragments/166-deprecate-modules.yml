@@ -1,5 +1,5 @@
 ---
 deprecated_features:
-    - firewall_alias - Use ansibleguy.opnsense.alias instead
-    - firewall_rules - Use ansibleguy.opnsense.rule instead
-    - system_settings_logging - Use ansibleguy.opnsense.syslog instead
+    - firewall_alias - Use oxlorg.opnsense.alias instead
+    - firewall_rules - Use oxlorg.opnsense.rule instead
+    - system_settings_logging - Use oxlorg.opnsense.syslog instead

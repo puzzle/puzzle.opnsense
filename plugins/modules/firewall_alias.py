@@ -20,8 +20,8 @@ version_added: 1.4.0
 
 deprecated:
   removed_in: 3.0.0
-  why: This configuration is supported using the API and therefore implemented in the ansibleguy.opnsense collection.
-  alternative: Use L(ansibleguy.opnsense.alias, https://opnsense.ansibleguy.net/modules/alias.html) instead.
+  why: This configuration is supported using the API and therefore implemented in the oxlorg.opnsense collection.
+  alternative: Use L(oxlorg.opnsense.alias, https://ansible-opnsense.oxl.app/modules/alias.html) instead.
 
 description: Module to configure opnsense firewall aliases
 options:
