@@ -51,6 +51,7 @@ provisioner:
     name: ansible
     env:
         ANSIBLE_VERBOSITY: 3
+        ANSIBLE_LIBRARY: "${VIRTUAL_ENV}/lib/python3.11/site-packages/molecule_plugins/vagrant/modules"
 verifier:
     name: ansible
     options:
