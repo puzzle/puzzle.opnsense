@@ -1,3 +1,3 @@
 ---
-deprecated_features:
+breaking_changes:
   - OPNsense 23.1 support has been deprecated
