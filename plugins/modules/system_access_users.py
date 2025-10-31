@@ -22,6 +22,10 @@ description:
 author:
     - Kilian Soltermann (@killuuuhh)
 version_added: "1.0.0"
+deprecated:
+  removed_in: 3.0.0
+  why: This configuration is supported using the API and therefore implemented in the oxlorg.opnsense collection.
+  alternative: Use L(oxlorg.opnsense access modules, https://ansible-opnsense.oxl.app/modules/access.html) instead.
 options:
     username:
         description:

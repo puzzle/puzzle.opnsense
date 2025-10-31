@@ -1,0 +1,8 @@
+---
+system:
+  settings:
+    general:
+      hostname: "firewall01"
+      domain: "test.local"
+      timezone: "Europe/Zurich"
+firewall: {}

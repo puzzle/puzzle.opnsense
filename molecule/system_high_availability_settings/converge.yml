@@ -97,7 +97,7 @@
     - name: Converge - Check that services changed
       ansible.builtin.assert:
         that:
-          - "'<syncitems>{{ services | join(',') }}</syncitems>' in ( current_config.content | b64decode )"
+          - "('<syncitems>' + (services | join(',')) + '</syncitems>') in (current_config.content | b64decode)"
       when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - check idempotence
