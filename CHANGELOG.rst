@@ -20,8 +20,9 @@ Minor Changes
 Breaking Changes / Porting Guide
 --------------------------------
 
-- OPNsense 22.7 support has been deprecated
-- OPNsense 23.1 support has been deprecated
+- OPNsense 22.7 support has been dropped
+- OPNsense 23.1 support has been dropped
+- OPNsense 23.7 support has been dropped
 
 Deprecated Features
 -------------------

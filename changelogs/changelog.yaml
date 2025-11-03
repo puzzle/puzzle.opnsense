@@ -114,8 +114,9 @@ releases:
   2.0.0:
     changes:
       breaking_changes:
-      - OPNsense 22.7 support has been deprecated
-      - OPNsense 23.1 support has been deprecated
+      - OPNsense 22.7 support has been dropped. 
+      - OPNsense 23.1 support has been dropped. 
+      - OPNsense 23.7 support has been dropped. 
       deprecated_features:
       - firewall_alias - Use oxlorg.opnsense.alias instead
       - firewall_rules - Use oxlorg.opnsense.rule instead
