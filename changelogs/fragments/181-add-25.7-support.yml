@@ -1,8 +1,0 @@
----
-
-major_changes:
-  - OPNsense 25.7 support
-
-deprecated_features:
-  - system_access_users - Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.
-  - system_high_availability_settings - Use oxlorg.opnsense.hasync_general and oxlorg.opnsense.hasync_service instead.

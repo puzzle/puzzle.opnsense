@@ -1,5 +1,0 @@
----
-deprecated_features:
-    - firewall_alias - Use oxlorg.opnsense.alias instead
-    - firewall_rules - Use oxlorg.opnsense.rule instead
-    - system_settings_logging - Use oxlorg.opnsense.syslog instead

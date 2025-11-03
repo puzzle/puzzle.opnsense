@@ -4,6 +4,35 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v2.0.0
+======
+
+Major Changes
+-------------
+
+- OPNsense 25.7 support
+
+Minor Changes
+-------------
+
+- plugins.module_utils.xml_utils:elements_equal - Fix element content comparison behaviour
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- OPNsense 22.7 support has been dropped
+- OPNsense 23.1 support has been dropped
+- OPNsense 23.7 support has been dropped
+
+Deprecated Features
+-------------------
+
+- firewall_alias - Use oxlorg.opnsense.alias instead
+- firewall_rules - Use oxlorg.opnsense.rule instead
+- system_access_users - Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.
+- system_high_availability_settings - Use oxlorg.opnsense.hasync_general and oxlorg.opnsense.hasync_service instead.
+- system_settings_logging - Use oxlorg.opnsense.syslog instead
+
 v1.5.0
 ======
 
