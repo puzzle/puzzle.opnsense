@@ -149,14 +149,14 @@
     - name: Converge - Check that all services are removed
       ansible.builtin.assert:
         that:
-          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' not  in ( current_config.content | b64decode )"
+          - "('<synchronize' ~ item ~ '>on</synchronize' ~ item ~ '>') not in (current_config.content | b64decode)"
       loop: "{{ services }}"
       when: opnsense_version is version('24.7', '<')
 
     - name: Converge - Check that services changed
       ansible.builtin.assert:
         that:
-          - "'<syncitems>{{ services | join(',') }}</syncitems>' not in ( current_config.content | b64decode )"
+          - "('<syncitems>' ~ (services | join(',')) ~ '</syncitems>') not in (current_config.content | b64decode)"
       when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - Check that all settings in question are removed
