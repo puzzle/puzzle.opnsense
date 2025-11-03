@@ -1,3 +1,0 @@
----
-minor_changes:
-  - plugins.module_utils.xml_utils:elements_equal - Fix element content comparison behaviour

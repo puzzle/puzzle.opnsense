@@ -111,3 +111,28 @@ releases:
     - 160-fix-user-removal.yml
     - 161-fix-empty-parameters-handling.yml
     release_date: '2024-11-26'
+  2.0.0:
+    changes:
+      breaking_changes:
+      - OPNsense 22.7 support has been deprecated
+      - OPNsense 23.1 support has been deprecated
+      deprecated_features:
+      - firewall_alias - Use oxlorg.opnsense.alias instead
+      - firewall_rules - Use oxlorg.opnsense.rule instead
+      - system_access_users - Use oxlorg.opnsense.user, oxlorg.opnsense.group and
+        oxlorg.opnsense.privilege instead.
+      - system_high_availability_settings - Use oxlorg.opnsense.hasync_general and
+        oxlorg.opnsense.hasync_service instead.
+      - system_settings_logging - Use oxlorg.opnsense.syslog instead
+      major_changes:
+      - OPNsense 25.7 support
+      minor_changes:
+      - plugins.module_utils.xml_utils:elements_equal - Fix element content comparison
+        behaviour
+    fragments:
+    - 164-fix-xml-element-comparison-util.yml
+    - 166-deprecate-modules.yml
+    - 167-drop-22.7.yml
+    - 168-drop-23.1.yml
+    - 181-add-25.7-support.yml
+    release_date: '2025-11-03'
