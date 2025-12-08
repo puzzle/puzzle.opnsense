@@ -13,6 +13,6 @@ pytest-forked = "==1.6.0"
 pytest-xdist = "==3.8.0"
 pyyaml = "==6.0.3"
 pylint = "==4.0.2"
-black = "==25.9.0"
+black = "==25.12.0"
 antsibull-changelog = "==0.34.0"
 molecule-plugins = {extras = ["vagrant"], version = "==25.8.12"}
