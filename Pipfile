@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 ansible = "==12.1.0"
 molecule = "25.9.0"
-antsibull-docs = "==2.22.0"
+antsibull-docs = "==2.24.0"
 coverage = "==7.11.0"
 pytest = "==8.4.2"
 pytest-forked = "==1.6.0"
