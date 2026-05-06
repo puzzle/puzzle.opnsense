@@ -1,5 +1,5 @@
 ---
-requires_ansible: '>=2.11.0'  # Use '>=2.9.10' instead, if needed
+requires_ansible: '>=2.18.0'
 plugin_routing:
   modules:
     firewall_alias:
