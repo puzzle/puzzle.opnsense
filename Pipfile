@@ -7,7 +7,7 @@ name = "pypi"
 python_version = "3.11"
 
 [packages]
-ansible = "==12.1.0"
+ansible = "==13.7.0"
 molecule = "25.9.0"
 antsibull-docs = "==2.22.0"
 coverage = "==7.11.0"
