@@ -27,6 +27,7 @@ For example, the 'system_settings_general' module for "24.7" includes:
 This map is essential for dynamically configuring modules based on the OPNsense version and
 provides a centralized definition for various configurations across different OPNsense versions.
 """
+
 # pylint: disable=duplicate-code; Since this is rewritten in some tests.
 VERSION_MAP = {
     "24.7": {
@@ -77,6 +78,68 @@ VERSION_MAP = {
                 },
             },
         },
+        "system_settings_logging": {
+            "preserve_logs": ".//Syslog/general/maxpreserve",
+            "max_log_file_size_mb": ".//Syslog/general/maxfilesize",
+            # Add other mappings here
+            "php_requirements": [
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {
+                "system_settings_logging": {
+                    "name": "system_syslog_start",
+                    "configure_params": ["true"],
+                }
+            },
+        },
+        "system_access_users": {
+            "users": "system/user",
+            "uid": "system/nextuid",
+            "gid": "system/nextgid",
+            "system": "system",
+            "maximumtableentries": "system/maximumtableentries",
+            "php_requirements": [
+                "/usr/local/etc/inc/system.inc",
+            ],
+            "configure_functions": {},
+        },
+        "password": {
+            "php_requirements": [
+                "/usr/local/etc/inc/auth.inc",
+            ],
+            "configure_functions": {
+                "password": {
+                    "name": "echo password_hash",
+                    "configure_params": [
+                        "'password'",
+                        "PASSWORD_BCRYPT",
+                        "[ 'cost' => 11 ]",
+                    ],
+                },
+            },
+        },
+        "firewall_rules": {
+            "rules": "filter",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/system.inc",
+                "/usr/local/etc/inc/filter.inc",
+            ],
+            "configure_functions": {
+                "system_cron_configure": {
+                    "name": "system_cron_configure",
+                    "configure_params": ["true"],
+                },
+                "filter_configure": {
+                    "name": "filter_configure",
+                    "configure_params": [],
+                },
+            },
+        },
         "interfaces_assignments": {
             "interfaces": "interfaces",
             # Add other mappings here.
@@ -94,6 +157,33 @@ VERSION_MAP = {
                     "configure_params": [],
                 },
             },
+        },
+        "system_high_availability_settings": {
+            # Add other mappings here
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "sync_compatibility": "hasync/pfsyncversion",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "sync_services": "hasync/syncitems",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
+        },
+        "firewall_alias": {
+            "alias": "OPNsense/Firewall/Alias/aliases",
+            "geoip": "OPNsense/Firewall/Alias/geoip",
+            "php_requirements": [],
+            "configure_functions": {},
         },
     },
     "25.1": {
@@ -143,6 +233,26 @@ VERSION_MAP = {
                     "configure_params": ["true"],
                 },
             },
+        },
+        "system_high_availability_settings": {
+            "hasync": "hasync",
+            "synchronize_states": "hasync/pfsyncenabled",
+            "synchronize_interface": "hasync/pfsyncinterface",
+            "synchronize_peer_ip": "hasync/pfsyncpeerip",
+            "synchronize_config_to_ip": "hasync/synchronizetoip",
+            "remote_system_username": "hasync/username",
+            "sync_compatibility": "hasync/pfsyncversion",
+            "remote_system_password": "hasync/password",
+            "disable_preempt": "hasync/disablepreempt",
+            "disconnect_dialup_interfaces": "hasync/disconnectppps",
+            "sync_services": "hasync/syncitems",
+            "php_requirements": [
+                "/usr/local/etc/inc/interfaces.inc",
+                "/usr/local/etc/inc/util.inc",
+                "/usr/local/etc/inc/config.inc",
+                "/usr/local/etc/inc/plugins.inc",
+            ],
+            "configure_functions": {},
         },
         "interfaces_assignments": {
             "interfaces": "interfaces",
