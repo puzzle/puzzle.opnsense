@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ba76fa0cffe1bafc4bb571d40abf81f173529b1d9cabd23bb3df1cb0d5d64eab"
+            "sha256": "5726e0b3e9d7a6214afef829fe1d04585a1de95f3c76bc6261d5d22a434bdd0b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -242,12 +242,12 @@
         },
         "antsibull-docs": {
             "hashes": [
-                "sha256:2051ba036b5d52561149a729e3070637e26acf050d6b101370734caa10103a9b",
-                "sha256:af83fa25f4e0fcecb24bc6ad7859a25f612742797546336d121e634295d2b7f2"
+                "sha256:14a9b3633fb2cf962436ea8eda254bfc5cff80ce34b9d51ba0dd46c59b6afb3d",
+                "sha256:d011836a8644996ed5fcaf7bd03b8c5917d5caa68c4b9882fe70d50719121506"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==2.22.0"
+            "version": "==2.24.0"
         },
         "antsibull-docs-parser": {
             "hashes": [
@@ -352,11 +352,11 @@
         },
         "certifi": {
             "hashes": [
-                "sha256:3cb2210c8f88ba2318d29b0388d1023c8492ff72ecdde4ebdaddbb13a31b1c4a",
-                "sha256:8d455352a37b71bf76a79caa83a3d6c25afee4a385d632127b6afb3963f1c580"
+                "sha256:3c52e209ba0a4ad7aebe60436a4ab349c39e1e602e8c134221e546902ad25897",
+                "sha256:69dea482ab64caa7b9f6aba1c6bf48bb6a5448d1c0f1b17ab42ad8c763a5344d"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==2026.4.22"
+            "version": "==2026.5.20"
         },
         "cffi": {
             "hashes": [
