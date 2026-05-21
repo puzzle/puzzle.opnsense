@@ -522,6 +522,7 @@ def main():
             ],
         ],
     )
+    opnsense_utils.initialize(module)
     result = {
         "changed": False,
         "invocation": module.params,
