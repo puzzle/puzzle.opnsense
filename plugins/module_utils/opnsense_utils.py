@@ -37,7 +37,10 @@ def _run_php_command(php_cmd: str) -> dict:
     """
 
     if _module is None:
-        raise RuntimeError("Module not initialized")
+        raise RuntimeError(
+        "opnsense_utils._module is not set. "
+        "Call opnsense_utils.initialize(module) after creating the AnsibleModule instance."
+    )
 
     rc, stdout, stderr = _module.run_command(["php", "-r", php_cmd])
     stdout = stdout.strip()
