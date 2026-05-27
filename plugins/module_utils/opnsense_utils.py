@@ -16,7 +16,11 @@ _module: Optional[AnsibleModule] = None
 
 
 def initialize(module) -> None:
-    """Register the AnsibleModule instance for use by run_function and run_command."""
+    """Register the AnsibleModule instance for use by run_function and run_command.
+ 
+    Must be called once in each module's main() after creating the AnsibleModule
+    instance. Also required in unit tests before calling any function that
+    invokes _run_php_command."""
     global _module
     _module = module
 
