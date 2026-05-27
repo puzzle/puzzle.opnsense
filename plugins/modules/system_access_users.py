@@ -162,7 +162,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_user
     OPNsenseNotValidBase64APIKeyError,
 )
 
-
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
 

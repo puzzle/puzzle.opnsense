@@ -17,7 +17,6 @@ from xml.etree.ElementTree import Element
 import pytest
 from ansible_collections.puzzle.opnsense.plugins.module_utils import xml_utils
 
-
 ###############################
 # --- Dict to ElementTree --- #
 ###############################

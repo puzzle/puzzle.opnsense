@@ -5,24 +5,23 @@
 
 from __future__ import absolute_import, division, print_function
 
+from typing import List, Optional
+
 from ansible.module_utils.basic import AnsibleModule
-from typing import Optional
 
 __metaclass__ = type
 
-from typing import List
 
-_module: Optional[AnsibleModule] = None
+_state: dict[str, Optional[AnsibleModule]] = {"module": None}
 
 
 def initialize(module) -> None:
     """Register the AnsibleModule instance for use by run_function and run_command.
- 
+
     Must be called once in each module's main() after creating the AnsibleModule
     instance. Also required in unit tests before calling any function that
     invokes _run_php_command."""
-    global _module
-    _module = module
+    _state["module"] = module
 
 
 def _run_php_command(php_cmd: str) -> dict:
@@ -35,12 +34,13 @@ def _run_php_command(php_cmd: str) -> dict:
     Returns:
         dict: A dictionary containing stdout, stderr, and return code details.
     """
+    _module: Optional[AnsibleModule] = _state["module"]
 
     if _module is None:
         raise RuntimeError(
-        "opnsense_utils._module is not set. "
-        "Call opnsense_utils.initialize(module) after creating the AnsibleModule instance."
-    )
+            "opnsense_utils._module is not set. "
+            "Call opnsense_utils.initialize(module) after creating the AnsibleModule instance."
+        )
 
     rc, stdout, stderr = _module.run_command(["php", "-r", php_cmd])
     stdout = stdout.strip()

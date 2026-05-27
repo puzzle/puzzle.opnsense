@@ -3,6 +3,7 @@
 """
 Utilities for firewall_rules module related operations.
 """
+
 import dataclasses
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional

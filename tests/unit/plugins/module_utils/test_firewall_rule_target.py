@@ -3,6 +3,7 @@
 """
 Test suite for the FirewallRuleTarget class.
 """
+
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 

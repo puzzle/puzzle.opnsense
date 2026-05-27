@@ -7,10 +7,12 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from unittest.mock import MagicMock
+
 from ansible_collections.puzzle.opnsense.plugins.module_utils import opnsense_utils
 
 
 def test_run_function():
+    """Test run_function uses the registered AnsibleModule to execute a PHP command."""
     mock_module = MagicMock()
     mock_module.run_command.return_value = (
         0,
