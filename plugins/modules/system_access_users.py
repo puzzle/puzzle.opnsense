@@ -154,13 +154,13 @@ from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
 
+from ansible_collections.puzzle.opnsense.plugins.module_utils import opnsense_utils
 from ansible_collections.puzzle.opnsense.plugins.module_utils.system_access_users_utils import (
     User,
     UserSet,
     OPNsenseGroupNotFoundError,
     OPNsenseNotValidBase64APIKeyError,
 )
-
 
 ANSIBLE_MANAGED: str = "[ ANSIBLE ]"
 
@@ -204,6 +204,7 @@ def main():
         argument_spec=module_args,
         supports_check_mode=True,
     )
+    opnsense_utils.initialize(module)
 
     # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
     # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#return-block

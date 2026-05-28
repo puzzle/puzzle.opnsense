@@ -39,7 +39,6 @@ from ansible_collections.puzzle.opnsense.plugins.module_utils.interfaces_assignm
 
 import pytest
 
-
 TEST_VERSION_MAP = {
     "24.1": {
         "system_high_availability_settings": {

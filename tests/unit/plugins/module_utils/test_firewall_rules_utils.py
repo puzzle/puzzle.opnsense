@@ -3,6 +3,7 @@
 """
 Test suite for firewall_rules_utils utility
 """
+
 import os
 import re
 import sys

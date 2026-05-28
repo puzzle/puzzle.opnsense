@@ -5,10 +5,23 @@
 
 from __future__ import absolute_import, division, print_function
 
+from typing import List, Optional
+
+from ansible.module_utils.basic import AnsibleModule
+
 __metaclass__ = type
 
-from typing import List
-import subprocess
+
+_state: dict[str, Optional[AnsibleModule]] = {"module": None}
+
+
+def initialize(module) -> None:
+    """Register the AnsibleModule instance for use by run_function and run_command.
+
+    Must be called once in each module's main() after creating the AnsibleModule
+    instance. Also required in unit tests before calling any function that
+    invokes _run_php_command."""
+    _state["module"] = module
 
 
 def _run_php_command(php_cmd: str) -> dict:
@@ -21,19 +34,23 @@ def _run_php_command(php_cmd: str) -> dict:
     Returns:
         dict: A dictionary containing stdout, stderr, and return code details.
     """
-    cmd_result = subprocess.run(
-        ["php", "-r", php_cmd],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,  # do not raise exception if program fails
-    )
+    _module: Optional[AnsibleModule] = _state["module"]
 
+    if _module is None:
+        raise RuntimeError(
+            "opnsense_utils._module is not set. "
+            "Call opnsense_utils.initialize(module) after creating the AnsibleModule instance."
+        )
+
+    rc, stdout, stderr = _module.run_command(["php", "-r", php_cmd])
+    stdout = stdout.strip()
+    stderr = stderr.strip()
     return {
-        "stdout": cmd_result.stdout.decode().strip(),
-        "stdout_lines": cmd_result.stdout.decode().strip().splitlines(),
-        "stderr": cmd_result.stderr.decode().strip(),
-        "stderr_lines": cmd_result.stderr.decode().strip().splitlines(),
-        "rc": cmd_result.returncode,
+        "stdout": stdout,
+        "stdout_lines": stdout.splitlines(),
+        "stderr": stderr,
+        "stderr_lines": stderr.splitlines(),
+        "rc": rc,
     }
 
 
