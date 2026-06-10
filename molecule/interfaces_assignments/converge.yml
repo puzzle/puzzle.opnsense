@@ -1,6 +1,6 @@
 ---
 - name: converge
-  hosts: all
+  hosts: interfaces_assignments
   become: true
   tasks:
     - name: Test interface lan, device em1 description update

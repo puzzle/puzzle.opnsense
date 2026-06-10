@@ -1,6 +1,6 @@
 ---
 - name: Verify connectivity to server
-  hosts: all
+  hosts: firewall_alias
   tasks:
     - name: Ping the server
       ansible.builtin.ping:

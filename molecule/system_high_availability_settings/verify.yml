@@ -1,6 +1,6 @@
 ---
 - name: Verify connectivity to server
-  hosts: all
+  hosts: system_high_availability_settings
   tasks:
     - name: Ping the server
       ansible.builtin.ping:

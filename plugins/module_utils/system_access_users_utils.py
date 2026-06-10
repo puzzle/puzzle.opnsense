@@ -311,13 +311,11 @@ class User:
             return hashed_secret_value.get("stdout")
 
         # if validation fails,
-        raise OPNsenseCryptReturnError(
-            f"""
+        raise OPNsenseCryptReturnError(f"""
             validation of the secret failed!
             Secret must start with $6$ and have a min length of 90
             Value: {hashed_secret_value}
-            """
-        )
+            """)
 
     def __init__(self, **kwargs):
         # set default attributes
