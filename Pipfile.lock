@@ -1,23 +1,11 @@
 {
     "_meta": {
         "hash": {
-<<<<<<< Updated upstream
-            "sha256": "b0ffa1f26f2aa5db25abf06c0c2fec3318e9e94ccaf41f11623d25ef97c46167"
+            "sha256": "d37613d650a5cbcead624bfa4a50afa69aecebb49a8da6874e16e7ac890c9933"
         },
         "pipfile-spec": 6,
         "requires": {
             "python_version": "3.13"
-=======
-<<<<<<< Updated upstream
-            "sha256": "043b9f5041bb1d4ae3c23a9b89d994a292efed8693c5c5e92bdbad78a01f8cf3"
-=======
-            "sha256": "3464c6e1c650e793b5caba54a53636ff0825d1a5bc1be96d9fe1690154af6b28"
->>>>>>> Stashed changes
-        },
-        "pipfile-spec": 6,
-        "requires": {
-            "python_version": "3.11"
->>>>>>> Stashed changes
         },
         "sources": [
             {
@@ -1782,7 +1770,6 @@
             "markers": "python_full_version >= '3.9.0'",
             "version": "==15.0.0"
         },
-<<<<<<< Updated upstream
         "roman-numerals": {
             "hashes": [
                 "sha256:1af8b147eb1405d5839e78aeb93131690495fe9da5c91856cb33ad55a7f1e5b2",
@@ -1791,8 +1778,6 @@
             "markers": "python_version >= '3.10'",
             "version": "==4.1.0"
         },
-=======
->>>>>>> Stashed changes
         "rpds-py": {
             "hashes": [
                 "sha256:01d17b29c0c23d82b1f4751147ec49cf451f1fc2554eb9ef5f957e55d2656ead",
