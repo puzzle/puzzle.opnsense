@@ -1,6 +1,6 @@
 ---
 - name: converge
-  hosts: all
+  hosts: system_settings_general
   become: true
   tasks:
     - name: Converge - Set hostname

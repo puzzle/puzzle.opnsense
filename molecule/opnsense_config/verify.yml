@@ -1,6 +1,6 @@
 ---
 - name: Verify connectivity to server
-  hosts: all
+  hosts: opnsense_config
   tasks:
     - name: Ping the server
       ansible.builtin.ping:

@@ -1,39 +1,26 @@
 ---
 scenario:
-    name: system_access_users
-    test_sequence:
-        # - dependency not relevant unless we have requirements
-        - destroy
-        - syntax
-        - create
-#        - prepare
-        - converge
-        - idempotence
-        #- verify
-        - cleanup
-        - destroy
+  name: system_access_users
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - cleanup
+    - destroy
 
-driver:
-    name: vagrant
-    parallel: true
+ansible:
+  playbooks:
+    create: ../_resources/create.yml
+    destroy: ../_resources/destroy.yml
+  executor:
+    backend: ansible-playbook
+    args:
+      ansible_playbook:
+        - --inventory=${MOLECULE_PROJECT_DIRECTORY}/molecule/_inventory/
 
-platforms:
-    - name: "24.7"
-      box: puzzle/opnsense
-      hostname: false
-      box_version: "24.7"
-      memory: 1024
-      cpus: 2
-      instance_raw_config_args:
-        - 'vm.guest = :freebsd'
-        - 'ssh.sudo_command = "%c"'
-        - 'ssh.shell = "/bin/sh"'
-
-provisioner:
-    name: ansible
-    env:
-        ANSIBLE_LIBRARY: "${VIRTUAL_ENV}/lib/python3.11/site-packages/molecule_plugins/vagrant/modules"
 verifier:
-    name: ansible
-    options:
-        become: true
+  name: ansible
+  options:
+    become: true

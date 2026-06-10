@@ -1,6 +1,6 @@
 ---
 - name: Converge
-  hosts: all
+  hosts: system_high_availability_settings
   become: true
   vars:
     services:
