@@ -1,2 +1,0 @@
-breaking_changes:
-  - ci - raise minimum Python to 3.11 and drop ansible-core <2.18 support; add ansible-core 2.18/2.19/2.20 and Python 3.13/3.14 to CI matrix

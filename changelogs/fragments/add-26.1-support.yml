@@ -1,4 +1,0 @@
-minor_changes:
-  - module_index - add OPNsense 26.1 to VERSION_MAP for interfaces_assignments and system_settings_general
-breaking_changes:
-  - module_index - drop OPNsense 24.1 from VERSION_MAP

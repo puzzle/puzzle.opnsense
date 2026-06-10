@@ -1,2 +1,0 @@
-deprecated_features:
-  - system_high_availability_settings - will be removed in version 5.0.0; use oxlorg.opnsense.hasync_general and oxlorg.opnsense.hasync_service instead
