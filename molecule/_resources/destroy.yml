@@ -16,7 +16,6 @@
         chdir: "{{ ephemeral_dir }}"
       when: vagrantfile_stat.stat.exists
       changed_when: true
-      failed_when: false
 
     - name: Remove SSH config
       ansible.builtin.file:
