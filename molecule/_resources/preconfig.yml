@@ -1,0 +1,11 @@
+---
+- name: Preconfigure OPNsense VMs
+  hosts: "{{ lookup('env', 'MOLECULE_SCENARIO_NAME') }}"
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH connectivity
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Validate connectivity
+      ansible.builtin.ping:

@@ -1,0 +1,22 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+{% for host in scenario_hosts %}
+  config.vm.define "{{ host }}" do |node|
+    node.vm.box = "{{ hostvars[host]['vagrant_box'] }}"
+    node.vm.box_version = "{{ hostvars[host]['vagrant_box_version'] }}"
+    node.vm.guest = :freebsd
+    node.ssh.shell = "/bin/sh"
+    node.ssh.sudo_command = "%c"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = {{ hostvars[host]['vagrant_memory'] | default(1024) }}
+      vb.cpus = {{ hostvars[host]['vagrant_cpus'] | default(2) }}
+    end
+  end
+
+{% endfor %}
+end

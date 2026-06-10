@@ -1,0 +1,13 @@
+---
+vagrant_box: puzzle/opnsense
+vagrant_memory: 1024
+vagrant_cpus: 2
+
+ansible_connection: ssh
+ansible_user: vagrant
+ansible_ssh_common_args: "-F {{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/.vagrant_ssh_config"
+ansible_shell_type: sh
+ansible_shell_executable: /bin/sh
+ansible_become: true
+ansible_become_method: sudo
+ansible_become_exe: sudo

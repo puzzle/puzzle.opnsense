@@ -1,0 +1,29 @@
+---
+- name: Destroy OPNsense VMs for scenario
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ephemeral_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}"
+  tasks:
+    - name: Check if Vagrantfile exists
+      ansible.builtin.stat:
+        path: "{{ ephemeral_dir }}/Vagrantfile"
+      register: vagrantfile_stat
+
+    - name: Run vagrant destroy
+      ansible.builtin.command:
+        cmd: vagrant destroy --force
+        chdir: "{{ ephemeral_dir }}"
+      when: vagrantfile_stat.stat.exists
+      changed_when: true
+      failed_when: false
+
+    - name: Remove SSH config
+      ansible.builtin.file:
+        path: "{{ ephemeral_dir }}/.vagrant_ssh_config"
+        state: absent
+
+    - name: Remove Vagrantfile
+      ansible.builtin.file:
+        path: "{{ ephemeral_dir }}/Vagrantfile"
+        state: absent
