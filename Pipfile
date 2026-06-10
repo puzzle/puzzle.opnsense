@@ -8,16 +8,13 @@ python_version = "3.13"
 
 [packages]
 ansible = "==13.6.0"
-molecule = "26.4.0"
 antsibull-docs = "==2.24.0"
+antsibull-changelog = "==0.35.0"
+black = "==26.3.1"
+coverage = "==7.6.1"
+molecule = "26.4.0"
 pytest = "==9.0.3"
 pytest-forked = "==1.6.0"
 pytest-xdist = "==3.8.0"
 pyyaml = "==6.0.3"
 pylint = "==4.0.5"
-black = "==26.3.1"
-antsibull-changelog = "==0.35.0"
-molecule-plugins = {extras = ["vagrant"], version = "==25.8.12"}
-coverage = "==7.6.1"
-
-[dev-packages]

@@ -1,11 +1,23 @@
 {
     "_meta": {
         "hash": {
+<<<<<<< Updated upstream
             "sha256": "b0ffa1f26f2aa5db25abf06c0c2fec3318e9e94ccaf41f11623d25ef97c46167"
         },
         "pipfile-spec": 6,
         "requires": {
             "python_version": "3.13"
+=======
+<<<<<<< Updated upstream
+            "sha256": "043b9f5041bb1d4ae3c23a9b89d994a292efed8693c5c5e92bdbad78a01f8cf3"
+=======
+            "sha256": "3464c6e1c650e793b5caba54a53636ff0825d1a5bc1be96d9fe1690154af6b28"
+>>>>>>> Stashed changes
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.11"
+>>>>>>> Stashed changes
         },
         "sources": [
             {
@@ -1081,17 +1093,6 @@
             "markers": "python_version >= '3.10'",
             "version": "==26.4.0"
         },
-        "molecule-plugins": {
-            "extras": [
-                "vagrant"
-            ],
-            "hashes": [
-                "sha256:75f32763e90275bfc24bcc0d27b9bb22ac973658bf902b2e3e8af8e2a1c32083",
-                "sha256:c5b8ceb209a5ff87326631d60408f8d08b9431b2e339dad4c620130b50279ce0"
-            ],
-            "markers": "python_version >= '3.10'",
-            "version": "==25.8.12"
-        },
         "multidict": {
             "hashes": [
                 "sha256:026d264228bcd637d4e060844e39cdc60f86c479e463d49075dedc21b18fbbe0",
@@ -1621,14 +1622,6 @@
             "markers": "python_version >= '3.9'",
             "version": "==3.8.0"
         },
-        "python-vagrant": {
-            "hashes": [
-                "sha256:9f24a29e3f7b17d79c399d0f358d9cc1b76fd5495698c438a39cdae89de467f0",
-                "sha256:a8fe93ccf2ff37ecc95ec2f49ea74a91a6ce73a4db4a16a98dd26d397cfd09e5"
-            ],
-            "markers": "python_version >= '3.8'",
-            "version": "==1.0.0"
-        },
         "pytokens": {
             "hashes": [
                 "sha256:0fc71786e629cef478cbf29d7ea1923299181d0699dbe7c3c0f4a583811d9fc1",
@@ -1789,6 +1782,7 @@
             "markers": "python_full_version >= '3.9.0'",
             "version": "==15.0.0"
         },
+<<<<<<< Updated upstream
         "roman-numerals": {
             "hashes": [
                 "sha256:1af8b147eb1405d5839e78aeb93131690495fe9da5c91856cb33ad55a7f1e5b2",
@@ -1797,6 +1791,8 @@
             "markers": "python_version >= '3.10'",
             "version": "==4.1.0"
         },
+=======
+>>>>>>> Stashed changes
         "rpds-py": {
             "hashes": [
                 "sha256:01d17b29c0c23d82b1f4751147ec49cf451f1fc2554eb9ef5f957e55d2656ead",
