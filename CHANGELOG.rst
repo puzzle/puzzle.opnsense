@@ -4,6 +4,42 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v3.0.0
+======
+
+Minor Changes
+-------------
+
+- CI matrix updated to test against ``ansible-core`` 2.18, 2.19 and ``devel`` on Python 3.11, 3.12 and 3.13.
+- module_index - add OPNsense 26.1 to VERSION_MAP for interfaces_assignments and system_settings_general
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- The minimum supported ``ansible-core`` is now 2.18. ``ansible-core`` 2.12 through 2.17 are no longer tested or supported, as their lowest supported control-node Python is below the new floor.
+- The minimum supported control-node Python is now 3.11. Python 3.8, 3.9 and 3.10 are no longer supported.
+- ci - raise minimum Python to 3.11 and drop ansible-core <2.18 support; add ansible-core 2.18/2.19/2.20 and Python 3.13/3.14 to CI matrix
+- module_index - drop OPNsense 24.1 from VERSION_MAP
+
+Deprecated Features
+-------------------
+
+- firewall_alias - will be removed in version 4.0.0; use oxlorg.opnsense.alias instead
+- firewall_rules - will be removed in version 4.0.0; use oxlorg.opnsense.rule instead
+- system_high_availability_settings - will be removed in version 5.0.0; use oxlorg.opnsense.hasync_general and oxlorg.opnsense.hasync_service instead
+- system_settings_logging - will be removed in version 4.0.0; use oxlorg.opnsense.syslog instead
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- system_access_users - will be removed in version 4.0.0; use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead
+
+Bugfixes
+--------
+
+- interfaces_assignments - add OPNsense 26.1 molecule platform, remove 24.1
+- system_settings_general - update configure functions for OPNsense 26.1 (system_resolver_configure replaces system_trust_configure/system_hosts_generate/system_resolvconf_generate); add 26.1 molecule platform, remove 24.1
+
 v2.0.0
 ======
 
@@ -20,9 +56,9 @@ Minor Changes
 Breaking Changes / Porting Guide
 --------------------------------
 
-- OPNsense 22.7 support has been dropped
-- OPNsense 23.1 support has been dropped
-- OPNsense 23.7 support has been dropped
+- OPNsense 22.7 support has been dropped.
+- OPNsense 23.1 support has been dropped.
+- OPNsense 23.7 support has been dropped.
 
 Deprecated Features
 -------------------

@@ -1,2 +1,0 @@
-bugfixes:
-  - system_settings_general - update configure functions for OPNsense 26.1 (system_resolver_configure replaces system_trust_configure/system_hosts_generate/system_resolvconf_generate); add 26.1 molecule platform, remove 24.1
