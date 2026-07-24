@@ -2,7 +2,7 @@
 
 namespace: puzzle
 name: opnsense
-version: 3.0.0
+version: 4.0.0
 readme: README.md
 authors:
   - Lukas Grimm (github.com/ombre8)
@@ -17,8 +17,10 @@ tags:
 # tags so people can search for collections https://galaxy.ansible.com/search
 # tags are all lower-case, no spaces, no dashes.
   - opnsense
+  - networking
+  - security
 repository: https://github.com/puzzle/puzzle.opnsense/
-#documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
+# documentation: https://github.com/ansible-collection-migration/community.REPO_NAME/tree/main/docs
 homepage: https://puzzle.github.io/puzzle.opnsense/collections/puzzle/opnsense/
 issues: https://github.com/puzzle/puzzle.opnsense/issues
 build_ignore:

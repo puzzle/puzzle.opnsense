@@ -1,0 +1,4 @@
+deprecated_features:
+  - interfaces_assignments - deprecated because OPNsense 26.7 migrated interface
+    assignments to MVC/API. The module will be removed in 7.0.0 and is not
+    supported on OPNsense 26.7.

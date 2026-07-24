@@ -1,0 +1,2 @@
+removed_features:
+  - firewall_alias - removed in 4.0.0. Use oxlorg.opnsense.alias instead.
