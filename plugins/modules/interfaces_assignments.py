@@ -17,6 +17,10 @@ author:
   - Kilian Soltermann (@killuuuhh)
 module: interfaces_assignments
 version_added: "1.1.0"
+deprecated:
+  removed_in: "7.0.0"
+  why: OPNsense 26.7 migrated interface assignments to MVC/API, making the legacy PHP/config.xml approach incompatible with 26.7.
+  alternative: Use the OPNsense API directly or another collection that supports the new MVC/API interface assignments.
 short_description: This module can be used to assign interfaces to network ports and network IDs to new interfaces.
 description:
   - Module to assign interfaces to network ports and network IDs to new interfaces.

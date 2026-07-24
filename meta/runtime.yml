@@ -2,23 +2,13 @@
 requires_ansible: '>=2.18.0'
 plugin_routing:
   modules:
-    firewall_alias:
+    interfaces_assignments:
       deprecation:
-        removal_version: 4.0.0
-        warning_text: Use oxlorg.opnsense.alias instead.
-    firewall_rules:
-      deprecation:
-        removal_version: 4.0.0
-        warning_text: Use oxlorg.opnsense.rule instead.
-    system_access_users:
-      deprecation:
-        removal_version: 4.0.0
-        warning_text: Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.
+        removal_version: 7.0.0
+        warning_text: >-
+          OPNsense 26.7 migrated interface assignments to MVC/API; use the upstream
+          API directly or another collection that supports the new assignments API.
     system_high_availability_settings:
       deprecation:
         removal_version: 5.0.0
         warning_text: Use oxlorg.opnsense.hasync_general and oxlorg.opnsense.hasync_service instead.
-    system_settings_logging:
-      deprecation:
-        removal_version: 4.0.0
-        warning_text: Use oxlorg.opnsense.syslog instead.

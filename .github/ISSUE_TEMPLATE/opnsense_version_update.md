@@ -43,13 +43,9 @@ For each module in `plugins/modules/`, decide and check off:
 
 | Module                              | Still legacy? | MVC/API upstream? | Action                    |
 |-------------------------------------|---------------|-------------------|---------------------------|
-| `firewall_alias`                    | yes/no        | yes/no            | keep / update / deprecate |
-| `firewall_rules`                    | yes/no        | yes/no            | keep / update / deprecate |
-| `interfaces_configuration`          | yes/no        | yes/no            | keep / update / deprecate |
-| `system_access_users`               | yes/no        | yes/no            | keep / update / deprecate |
+| `interfaces_assignments`          | yes/no        | yes/no            | keep / update / deprecate |
 | `system_high_availability_settings` | yes/no        | yes/no            | keep / update / deprecate |
 | `system_settings_general`           | yes/no        | yes/no            | keep / update / deprecate |
-| `system_settings_logging`           | yes/no        | yes/no            | keep / update / deprecate |
 
 For every still-supported module:
 

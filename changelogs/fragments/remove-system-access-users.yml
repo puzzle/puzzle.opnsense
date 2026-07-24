@@ -1,0 +1,2 @@
+removed_features:
+  - system_access_users - removed in 4.0.0. Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.

@@ -1,0 +1,4 @@
+major_changes:
+  - Add OPNsense 26.7 support.
+breaking_changes:
+  - Drop OPNsense 24.7 support. The collection now supports OPNsense 25.1, 25.7, 26.1 and 26.7.

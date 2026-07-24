@@ -1,6 +1,0 @@
----
-- name: Verify connectivity to server
-  hosts: system_settings_logging
-  tasks:
-    - name: Ping the server
-      ansible.builtin.ping:
