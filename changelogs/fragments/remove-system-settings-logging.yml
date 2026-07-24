@@ -1,0 +1,2 @@
+removed_features:
+  - system_settings_logging - removed in 4.0.0. Use oxlorg.opnsense.syslog instead.

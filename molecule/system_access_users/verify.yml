@@ -1,6 +1,0 @@
----
-- name: Verify connectivity to server
-  hosts: system_access_users
-  tasks:
-    - name: Ping the server
-      ansible.builtin.ping:
