@@ -7,7 +7,7 @@ name = "pypi"
 python_version = "3.13"
 
 [packages]
-ansible = "==13.6.0"
+ansible = "==14.4.0"
 antsibull-docs = "==2.24.0"
 antsibull-changelog = "==0.35.0"
 black = "==26.3.1"
