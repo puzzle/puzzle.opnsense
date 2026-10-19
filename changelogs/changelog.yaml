@@ -182,3 +182,28 @@ releases:
     - remove-system-settings-logging.yml
     - system-settings-general-26.1.yml
     release_date: '2026-06-10'
+  4.0.0:
+    changes:
+      breaking_changes:
+      - Drop OPNsense 24.7 support. The collection now supports OPNsense 25.1, 25.7,
+        26.1 and 26.7.
+      deprecated_features:
+      - interfaces_assignments - deprecated because OPNsense 26.7 migrated interface
+        assignments to MVC/API. The module will be removed in 7.0.0 and is not supported
+        on OPNsense 26.7.
+      major_changes:
+      - Add OPNsense 26.7 support.
+      removed_features:
+      - firewall_alias - removed in 4.0.0. Use oxlorg.opnsense.alias instead.
+      - firewall_rules - removed in 4.0.0. Use oxlorg.opnsense.rule instead.
+      - system_access_users - removed in 4.0.0. Use oxlorg.opnsense.user, oxlorg.opnsense.group
+        and oxlorg.opnsense.privilege instead.
+      - system_settings_logging - removed in 4.0.0. Use oxlorg.opnsense.syslog instead.
+    fragments:
+    - add-26.7-support.yml
+    - deprecate-interfaces-assignments.yml
+    - remove-firewall-alias.yml
+    - remove-firewall-rules.yml
+    - remove-system-access-users.yml
+    - remove-system-settings-logging.yml
+    release_date: '2026-10-19'
