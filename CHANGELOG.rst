@@ -4,6 +4,32 @@ OPNsense Collection Release Notes
 
 .. contents:: Topics
 
+v4.0.0
+======
+
+Major Changes
+-------------
+
+- Add OPNsense 26.7 support.
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- Drop OPNsense 24.7 support. The collection now supports OPNsense 25.1, 25.7, 26.1 and 26.7.
+
+Deprecated Features
+-------------------
+
+- interfaces_assignments - deprecated because OPNsense 26.7 migrated interface assignments to MVC/API. The module will be removed in 7.0.0 and is not supported on OPNsense 26.7.
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- firewall_alias - removed in 4.0.0. Use oxlorg.opnsense.alias instead.
+- firewall_rules - removed in 4.0.0. Use oxlorg.opnsense.rule instead.
+- system_access_users - removed in 4.0.0. Use oxlorg.opnsense.user, oxlorg.opnsense.group and oxlorg.opnsense.privilege instead.
+- system_settings_logging - removed in 4.0.0. Use oxlorg.opnsense.syslog instead.
+
 v3.0.0
 ======
 

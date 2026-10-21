@@ -33,12 +33,15 @@ TEST_VERSION: str = """{
     """
 
 
-@patch("subprocess.check_output", return_value=TEST_VERSION)
+@patch(
+    "subprocess.run",
+    return_value=MagicMock(stdout=TEST_VERSION, stderr="", returncode=0),
+)
 def test_version_utils(mock_object: MagicMock):
     """
     Test the retrieval of the OPNsense version using the version_utils module.
 
-    This unit test mocks the `subprocess.check_output` method to simulate the system's response
+    This unit test mocks the `subprocess.run` method to simulate the system's response
     for the OPNsense version check. It ensures that the `get_opnsense_version` function
     correctly processes the output from the subprocess call, trimming any extraneous whitespace,
     and returns the exact version string.
@@ -48,7 +51,7 @@ def test_version_utils(mock_object: MagicMock):
     under test extracts the version number accurately, without any surrounding whitespace.
 
     Mocks:
-    - mock_subprocess_check_output (MagicMock): A mock for `subprocess.check_output` to avoid
+    - mock_subprocess_run (MagicMock): A mock for `subprocess.run` to avoid
       executing the actual command line call during testing.
 
     Assertions:

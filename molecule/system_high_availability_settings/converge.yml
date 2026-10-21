@@ -69,36 +69,14 @@
           - "'<username>opnsense</username>' in ( current_config.content | b64decode )"
           - "'<password>v3rys3cure</password>' in ( current_config.content | b64decode )"
           - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip>' in ( current_config.content | b64decode )"
-          - "'<pfsyncenabled>on</pfsyncenabled>' in ( current_config.content | b64decode )"
-          - "'<disablepreempt>on</disablepreempt>' in ( current_config.content | b64decode )"
-          - "'<disconnectppps>on</disconnectppps>' in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '<')
-
-    - name: Converge - Check that Parameters changed
-      ansible.builtin.assert:
-        that:
-          - "'<pfsyncinterface>lan</pfsyncinterface>' in ( current_config.content | b64decode )"
-          - "'<synchronizetoip>224.0.0.240</synchronizetoip>' in ( current_config.content | b64decode )"
-          - "'<username>opnsense</username>' in ( current_config.content | b64decode )"
-          - "'<password>v3rys3cure</password>' in ( current_config.content | b64decode )"
-          - "'<pfsyncpeerip>224.0.0.241</pfsyncpeerip>' in ( current_config.content | b64decode )"
           - "'<pfsyncenabled>1</pfsyncenabled>' in ( current_config.content | b64decode )"
           - "'<disablepreempt>1</disablepreempt>' in ( current_config.content | b64decode )"
           - "'<disconnectppps>1</disconnectppps>' in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '>=')
-
-    - name: Converge - Check that services changed
-      ansible.builtin.assert:
-        that:
-          - "'<synchronize{{ item }}>on</synchronize{{ item }}>' in ( current_config.content | b64decode )"
-      loop: "{{ services }}"
-      when: opnsense_version is version('24.7', '<')
 
     - name: Converge - Check that services changed
       ansible.builtin.assert:
         that:
           - "('<syncitems>' + (services | join(',')) + '</syncitems>') in (current_config.content | b64decode)"
-      when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - check idempotence
       puzzle.opnsense.system_high_availability_settings:
@@ -146,34 +124,17 @@
         src: /conf/config.xml
       register: current_config
 
-    - name: Converge - Check that all services are removed
-      ansible.builtin.assert:
-        that:
-          - "('<synchronize' ~ item ~ '>on</synchronize' ~ item ~ '>') not in (current_config.content | b64decode)"
-      loop: "{{ services }}"
-      when: opnsense_version is version('24.7', '<')
-
     - name: Converge - Check that services changed
       ansible.builtin.assert:
         that:
           - "('<syncitems>' ~ (services | join(',')) ~ '</syncitems>') not in (current_config.content | b64decode)"
-      when: opnsense_version is version('24.7', '>=')
 
-    - name: Converge - Check that all settings in question are removed
-      ansible.builtin.assert:
-        that:
-          - "'<pfsyncenabled>on</pfsyncenabled>' not  in ( current_config.content | b64decode )"
-          - "'<disablepreempt>on</disablepreempt>' not  in ( current_config.content | b64decode )"
-          - "'<disconnectppps>on</disconnectppps>' not  in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '<')
-
-    - name: Converge - (24.7) Check that all settings in question have changed
+    - name: Converge - Check that all settings in question have changed
       ansible.builtin.assert:
         that:
           - "'<pfsyncenabled>0</pfsyncenabled>' in ( current_config.content | b64decode )"
           - "'<disablepreempt>0</disablepreempt>' in ( current_config.content | b64decode )"
           - "'<disconnectppps>0</disconnectppps>' in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - check idempotence
       puzzle.opnsense.system_high_availability_settings:
@@ -238,7 +199,6 @@
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
         sync_compatibility: "<24.7"
-      when: opnsense_version is version('24.7', '>=')
       changed_when: false
 
     - name: Converge - get config
@@ -250,13 +210,11 @@
       ansible.builtin.assert:
         that:
           - "'<pfsyncversion>1301</pfsyncversion>' in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - Test sync_compatibility new version
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
         sync_compatibility: ">24.7"
-      when: opnsense_version is version('24.7', '>=')
       changed_when: false
 
     - name: Converge - get config
@@ -268,31 +226,13 @@
       ansible.builtin.assert:
         that:
           - "'<pfsyncversion>1400</pfsyncversion>' in ( current_config.content | b64decode )"
-      when: opnsense_version is version('24.7', '>=')
 
     - name: Converge - Test sync_compatibility idempotence
       puzzle.opnsense.system_high_availability_settings:
         synchronize_interface: LAN
         sync_compatibility: ">24.7"
-      when: opnsense_version is version('24.7', '>=')
       register: sync_compatibility_output
 
     - name: Converge - Test that nothing changed
       ansible.builtin.assert:
         that: sync_compatibility_output.changed == false
-
-
-    - name: Converge - Test sync_compatibility on unsupported version
-      puzzle.opnsense.system_high_availability_settings:
-        synchronize_interface: LAN
-        sync_compatibility: "<24.7"
-      register: sync_compatibility_output_fail
-      ignore_errors: true
-      when: opnsense_version is version('24.7', '<')
-
-    - name: Converge - Verify that sync_compatibility failed
-      ansible.builtin.assert:
-        that:
-          - sync_compatibility_output_fail is failed
-          - sync_compatibility_output_fail.msg == "Setting sync_compatibility is only supported for opnsense versions 24.7 and above"
-      when: opnsense_version is version('24.7', '<')
