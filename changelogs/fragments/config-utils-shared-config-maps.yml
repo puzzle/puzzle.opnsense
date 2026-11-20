@@ -1,0 +1,8 @@
+---
+bugfixes:
+  - config_utils - keep the config maps per OPNsenseModuleConfig instance. They were stored in a
+    class attribute shared by all instances, so config contexts of earlier instances leaked into
+    later ones (unit tests failed depending on test order).
+  - config_utils - let exceptions raised inside the OPNsenseModuleConfig context propagate
+    unchanged instead of re-creating them, which failed for exceptions not taking an exception as
+    argument and hid the original error.

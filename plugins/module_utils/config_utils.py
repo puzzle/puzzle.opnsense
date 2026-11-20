@@ -85,7 +85,7 @@ class OPNsenseModuleConfig:
     _config_xml_tree: Element
     _config_path: str
     _module_name: str
-    _config_maps: Dict[str, dict] = {}
+    _config_maps: Dict[str, dict]
     _config_contexts: List[str]
     _check_mode: bool
 
@@ -107,6 +107,9 @@ class OPNsenseModuleConfig:
         """
         self._module_name = module_name
         self._config_contexts = config_context_names
+        # per instance: a class level dict would be shared by all instances and
+        # keep config contexts of earlier instances
+        self._config_maps = {}
         self._config_path = path
         self._config_xml_tree = self._load_config()
         self.opnsense_version = version_utils.get_opnsense_version()
@@ -162,7 +165,10 @@ class OPNsenseModuleConfig:
             RuntimeError: If there are unsaved changes in the configuration.
         """
         if exc_type:
-            raise exc_type(exc_val).with_traceback(exc_tb)
+            # let the original exception propagate unchanged; re-creating it with
+            # exc_type(exc_val) fails for exceptions that don't take an exception
+            # instance as argument and hides the original error
+            return
         if self.changed and not self._check_mode:
             raise RuntimeError("Config has changed. Cannot exit without saving.")
 
