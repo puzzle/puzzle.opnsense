@@ -22,9 +22,12 @@ def get_opnsense_version() -> str:
     Returns output of command opensense-version
     """
     try:
-        version_string = subprocess.check_output(
-            args=["opnsense-version", "-O"], encoding="utf-8"
-        ).strip()
+        version_string = subprocess.run(
+            args=["opnsense-version", "-O"],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
 
     except subprocess.CalledProcessError as exc:
         raise OPNSenseVersionUsageError(

@@ -124,7 +124,7 @@ The ``VERSION_MAP`` is a crucial component in the OPNsense configuration utility
 Structure of VERSION_MAP
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Top-Level Keys: Each top-level key represents a specific version of OPNsense, such as "OPNsense 24.7 (amd64/OpenSSL)".
+- Top-Level Keys: Each top-level key represents a specific version of OPNsense, such as "26.7".
 
 - Config Context: Config context define a reusable context for modules to be consumed. They scope settings, configure functions and php requirements to single use cases. An Ansible Module can use one or multiple config contexts to access XML-Settings or php functions.
 
@@ -152,7 +152,7 @@ Example
 .. code-block:: python
 
     VERSION_MAP = {
-        "24.7": {
+        "25.1": {
             "system_settings_general": {
                 "hostname": "system/hostname",
                 "domain": "system/domain",
@@ -170,12 +170,12 @@ Example
                 },
             }
         },
-        "25.1": {
+        "26.7": {
             # ...
         },
     }
 
-In this example, the configuration for "24.7" is outlined, detailing settings, PHP requirements, and configure functions specific to the 'system_settings_general' module.
+In this example, the configuration for "25.1" is outlined, detailing settings, PHP requirements, and configure functions specific to the 'system_settings_general' module.
 
 This detailed and version-specific mapping ensures the utility module operates correctly across different OPNsense releases, contributing significantly to the robustness and reliability of the configuration management process.
 
@@ -219,10 +219,10 @@ or less like this:
         parallel: true
 
     platforms:
-        - name: "25.7"
+        - name: "26.7"
           box: puzzle/opnsense
           hostname: false
-          box_version: "25.7"
+          box_version: "26.7"
           memory: 1024
           cpus: 2
           instance_raw_config_args:
