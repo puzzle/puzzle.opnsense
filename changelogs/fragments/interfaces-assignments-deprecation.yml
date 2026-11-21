@@ -1,0 +1,2 @@
+deprecated_features:
+  - interfaces_assignments - deprecated the module as OPNsense migrated interface assignments to MVC/API; it will be removed in collection version 7.0.0.
