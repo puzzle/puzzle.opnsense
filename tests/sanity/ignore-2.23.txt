@@ -1,0 +1,1 @@
+plugins/module_utils/version_utils.py pylint:ansible-bad-function
